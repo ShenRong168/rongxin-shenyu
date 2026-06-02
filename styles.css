@@ -271,6 +271,11 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.service-card.wide {
+  grid-column: 1 / -1;
+  min-height: 320px;
+}
+
 .service-card.featured p,
 .service-card.featured li {
   color: rgba(255, 253, 248, 0.78);
