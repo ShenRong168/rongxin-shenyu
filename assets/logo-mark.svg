@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">榮心紳語 logo mark</title>
+  <desc id="desc">A simple wood-ring and leaf logo mark for 榮心紳語.</desc>
+  <circle cx="64" cy="64" r="56" fill="#425d4a"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#f8f5ee" stroke-width="3" opacity=".9"/>
+  <path d="M32 70c16-21 38-30 67-27-7 25-27 42-54 41 9-9 19-17 31-24-16 3-30 10-44 20z" fill="#f8f5ee"/>
+  <path d="M47 92c10-23 13-43 9-61" fill="none" stroke="#b9a164" stroke-width="5" stroke-linecap="round"/>
+  <path d="M49 34c11 7 20 16 27 29" fill="none" stroke="#b9a164" stroke-width="4" stroke-linecap="round"/>
+  <path d="M41 84c17-3 33-3 49 1" fill="none" stroke="#d5c58b" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+</svg>
