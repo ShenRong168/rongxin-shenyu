@@ -201,6 +201,36 @@ h1 {
   background: var(--cream);
 }
 
+.origin-section {
+  padding: clamp(54px, 8vw, 96px) clamp(18px, 5vw, 70px);
+  color: var(--cream);
+  background: var(--ink);
+}
+
+.origin-copy {
+  max-width: 940px;
+  margin: 0 auto;
+}
+
+.origin-copy blockquote {
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.origin-copy blockquote p {
+  max-width: 820px;
+  margin: 0 0 18px;
+  color: rgba(255, 253, 248, 0.84);
+  font-family: "Noto Serif TC", serif;
+  font-size: clamp(22px, 3vw, 36px);
+  line-height: 1.75;
+}
+
+.origin-copy blockquote p:last-child {
+  margin-bottom: 0;
+  color: var(--cream);
+}
+
 .intro-grid,
 .section-heading,
 .service-grid,
