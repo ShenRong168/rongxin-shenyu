@@ -16,6 +16,7 @@ Public URL after GitHub Pages setup:
 
 ## Edit Notes
 
-- Replace the disabled booking CTA once the Google Form is ready.
+- Google Form links are connected and include privacy notices.
+- Service price, booking terms, service boundaries, and privacy notice are published on the site.
 - Static article previews are in the `#articles` section.
 - Keep the service distinction clear: coaching/communication support is separate from licensed psychological counseling or therapy.

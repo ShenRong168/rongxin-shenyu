@@ -1,3 +1,4 @@
 desktop-check.png
 mobile-check.png
 *.log
+.DS_Store
