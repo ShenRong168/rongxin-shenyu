@@ -1,4 +1,38 @@
 {
   "timezone": "Asia/Taipei",
-  "posts": []
+  "posts": [
+    {
+      "id": "2026-07-06-safe-stranger-facebook",
+      "scheduledAt": "2026-07-06T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "有些話，不是不想說。\n\n只是對越熟的人，反而越說不出口。\n\n你怕家人擔心。\n怕伴侶覺得你又想太多。\n怕朋友聽完之後，只急著幫你出主意。\n怕同事知道太多，以後看你的眼光不一樣。\n\n所以很多事情，就被你慢慢放回心裡。\n\n你不是沒有想過找人聊聊。\n只是你很清楚，有些話一旦說出口，關係就會變得不一樣。\n\n這也是為什麼，有時候「陌生人」反而比較安全。\n\n因為他不在你的生活圈裡。\n不會拿你的故事去定義你。\n不需要你扮演堅強、懂事、有用、正常的人。\n\n你可以只是你。\n可以混亂。\n可以沉默。\n可以說到一半才發現，原來自己真正難受的不是那件事。\n\n榮心紳語想做的，就是這樣一個地方。\n\n我不是心理師，也不會替你診斷。\n我能做的，是成為一個安全的陌生人，陪你把心裡那團說不清楚的東西，慢慢說出來。\n\n有時候，人不是需要立刻被解決。\n\n是需要先有一個地方，可以不用防備地說真話。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #心靈陪伴 #內在對話 #職涯轉折",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/rongxin-safe-stranger-room.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-06-safe-stranger-instagram",
+      "scheduledAt": "2026-07-06T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "有些話，不是不想說。\n\n只是對越熟的人，反而越說不出口。\n\n你怕別人擔心。\n怕別人急著給建議。\n怕說出口之後，關係變得不一樣。\n\n所以有時候，陌生人反而比較安全。\n\n榮心紳語想做的，就是這樣一個地方：\n讓你可以不用防備地，把心裡那團說不清楚的東西慢慢說出來。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #心靈陪伴 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/rongxin-safe-stranger-room.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-06-safe-stranger-threads",
+      "scheduledAt": "2026-07-06T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "有些話，不是不想說。\n\n只是對越熟的人，反而越說不出口。\n\n你怕家人擔心。\n怕朋友急著給建議。\n怕伴侶覺得你又想太多。\n怕說出口之後，關係變得不一樣。\n\n所以有時候，陌生人反而比較安全。\n\n因為你不用扮演誰。\n你可以只是你。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    }
+  ]
 }
