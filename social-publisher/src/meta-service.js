@@ -185,7 +185,13 @@ export async function fetchFacebookPostMetrics({ postId, pageAccessToken }) {
   return metrics;
 }
 
-export async function publishInstagram({ instagramUserId, pageAccessToken, caption, imageUrl }) {
+export async function publishInstagram({
+  instagramUserId,
+  pageAccessToken,
+  caption,
+  imageUrl,
+  containerPollOptions
+}) {
   if (!imageUrl) {
     throw new Error("Instagram publishing requires an imageUrl for this MVP.");
   }
@@ -199,6 +205,12 @@ export async function publishInstagram({ instagramUserId, pageAccessToken, capti
     })
   });
 
+  await waitForInstagramContainer({
+    containerId: container.id,
+    pageAccessToken,
+    ...containerPollOptions
+  });
+
   return fetchJson(`${facebookGraphBase}/${instagramUserId}/media_publish`, {
     method: "POST",
     body: formBody({
@@ -206,6 +218,38 @@ export async function publishInstagram({ instagramUserId, pageAccessToken, capti
       access_token: pageAccessToken
     })
   });
+}
+
+export async function waitForInstagramContainer({
+  containerId,
+  pageAccessToken,
+  attempts = 10,
+  delayMs = 3000
+}) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const status = await fetchJson(
+      `${facebookGraphBase}/${containerId}?${new URLSearchParams({
+        fields: "status_code",
+        access_token: pageAccessToken
+      })}`
+    );
+
+    if (status.status_code === "FINISHED") return status;
+    if (status.status_code === "ERROR" || status.status_code === "EXPIRED") {
+      throw new Error(`Instagram media container ${status.status_code}`);
+    }
+
+    if (attempt < attempts) {
+      await delay(delayMs);
+    }
+  }
+
+  throw new Error("Instagram media container was not ready before timeout");
+}
+
+function delay(ms) {
+  if (!ms) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function fetchInstagramMediaMetrics({ mediaId, pageAccessToken }) {
