@@ -183,6 +183,105 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-07-15-workplace-confusion-1-facebook",
+      "scheduledAt": "2026-07-15T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "最近工作沒有出什麼大事，但你就是提不起勁——早上不想起床，開完會覺得更累，連放假也沒有真的休息到。\n\n如果你也有這種感覺，先想跟你說：這不代表你懶惰，也不代表你抗壓性不好。\n\n很多時候，這只是心裡在提醒你，有些話你已經忍了太久，忍到自己都快忘記原本在意的是什麼。\n\n不是每一種卡住，都要用「離職」來解決。有時候，只是需要先把那些說不清楚的感覺，好好說出來一次。\n\n#榮心紳語 #InnerDialogueStudio #職場迷惘 #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-1.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-15-workplace-confusion-1-instagram",
+      "scheduledAt": "2026-07-15T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "工作沒出什麼大事，卻天天覺得很累。\n\n不是你不夠努力，也不是你抗壓性不好。\n\n有些卡住，不是靠「撐過去」就能過去的——是需要被說出來一次。\n\n#職場迷惘 #人生除錯 #安全的陌生人 #榮心紳語",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-1.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-15-workplace-confusion-1-threads",
+      "scheduledAt": "2026-07-15T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "工作沒出什麼大事，卻天天覺得很累。\n\n不是你不夠努力，也不是你抗壓性不好。\n\n有時候，只是心裡有些話，忍了太久。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-17-workplace-confusion-2-facebook",
+      "scheduledAt": "2026-07-17T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "如果你也在職場迷惘裡打轉，這裡有個小練習，不用馬上找答案。\n\n先別急著問自己「我是不是該離職了」，試著問：讓我不舒服的，到底是「這件事」，還是「這個人」？\n\n是開會時沒人聽你講話，還是整個工作內容本身讓你提不起勁？\n\n這兩種問題，解法完全不一樣。先看清楚卡在哪裡，比急著做決定重要。\n\n#榮心紳語 #InnerDialogueStudio #職場迷惘 #自我覺察 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-2.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-17-workplace-confusion-2-instagram",
+      "scheduledAt": "2026-07-17T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "下次覺得卡住的時候，先問自己一句：\n\n讓我不舒服的，是「這件事」，還是「這個人」？\n\n分清楚，才知道下一步要調整什麼。\n\n#職場迷惘 #自我覺察 #榮心紳語",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-2.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-17-workplace-confusion-2-threads",
+      "scheduledAt": "2026-07-17T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "下次覺得卡住的時候，先問自己一句：\n\n讓我不舒服的，是「這件事」，還是「這個人」？\n\n分清楚，才知道下一步要調整什麼。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-19-workplace-confusion-3-facebook",
+      "scheduledAt": "2026-07-19T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "有些工作，明明每天都在做，卻覺得自己好像不在場。\n\n不是討厭這份工作，也說不出哪裡不對，只是心裡有一塊，好像一直沒有被聽見。\n\n如果你也是這樣，不用急著找答案。有時候，只是需要一個安全的空間，把這種說不清楚的感覺說出來——不是要被建議，只是想被聽懂。\n\n#榮心紳語 #InnerDialogueStudio #職場迷惘 #安全的陌生人 #被聽懂",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-3.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-19-workplace-confusion-3-instagram",
+      "scheduledAt": "2026-07-19T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "每天都在做同樣的事，卻覺得自己好像不在場。\n\n不是討厭工作，只是心裡有一塊，一直沒被聽見。\n\n有時候，不需要答案，只需要被聽懂。\n\n#職場迷惘 #安全的陌生人 #被聽懂",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-3.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-19-workplace-confusion-3-threads",
+      "scheduledAt": "2026-07-19T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "每天都在做同樣的事，卻覺得自己好像不在場。\n\n不是討厭工作，只是心裡有一塊，一直沒被聽見。\n\n不需要答案，只需要被聽懂。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-07-12T13:30:48.064Z"
