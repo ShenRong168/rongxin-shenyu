@@ -193,7 +193,17 @@
       "message": "如果你也在職場迷惘裡打轉，這裡有個小練習，不用馬上找答案。\n\n先別急著問自己「我是不是該離職了」，試著問：讓我不舒服的，到底是「這件事」，還是「這個人」？\n\n是開會時沒人聽你講話，還是整個工作內容本身讓你提不起勁？\n\n這兩種問題，解法完全不一樣。先看清楚卡在哪裡，比急著做決定重要。\n\n#榮心紳語 #InnerDialogueStudio #職場迷惘 #自我覺察 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-2.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-15T13:31:01.254Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122109127329372954",
+            "post_id": "1230312726828490_122109127359372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-15-workplace-confusion-2-instagram",
@@ -204,7 +214,16 @@
       "message": "下次覺得卡住的時候，先問自己一句：\n\n讓我不舒服的，是「這件事」，還是「這個人」？\n\n分清楚，才知道下一步要調整什麼。\n\n#職場迷惘 #自我覺察 #榮心紳語",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-2.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-15T13:31:12.630Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18603172042022339"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-15-workplace-confusion-2-threads",
@@ -215,7 +234,16 @@
       "message": "讓我不舒服的，是「這件事」，還是「這個人」？——這句話，能幫你省掉很多瞎猜的離職念頭。\n\n下次覺得卡住的時候，先問自己這一句。\n\n分清楚，才知道下一步要調整什麼。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-15T13:31:17.695Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18346465372170941"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-17-workplace-confusion-1-facebook",
@@ -284,5 +312,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-07-12T13:30:48.064Z"
+  "lastRunAt": "2026-07-15T13:30:55.524Z"
 }
