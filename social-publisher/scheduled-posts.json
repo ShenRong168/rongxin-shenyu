@@ -246,34 +246,100 @@
       ]
     },
     {
-      "id": "2026-07-17-workplace-confusion-1-facebook",
-      "scheduledAt": "2026-07-17T21:30:00+08:00",
+      "id": "2026-07-21-workplace-confusion-4-facebook",
+      "scheduledAt": "2026-07-21T21:30:00+08:00",
       "platforms": [
         "facebook"
       ],
       "message": "最近工作沒有出什麼大事，但你就是提不起勁——早上不想起床，開完會覺得更累，連放假也沒有真的休息到。\n\n如果你也有這種感覺，先想跟你說：這不代表你懶惰，也不代表你抗壓性不好。\n\n很多時候，這只是心裡在提醒你，有些話你已經忍了太久，忍到自己都快忘記原本在意的是什麼。\n\n不是每一種卡住，都要用「離職」來解決。有時候，只是需要先把那些說不清楚的感覺，好好說出來一次。\n\n#榮心紳語 #InnerDialogueStudio #職場迷惘 #安全的陌生人 #內在對話",
       "link": "",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-1.png",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/career-confusion-night-desk-phone-tea.png",
       "status": "queued"
     },
     {
-      "id": "2026-07-17-workplace-confusion-1-instagram",
-      "scheduledAt": "2026-07-17T21:30:00+08:00",
+      "id": "2026-07-21-workplace-confusion-4-instagram",
+      "scheduledAt": "2026-07-21T21:30:00+08:00",
       "platforms": [
         "instagram"
       ],
       "message": "工作沒出什麼大事，卻天天覺得很累。\n\n不是你不夠努力，也不是你抗壓性不好。\n\n有些卡住，不是靠「撐過去」就能過去的——是需要被說出來一次。\n\n#職場迷惘 #人生除錯 #安全的陌生人 #榮心紳語",
       "link": "",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/workplace-confusion-quote-1.png",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/career-confusion-night-desk-phone-tea.png",
       "status": "queued"
     },
     {
-      "id": "2026-07-17-workplace-confusion-1-threads",
-      "scheduledAt": "2026-07-17T21:30:00+08:00",
+      "id": "2026-07-21-workplace-confusion-4-threads",
+      "scheduledAt": "2026-07-21T21:30:00+08:00",
       "platforms": [
         "threads"
       ],
-      "message": "如果最近有人問你「最近過得好嗎」，你會愣一下——不是因為過得不好，是因為你也說不清楚。\n\n工作沒出什麼大事，卻天天覺得很累。\n\n不是你不夠努力，也不是你抗壓性不好。",
+      "message": "如果最近有人問你「最近過得好嗎」，你會愣一下——不是因為過得不好，是因為你也說不清楚。\n\n工作沒出什麼大事，卻天天覺得很累。\n\n不是你不夠努力，也不是你抗壓性不好。\n\n很多時候，不是你撐不住了，是有些話你已經忍了太久，忍到自己都快忘記原本在意的是什麼。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-23-low-point-dinner-facebook",
+      "scheduledAt": "2026-07-23T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "那段時間，我常常算著銀行帳戶剩下的錢，夠不夠撐到下個月。\n\n做保險的那幾年，業績壓力很大，收入卻很不穩定，甚至有段時間，我連下一餐要吃什麼都要想很久。\n\n最難的不是沒有錢。是沒有人可以說。\n\n身邊的人都在忙自己的生活，我也不想讓他們擔心。所以很多晚上，我就是自己坐著，把那些說不出口的話吞回去。\n\n後來我才明白，那時候我真正需要的，不是建議，不是「你應該這樣做」。只是需要一個人，願意聽我把心裡那些亂七八糟的東西說出來——不評價，不急著幫我解決。\n\n這也是為什麼，後來我想做榮心紳語。\n\n#榮心紳語 #InnerDialogueStudio #低谷陪伴 #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-simple-dinner-ledger.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-23-low-point-dinner-instagram",
+      "scheduledAt": "2026-07-23T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "那幾年做保險，業績壓力很大，收入卻很不穩定，有段時間我連下一餐要吃什麼都要想很久。\n\n最難的不是沒有錢，是沒有人可以說。\n\n後來我才明白，那時候需要的不是建議，是一個願意聽我說的人。\n\n#低谷陪伴 #安全的陌生人 #榮心紳語",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-simple-dinner-ledger.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-23-low-point-dinner-threads",
+      "scheduledAt": "2026-07-23T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "那幾年做保險，收入很不穩定，有段時間我連下一餐要吃什麼都要想很久。\n\n最難的不是沒有錢。是沒有人可以說。\n\n後來我才明白，那時候真正需要的不是建議，是一個願意聽我說的人。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-26-low-point-hesitating-facebook",
+      "scheduledAt": "2026-07-26T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "很多人不是不想求助，是不知道要怎麼開口。\n\n你可能想過要找人聊聊，但一想到「要從哪裡講起」「對方會不會覺得我很誇張」，就先把念頭壓下去了。\n\n所以你選擇繼續撐。反正撐習慣了，好像也不是不行。\n\n但撐，跟真的沒事，是兩件不一樣的事。\n\n我自己也是走過這段才懂——不是撐得住就代表不需要說出來。有時候，只是需要先有一個不用解釋太多、不用擔心被評價的地方，把話說出口。\n\n不用先想好怎麼講。你可以就從一句「我最近有點累」開始。\n\n#榮心紳語 #InnerDialogueStudio #低谷陪伴 #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-hesitating-message.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-26-low-point-hesitating-instagram",
+      "scheduledAt": "2026-07-26T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "你不是不想求助，是不知道要怎麼開口。\n\n一想到「要從哪裡講起」，就先把念頭壓下去了。\n\n但撐，跟真的沒事，是兩件不一樣的事。\n\n不用先想好怎麼講，從一句「我最近有點累」開始就好。\n\n#低谷陪伴 #安全的陌生人 #榮心紳語",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-hesitating-message.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-26-low-point-hesitating-threads",
+      "scheduledAt": "2026-07-26T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "你不是不想求助，是不知道要怎麼開口。\n\n一想到「要從哪裡講起」，就先把念頭壓下去了。\n\n撐，跟真的沒事，是兩件不一樣的事。",
       "link": "",
       "imageUrl": "",
       "status": "queued"
