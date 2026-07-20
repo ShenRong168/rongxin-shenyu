@@ -1,4 +1,6 @@
 import express from "express";
+import { readdir, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { clearStateCookie, parseCookies, setStateCookie } from "./cookies.js";
 import { config, missingConfigKeys } from "./config.js";
 import { MetaApiError } from "./http.js";
@@ -16,15 +18,23 @@ import {
   publishThreads
 } from "./meta-service.js";
 import { appendPublishLog, loadStore, updateStore } from "./store.js";
+import { checkScheduleSync } from "../scripts/check-schedule-sync.js";
 
 const app = express();
+const siteBaseUrl = "https://shenrong168.github.io/rongxin-shenyu";
+const articlesDir = resolve("..", "articles");
+const schedulePath = resolve("scheduled-posts.json");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.get("/", async (_req, res) => {
-  const state = await loadStore();
-  res.type("html").send(renderHome({ state, missing: missingConfigKeys() }));
+  const [state, articles, schedule] = await Promise.all([
+    loadStore(),
+    loadArticles(),
+    loadSchedule()
+  ]);
+  res.type("html").send(renderHome({ state, articles, schedule, missing: missingConfigKeys() }));
 });
 
 app.get("/auth/meta", (_req, res) => {
@@ -246,6 +256,10 @@ app.use((error, _req, res, _next) => {
 });
 
 app.listen(config.port, () => {
+  const syncWarning = checkScheduleSync();
+  if (syncWarning) {
+    console.warn(`⚠️  ${syncWarning}`);
+  }
   console.log(`Social publisher running at http://localhost:${config.port}`);
 });
 
@@ -363,10 +377,12 @@ async function syncMetrics(state) {
   return { ...state, publishLog, metricsLastSyncedAt: new Date().toISOString() };
 }
 
-function renderHome({ state, missing }) {
+function renderHome({ state, articles, schedule, missing }) {
   const pages = state.pages || [];
   const selected = state.selectedPageId || "";
   const recentLogs = (state.publishLog || []).slice(0, 5);
+  const latestArticle = articles[0] || null;
+  const articleMessage = latestArticle ? defaultArticleMessage(latestArticle) : "";
 
   return pageShell(`
     <section class="panel">
@@ -417,6 +433,22 @@ function renderHome({ state, missing }) {
       </div>
     </section>
 
+    <section class="grid">
+      <div class="panel">
+        <h2>最新文章素材</h2>
+        ${
+          latestArticle
+            ? renderArticleCard(latestArticle)
+            : "<p>尚未讀到文章。請確認 <code>articles/</code> 底下有 HTML 檔案。</p>"
+        }
+      </div>
+
+      <div class="panel">
+        <h2>排程圖文狀態</h2>
+        ${renderScheduleSummary(schedule)}
+      </div>
+    </section>
+
     <section class="panel">
       <h2>發文測試</h2>
       <form method="post" action="/publish" class="publish-form">
@@ -428,19 +460,13 @@ function renderHome({ state, missing }) {
         </div>
 
         <label for="message">貼文文字</label>
-        <textarea id="message" name="message" rows="9">你不是不敢開始，你只是還沒聽懂自己的害怕。
-
-有時候卡在工作或創業的轉折點，不是因為你沒有能力，也不是因為你太膽小。
-
-你需要一個空間，先把這些聲音一個一個放出來。
-
-#榮心紳語 #人生除錯 #職涯轉折 #創業焦慮</textarea>
+        <textarea id="message" name="message" rows="9">${escapeHtml(articleMessage)}</textarea>
 
         <label for="link">連結（FB 可用，選填）</label>
-        <input id="link" name="link" type="url" placeholder="https://shenrong168.github.io/rongxin-shenyu/articles/career-transition.html">
+        <input id="link" name="link" type="url" value="${escapeHtml(latestArticle?.url || "")}" placeholder="https://shenrong168.github.io/rongxin-shenyu/articles/workplace-confusion.html">
 
         <label for="imageUrl">公開圖片 URL（IG 必填；FB/Threads 選填）</label>
-        <input id="imageUrl" name="imageUrl" type="url" placeholder="https://.../image.jpg">
+        <input id="imageUrl" name="imageUrl" type="url" value="${escapeHtml(latestArticle?.image || "")}" placeholder="https://.../image.jpg">
 
         <label class="inline"><input type="checkbox" name="dryRun" checked> Dry-run，只測試 payload，不真的發文</label>
         <button type="submit">送出</button>
@@ -464,6 +490,134 @@ function renderHome({ state, missing }) {
       }
     </section>
   `);
+}
+
+async function loadArticles() {
+  try {
+    const files = (await readdir(articlesDir)).filter((file) => file.endsWith(".html"));
+    const articles = await Promise.all(
+      files.map(async (file) => {
+        const html = await readFile(resolve(articlesDir, file), "utf8");
+        return parseArticle(file, html);
+      })
+    );
+
+    return articles
+      .filter(Boolean)
+      .sort((left, right) => new Date(right.date || 0) - new Date(left.date || 0));
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+}
+
+function parseArticle(file, html) {
+  const title = stripSiteName(matchContent(html, /<title>([^<]+)<\/title>/i));
+  const description = matchContent(
+    html,
+    /<meta\s+name="description"\s+content="([^"]+)"/i
+  );
+  const canonical = matchContent(
+    html,
+    /<link\s+rel="canonical"\s+href="([^"]+)"/i
+  );
+  const image = matchContent(
+    html,
+    /<meta\s+property="og:image"\s+content="([^"]+)"/i
+  );
+  const date = matchContent(html, /發布日期：(\d{4}-\d{2}-\d{2})/);
+
+  return {
+    file,
+    title: title || file,
+    description,
+    url: canonical || `${siteBaseUrl}/articles/${file}`,
+    image,
+    date
+  };
+}
+
+async function loadSchedule() {
+  try {
+    const schedule = JSON.parse(await readFile(schedulePath, "utf8"));
+    return schedule.posts || [];
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+}
+
+function renderArticleCard(article) {
+  return `
+    <article class="article-card">
+      ${article.image ? `<img src="${escapeHtml(article.image)}" alt="">` : ""}
+      <div>
+        <div class="muted">${escapeHtml(article.date || "未標日期")}</div>
+        <h3>${escapeHtml(article.title)}</h3>
+        ${article.description ? `<p>${escapeHtml(article.description)}</p>` : ""}
+        <p><a href="${escapeHtml(article.url)}" target="_blank" rel="noreferrer">開啟文章</a></p>
+        ${article.image ? `<p class="muted">圖片：${escapeHtml(article.image)}</p>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderScheduleSummary(posts) {
+  const recent = [...posts]
+    .sort((left, right) => new Date(right.scheduledAt || 0) - new Date(left.scheduledAt || 0))
+    .slice(0, 6);
+
+  if (!recent.length) return "<p>尚未讀到排程。請確認 <code>scheduled-posts.json</code>。</p>";
+
+  return `
+    <div class="schedule-list">
+      ${recent.map(renderScheduleItem).join("")}
+    </div>
+  `;
+}
+
+function renderScheduleItem(post) {
+  return `
+    <article class="schedule-item">
+      ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" alt="">` : `<div class="image-placeholder">純文字</div>`}
+      <div>
+        <div class="log-head">
+          <strong>${escapeHtml(statusLabel(post.status))}</strong>
+          <span class="muted">${escapeHtml(formatDateTime(post.scheduledAt))}</span>
+        </div>
+        <p>${escapeHtml(truncate(post.message || "", 80))}</p>
+        <div class="muted">${escapeHtml((post.platforms || []).join(", "))}</div>
+        ${post.imageUrl ? `<div class="muted">圖片：${escapeHtml(post.imageUrl)}</div>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function defaultArticleMessage(article) {
+  return `${article.title}
+
+${article.description || ""}
+
+${article.url}
+
+#榮心紳語 #InnerDialogueStudio`;
+}
+
+function matchContent(value, pattern) {
+  return value.match(pattern)?.[1]?.trim() || "";
+}
+
+function stripSiteName(value) {
+  return value.replace(/｜榮心紳語$/, "").trim();
+}
+
+function statusLabel(status) {
+  return {
+    queued: "排程中",
+    paused: "已暫停",
+    published: "已發布",
+    failed: "失敗"
+  }[status] || status || "未知";
 }
 
 function renderPublishLog(logs) {
@@ -632,8 +786,16 @@ function pageShell(content) {
           .metrics dt { color:var(--muted); font-size:.82rem; }
           .metrics dd { margin:0; font-weight:800; }
           .metric-note { margin:.5rem 0 0; color:#8b2f25; font-size:.9rem; }
+          .article-card { display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:start; }
+          .article-card img, .schedule-item img, .image-placeholder { width:100%; aspect-ratio:1 / 1; object-fit:cover; border:1px solid var(--line); border-radius:8px; background:#f5f0e8; }
+          .article-card h3 { margin:.2rem 0 .5rem; }
+          .schedule-list { display:grid; gap:12px; }
+          .schedule-item { display:grid; grid-template-columns:86px 1fr; gap:12px; padding:12px; border:1px solid var(--line); border-radius:8px; background:white; }
+          .schedule-item p { margin:.35rem 0; }
+          .image-placeholder { display:grid; place-items:center; color:var(--muted); font-size:.88rem; }
           @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
           @media (max-width:900px) { .metric-grid { grid-template-columns:1fr; } }
+          @media (max-width:560px) { .article-card, .schedule-item { grid-template-columns:1fr; } }
         </style>
       </head>
       <body><main>${content}</main></body>

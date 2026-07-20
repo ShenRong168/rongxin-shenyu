@@ -7,6 +7,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "check": "node src/check-config.js",
+    "check:schedule-sync": "node scripts/check-schedule-sync.js",
     "test": "node --test",
     "publish:scheduled": "node scripts/publish-scheduled-posts.js"
   },

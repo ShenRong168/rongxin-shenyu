@@ -210,6 +210,8 @@ Threads：
 
 如果不想依賴這台 Mac 開機，可以使用 GitHub Actions 的雲端排程。這個 workflow 每 15 分鐘檢查一次 `scheduled-posts.json`，只要有到期且狀態是 `queued` 的貼文，就會自動發出。
 
+> ⚠️ **雲端排程只認 `origin` 上最後一次 push 的版本。** 本機改完 `scheduled-posts.json` 一定要 `git push`，不然雲端還是照舊版跑，不會有任何錯誤提示。啟動 `npm run dev` / `npm start` 時，本機工具會自動檢查 `scheduled-posts.json` 有沒有尚未 commit 或尚未 push 的變更，並在終端機印出警告；也可以手動執行 `npm run check:schedule-sync`。
+
 排程檔：
 
 ```text
