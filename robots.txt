@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://shenrong168.github.io/rongxin-shenyu/sitemap.xml
+Sitemap: https://rongxinshenyu.com/sitemap.xml
