@@ -440,7 +440,17 @@
       "message": "那段時間，我常常算著銀行帳戶剩下的錢，夠不夠撐到下個月。\n\n做保險的那幾年，業績壓力很大，收入卻很不穩定，甚至有段時間，我連下一餐要吃什麼都要想很久。\n\n最難的不是沒有錢。是沒有人可以說。\n\n身邊的人都在忙自己的生活，我也不想讓他們擔心。所以很多晚上，我就是自己坐著，把那些說不出口的話吞回去。\n\n後來我才明白，那時候我真正需要的，不是建議，不是「你應該這樣做」。只是需要一個人，願意聽我把心裡那些亂七八糟的東西說出來——不評價，不急著幫我解決。\n\n這也是為什麼，後來我想做榮心紳語。\n\n#榮心紳語 #InnerDialogueStudio #低谷陪伴 #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-simple-dinner-ledger.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-23T13:30:46.947Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122110893999372954",
+            "post_id": "1230312726828490_122110894023372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-23-low-point-dinner-instagram",
@@ -451,7 +461,16 @@
       "message": "那幾年做保險，業績壓力很大，收入卻很不穩定，有段時間我連下一餐要吃什麼都要想很久。\n\n最難的不是沒有錢，是沒有人可以說。\n\n後來我才明白，那時候需要的不是建議，是一個願意聽我說的人。\n\n#低谷陪伴 #安全的陌生人 #榮心紳語",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-simple-dinner-ledger.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-23T13:30:58.167Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17976206178063798"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-23-low-point-dinner-threads",
@@ -462,7 +481,16 @@
       "message": "那幾年做保險，收入很不穩定，有段時間我連下一餐要吃什麼都要想很久。\n\n最難的不是沒有錢。是沒有人可以說。\n\n後來我才明白，那時候真正需要的不是建議，是一個願意聽我說的人。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-23T13:31:04.708Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18072965201708074"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-26-low-point-hesitating-facebook",
@@ -498,5 +526,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-07-21T13:30:35.498Z"
+  "lastRunAt": "2026-07-23T13:30:37.036Z"
 }
