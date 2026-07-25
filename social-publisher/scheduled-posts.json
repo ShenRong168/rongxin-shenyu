@@ -524,6 +524,17 @@
       "link": "",
       "imageUrl": "",
       "status": "queued"
+    },
+    {
+      "id": "2026-07-28-not-weak-but-aware-threads",
+      "scheduledAt": "2026-07-28T21:30:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "很多人以為，會想找人陪伴聊聊的人，是撐不住了。\n\n後來我發現剛好相反。\n\n真正願意開口的人，通常很清醒——\n清楚自己撐得很累，\n也清楚自己不想再假裝沒事。\n\n脆弱的人，還在硬撐。\n懂得開口，才是真正清醒的人。\n\n如果你也在那個「還在假裝沒事」的階段，我在。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-07-23T13:30:37.036Z"
