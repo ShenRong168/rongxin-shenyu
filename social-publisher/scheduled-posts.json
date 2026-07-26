@@ -501,7 +501,17 @@
       "message": "很多人不是不想求助，是不知道要怎麼開口。\n\n你可能想過要找人聊聊，但一想到「要從哪裡講起」「對方會不會覺得我很誇張」，就先把念頭壓下去了。\n\n所以你選擇繼續撐。反正撐習慣了，好像也不是不行。\n\n但撐，跟真的沒事，是兩件不一樣的事。\n\n我自己也是走過這段才懂——不是撐得住就代表不需要說出來。有時候，只是需要先有一個不用解釋太多、不用擔心被評價的地方，把話說出口。\n\n不用先想好怎麼講。你可以就從一句「我最近有點累」開始。\n\n#榮心紳語 #InnerDialogueStudio #低谷陪伴 #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-hesitating-message.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-26T13:30:37.211Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122111510025372954",
+            "post_id": "1230312726828490_122111510049372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-26-low-point-hesitating-instagram",
@@ -512,7 +522,16 @@
       "message": "你不是不想求助，是不知道要怎麼開口。\n\n一想到「要從哪裡講起」，就先把念頭壓下去了。\n\n但撐，跟真的沒事，是兩件不一樣的事。\n\n不用先想好怎麼講，從一句「我最近有點累」開始就好。\n\n#低谷陪伴 #安全的陌生人 #榮心紳語",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/low-point-hesitating-message.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-26T13:30:49.061Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17858953185677426"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-26-low-point-hesitating-threads",
@@ -523,7 +542,16 @@
       "message": "你不是不想求助，是不知道要怎麼開口。\n\n一想到「要從哪裡講起」，就先把念頭壓下去了。\n\n撐，跟真的沒事，是兩件不一樣的事。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-26T13:30:55.612Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18099018716363438"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-28-not-weak-but-aware-threads",
@@ -537,5 +565,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-07-23T13:30:37.036Z"
+  "lastRunAt": "2026-07-26T13:30:30.681Z"
 }
