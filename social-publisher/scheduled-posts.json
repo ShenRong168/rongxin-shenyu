@@ -574,6 +574,50 @@
       "link": "",
       "imageUrl": "",
       "status": "queued"
+    },
+    {
+      "id": "2026-07-28-not-weak-but-aware-facebook",
+      "scheduledAt": "2026-07-28T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "常有人問我，什麼樣的人會來找我聊聊。\n\n我原本以為，會是那種已經撐不下去、走投無路的人。\n\n但後來發現剛好相反。\n\n大部分找我的人，其實過得還可以。工作照常上，家人照常顧，外人看不出來有什麼異狀。\n\n但他們心裡清楚——有些事已經悶太久了，而且他們不想再繼續假裝沒事。\n\n這讓我重新理解一件事：願意開口找人陪伴，不是脆弱的表現。是清醒的表現。\n\n真正撐不住的人，往往還在硬撐，還沒準備好開口。\n而懂得開口的人，其實已經比大部分人更了解自己。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-weak-but-aware-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-28-not-weak-but-aware-instagram",
+      "scheduledAt": "2026-07-28T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "很多人以為，會想找人陪伴聊聊的人，是撐不住了。\n\n後來我發現剛好相反。\n\n真正願意開口的人，通常很清醒——\n清楚自己撐得很累，\n也清楚自己不想再假裝沒事。\n\n脆弱的人，還在硬撐。\n懂得開口，才是真正清醒的人。\n\n如果你也在那個「還在假裝沒事」的階段，我在。",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-weak-but-aware-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-30-corrected-becomes-wrong-facebook",
+      "scheduledAt": "2026-07-30T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "最親密的人，很少是故意傷你的。\n但那種傷，反而是最難說出口的一種。\n\n小孩耍脾氣、打人、摔東西，我糾正過。\n\n另一半當下的反應是：他還不會講清楚話，你跟一個小孩計較什麼？\n\n那一刻我才發現，真正讓我難受的，不是小孩的行為。\n是「糾正」的那個人，變成了「不對」的那個人。\n\n一次、兩次、三次之後，我漸漸學會不再開口。\n\n不是因為想通了。\n是因為每次開口，錯的好像都變成我。\n\n後來我才明白，很多委屈不是被誰狠狠傷過一次，\n是被日復一日的「你不用這麼計較」，一點一點磨掉的。\n\n如果你也在那個「開口就變成錯的人」的處境裡，這種感覺，我懂。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/corrected-becomes-wrong-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-07-30-corrected-becomes-wrong-instagram",
+      "scheduledAt": "2026-07-30T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "最親密的人，很少是故意傷你的。\n但那種傷，反而最難說出口。\n\n小孩耍脾氣、打人、摔東西，我糾正過。\n\n另一半說：他還不會講清楚話，你跟他計較什麼。\n\n那一刻我才發現，讓我難受的不是小孩的行為，\n是那個「糾正」的人，變成了「不對」的人。\n\n一次、兩次、三次之後，我學會不再開口。\n\n不是想通了，\n是因為每次開口，錯的好像都變成我。\n\n有些委屈，不是被誰狠狠傷過，\n是被一次次「你不用這麼計較」磨掉的。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/corrected-becomes-wrong-quote.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-07-26T13:30:30.681Z"
