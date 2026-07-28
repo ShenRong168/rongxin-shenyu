@@ -562,7 +562,16 @@
       "message": "很多人以為，會想找人陪伴聊聊的人，是撐不住了。\n\n後來我發現剛好相反。\n\n真正願意開口的人，通常很清醒——\n清楚自己撐得很累，\n也清楚自己不想再假裝沒事。\n\n脆弱的人，還在硬撐。\n懂得開口，才是真正清醒的人。\n\n如果你也在那個「還在假裝沒事」的階段，我在。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-28T13:30:48.133Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18183246853403810"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-30-corrected-becomes-wrong-threads",
@@ -584,7 +593,17 @@
       "message": "常有人問我，什麼樣的人會來找我聊聊。\n\n我原本以為，會是那種已經撐不下去、走投無路的人。\n\n但後來發現剛好相反。\n\n大部分找我的人，其實過得還可以。工作照常上，家人照常顧，外人看不出來有什麼異狀。\n\n但他們心裡清楚——有些事已經悶太久了，而且他們不想再繼續假裝沒事。\n\n這讓我重新理解一件事：願意開口找人陪伴，不是脆弱的表現。是清醒的表現。\n\n真正撐不住的人，往往還在硬撐，還沒準備好開口。\n而懂得開口的人，其實已經比大部分人更了解自己。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-weak-but-aware-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-28T13:30:54.684Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122111913675372954",
+            "post_id": "1230312726828490_122111913693372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-28-not-weak-but-aware-instagram",
@@ -595,7 +614,16 @@
       "message": "很多人以為，會想找人陪伴聊聊的人，是撐不住了。\n\n後來我發現剛好相反。\n\n真正願意開口的人，通常很清醒——\n清楚自己撐得很累，\n也清楚自己不想再假裝沒事。\n\n脆弱的人，還在硬撐。\n懂得開口，才是真正清醒的人。\n\n如果你也在那個「還在假裝沒事」的階段，我在。",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-weak-but-aware-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-28T13:31:06.982Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18227307460321783"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-30-corrected-becomes-wrong-facebook",
@@ -620,5 +648,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-07-26T13:30:30.681Z"
+  "lastRunAt": "2026-07-28T13:30:42.074Z"
 }
