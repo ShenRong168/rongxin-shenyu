@@ -582,7 +582,16 @@
       "message": "最親密的人，很少是故意傷你的。\n但那種傷，反而最難說出口。\n\n小孩耍脾氣、打人、摔東西，我糾正過。\n\n另一半說：他還不會講清楚話，你跟他計較什麼。\n\n那一刻我才發現，讓我難受的不是小孩的行為，\n是那個「糾正」的人，變成了「不對」的人。\n\n一次、兩次、三次之後，我學會不再開口。\n\n不是想通了，\n是因為每次開口，錯的好像都變成我。\n\n有些委屈，不是被誰狠狠傷過，\n是被一次次「你不用這麼計較」磨掉的。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-30T13:30:34.754Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18097315073342606"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-28-not-weak-but-aware-facebook",
@@ -634,7 +643,17 @@
       "message": "最親密的人，很少是故意傷你的。\n但那種傷，反而是最難說出口的一種。\n\n小孩耍脾氣、打人、摔東西，我糾正過。\n\n另一半當下的反應是：他還不會講清楚話，你跟一個小孩計較什麼？\n\n那一刻我才發現，真正讓我難受的，不是小孩的行為。\n是「糾正」的那個人，變成了「不對」的那個人。\n\n一次、兩次、三次之後，我漸漸學會不再開口。\n\n不是因為想通了。\n是因為每次開口，錯的好像都變成我。\n\n後來我才明白，很多委屈不是被誰狠狠傷過一次，\n是被日復一日的「你不用這麼計較」，一點一點磨掉的。\n\n如果你也在那個「開口就變成錯的人」的處境裡，這種感覺，我懂。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/corrected-becomes-wrong-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-30T13:30:39.559Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122112271623372954",
+            "post_id": "1230312726828490_122112271641372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-07-30-corrected-becomes-wrong-instagram",
@@ -645,7 +664,16 @@
       "message": "最親密的人，很少是故意傷你的。\n但那種傷，反而最難說出口。\n\n小孩耍脾氣、打人、摔東西，我糾正過。\n\n另一半說：他還不會講清楚話，你跟他計較什麼。\n\n那一刻我才發現，讓我難受的不是小孩的行為，\n是那個「糾正」的人，變成了「不對」的人。\n\n一次、兩次、三次之後，我學會不再開口。\n\n不是想通了，\n是因為每次開口，錯的好像都變成我。\n\n有些委屈，不是被誰狠狠傷過，\n是被一次次「你不用這麼計較」磨掉的。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/corrected-becomes-wrong-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-07-30T13:30:48.288Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17904405831465726"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-01-knowing-vs-doing-threads",
@@ -659,5 +687,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-07-28T13:30:42.074Z"
+  "lastRunAt": "2026-07-30T13:30:27.904Z"
 }
