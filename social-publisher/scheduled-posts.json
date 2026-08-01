@@ -694,6 +694,28 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-08-01-knowing-vs-doing-facebook",
+      "scheduledAt": "2026-08-01T21:30:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "常有人以為，做陪伴這件事的人，自己一定很會處理情緒。\n\n老實說，不一定。\n\n我很清楚要怎麼引導一個人，把心裡的鬱結慢慢說出來。但情緒真的湧上來的那一刻，我發現自己反而做不到——沒辦法在當下，把「問題本身」跟「我要怎麼反應」分開。\n\n於是很多時候，事後回頭看，才發現自己當下講的話、做的決定，其實都不是我真正想要的。\n\n後來我才明白，知道怎麼引導別人，跟自己在情緒裡先穩住，其實是兩種完全不同的能力。\n\n會陪你把話說出來的人，不代表他自己什麼都想通了。\n\n只是他知道，那個卡住的感覺，最需要的不是道理，是先有人聽。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/knowing-vs-doing-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-01-knowing-vs-doing-instagram",
+      "scheduledAt": "2026-08-01T21:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "我知道怎麼引導別人把心裡的話說出來。\n\n但情緒來的那一刻，我常常做不到。\n\n後來我才明白，\n知道怎麼引導別人，\n跟自己在情緒裡先穩住，\n是兩種完全不同的能力。\n\n最需要的從來不是道理，是先有人聽。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/knowing-vs-doing-quote.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-01T13:30:26.323Z"
