@@ -735,6 +735,39 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-08-03-waiting-for-clarity-threads",
+      "scheduledAt": "2026-08-03T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "「想清楚再說」是你聽過最沒用的建議之一。\n\n因為你永遠不會覺得自己「想清楚」了。\n\n內耗的人不是缺思考，\n是想太多次、想不出結論，\n每一次想，都只是把同一團亂重新攪一次。\n\n想清楚不是終點，是陷阱。\n\n你不需要先想清楚才能開口、才能決定、才能來談。\n\n你只是在等一個「想清楚」的藉口，\n好讓自己可以再拖久一點。\n\n——你真正在等的，是想清楚，還是不用面對？",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-03-waiting-for-clarity-facebook",
+      "scheduledAt": "2026-08-03T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "「想清楚再說。」\n\n這大概是你聽過最沒用的建議之一。\n\n因為你永遠不會覺得自己「想清楚」了。\n\n內耗的人不是缺思考。剛好相反——是想太多次、想不出結論，每一次想，都只是把同一團亂重新攪一次。攪完之後人更累，但問題還在原地。\n\n想清楚不是終點，是陷阱。\n\n它給了你一個看起來很負責任的理由，讓你可以繼續不決定、繼續不開口、繼續等下去。\n\n你不需要先想清楚才能開口、才能決定、才能來談。你只是在等一個「想清楚」的藉口，好讓自己可以再拖久一點。\n\n——你真正在等的，是想清楚，還是不用面對？\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/anchor-waiting-for-clarity-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-03-waiting-for-clarity-instagram",
+      "scheduledAt": "2026-08-03T21:00:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "「想清楚再說」\n是你聽過最沒用的建議之一。\n\n因為你永遠不會覺得自己想清楚了。\n\n內耗的人不是缺思考，\n是想太多次、想不出結論。\n\n想清楚不是終點，是陷阱。\n\n——你真正在等的，是想清楚，還是不用面對？\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/anchor-waiting-for-clarity-quote.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-01T16:30:26.414Z"
