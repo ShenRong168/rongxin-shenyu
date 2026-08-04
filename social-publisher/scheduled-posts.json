@@ -1,4 +1,5 @@
 {
+  "_readme": "⚠️ 這份檔案的 status 只是快取，真相在 origin。發布器是 GitHub Actions（每 5 分鐘），發完會由 github-actions[bot] 把 published commit 回遠端；本機沒 git pull 就會一直看到舊的 queued。讀 status 前先跑：cd /Volumes/fast/CODEX/rongxin-shenyu/social-publisher && npm run schedule:pull。改這份檔案後一定要 git commit + push，否則雲端看不到，會照舊版發文。（2026-07-17／07-20 兩次誤發、2026-08-04 一次誤判，都是漏了這兩步。）",
   "timezone": "Asia/Taipei",
   "posts": [
     {
