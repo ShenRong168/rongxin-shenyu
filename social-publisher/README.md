@@ -208,9 +208,21 @@ Threads：
 
 ## 雲端自動發文
 
-如果不想依賴這台 Mac 開機，可以使用 GitHub Actions 的雲端排程。這個 workflow 每 15 分鐘檢查一次 `scheduled-posts.json`，只要有到期且狀態是 `queued` 的貼文，就會自動發出。
+如果不想依賴這台 Mac 開機，可以使用 GitHub Actions 的雲端排程。這個 workflow 檢查 `scheduled-posts.json`，只要有到期且狀態是 `queued` 的貼文，就會自動發出（`.github/workflows/social-publisher.yml` 目前設定為 `cron: "3/5 * * * *"`，即每 5 分鐘一次）。
 
-> ⚠️ **雲端排程只認 `origin` 上最後一次 push 的版本。** 本機改完 `scheduled-posts.json` 一定要 `git push`，不然雲端還是照舊版跑，不會有任何錯誤提示。啟動 `npm run dev` / `npm start` 時，本機工具會自動檢查 `scheduled-posts.json` 有沒有尚未 commit 或尚未 push 的變更，並在終端機印出警告；也可以手動執行 `npm run check:schedule-sync`。
+> ⚠️ **`origin` 才是排程狀態的真相來源，本機檔案不是。** 這條線會往兩個方向壞掉，兩個都會咬人：
+>
+> - **本機改了沒 push** → 雲端只認最後一次 push 的版本，照舊版發文，而且不會有任何錯誤提示。
+>   已造成兩次誤發（2026-07-17、2026-07-20）。
+> - **雲端發完寫回、本機沒 pull** → 發文成功後 `github-actions[bot]` 會把 `published` commit 回 origin，
+>   本機沒 `git pull` 就永遠停在 `queued`。不會誤發，但**會讓人誤判成效或重複排程**。
+>   2026-08-04 實際發生過一次：三篇已發布的貼文被當成漏發。
+>
+> 規矩：**動這個檔案前先 `git pull`，改完一定 `git push`；要依 `status` 下判斷前也先 `git pull`。**
+>
+> 啟動 `npm run dev` / `npm start` 時會自動做這個雙向檢查並印出警告，也可以手動執行 `npm run check:schedule-sync`
+> （有落差時 exit code 為 1）。檢查會先 `git fetch`（10 秒逾時）；連不到遠端時會明講「這次的結果不可信」，
+> 而不是假裝同步。離線工作想跳過 fetch，設 `SCHEDULE_SYNC_NO_FETCH=1`。
 
 排程檔：
 

@@ -256,9 +256,8 @@ app.use((error, _req, res, _next) => {
 });
 
 app.listen(config.port, () => {
-  const syncWarning = checkScheduleSync();
-  if (syncWarning) {
-    console.warn(`⚠️  ${syncWarning}`);
+  for (const warning of checkScheduleSync()) {
+    console.warn(`⚠️  ${warning}`);
   }
   console.log(`Social publisher running at http://localhost:${config.port}`);
 });
