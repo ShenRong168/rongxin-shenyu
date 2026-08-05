@@ -807,7 +807,16 @@
       "message": "如果要你用一句話說出「我卡住的地方」，你會怎麼寫？\n\n不用寫得漂亮，不用邏輯通順，就寫下腦中那句一直在轉的話。\n\n寫在留言。我會回你——那句話裡，通常藏著一個你還沒問自己的問題。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-05T13:40:34.217Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "17885859609672386"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-05-write-down-whats-stuck-facebook",
@@ -818,7 +827,17 @@
       "message": "如果要你用一句話說出「我卡住的地方」，你會怎麼寫？\n\n不用寫得漂亮，不用邏輯通順。\n\n不用先想清楚要怎麼表達，也不用先確認這句話有沒有道理。\n\n就寫下腦中那句一直在轉、一直沒說出口的話。\n\n寫在留言。我會回你——那句話裡，通常藏著一個你自己都還沒問過自己的問題。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/write-down-whats-stuck-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-05T13:40:40.400Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122113457793372954",
+            "post_id": "1230312726828490_122113457811372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-05-write-down-whats-stuck-instagram",
@@ -829,8 +848,17 @@
       "message": "如果要你用一句話說出\n「我卡住的地方」，\n你會怎麼寫？\n\n不用寫得漂亮，\n就寫下腦中那句一直在轉的話。\n\n寫在留言，我會回你。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/write-down-whats-stuck-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-05T13:40:48.186Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18111910093949029"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-08-03T13:00:35.339Z"
+  "lastRunAt": "2026-08-05T13:40:27.722Z"
 }
