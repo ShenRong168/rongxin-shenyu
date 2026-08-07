@@ -858,6 +858,21 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-08-07-carousel-test-instagram",
+      "scheduledAt": "2026-08-07T22:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "最近在畫一些溫暖的小角色，之後會常常出現 🤍",
+      "link": "",
+      "imageUrl": "",
+      "imageUrls": [
+        "https://rongxinshenyu.com/assets/ig-characters/otouto-illustration.png",
+        "https://rongxinshenyu.com/assets/ig-characters/imoto-illustration.png"
+      ],
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-05T13:40:27.722Z"
