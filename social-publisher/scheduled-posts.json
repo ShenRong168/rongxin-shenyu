@@ -872,7 +872,16 @@
         "https://rongxinshenyu.com/assets/ig-characters/otouto-illustration.png",
         "https://rongxinshenyu.com/assets/ig-characters/imoto-illustration.png"
       ],
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-07T14:30:52.123Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17948158263037709"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-08-fathers-day-instagram",
@@ -892,5 +901,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-05T13:40:27.722Z"
+  "lastRunAt": "2026-08-07T14:30:32.851Z"
 }
