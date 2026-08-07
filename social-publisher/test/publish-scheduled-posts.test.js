@@ -88,9 +88,10 @@ test("importing the scheduler has no dotenv, schedule, or publishing side effect
   }
 });
 
-test("direct scheduler execution loads secrets from a local .env", () => {
+test("direct scheduler execution loads secrets and SCHEDULE_FILE from a local .env", () => {
   const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-posts-env-"));
   const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
+  const customSchedulePath = join(cwd, "custom-schedule.json");
 
   try {
     writeFileSync(
@@ -100,10 +101,11 @@ test("direct scheduler execution loads secrets from a local .env", () => {
         "META_PAGE_ACCESS_TOKEN=test_page_token",
         "INSTAGRAM_USER_ID=test_instagram",
         "THREADS_USER_ID=test_threads",
-        "THREADS_ACCESS_TOKEN=test_threads_token"
+        "THREADS_ACCESS_TOKEN=test_threads_token",
+        `SCHEDULE_FILE=${customSchedulePath}`
       ].join("\n")
     );
-    writeFileSync(join(cwd, "scheduled-posts.json"), JSON.stringify({ posts: [] }));
+    writeFileSync(customSchedulePath, JSON.stringify({ posts: [] }));
 
     const output = execFileSync(process.execPath, [schedulerPath], {
       cwd,
@@ -113,6 +115,7 @@ test("direct scheduler execution loads secrets from a local .env", () => {
     });
 
     assert.match(output, /Scheduled publisher finished\. Due posts: 0/);
+    assert.equal(existsSync(join(cwd, "scheduled-posts.json")), false);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
@@ -206,7 +209,8 @@ function withoutPublisherSecrets(source) {
     "META_PAGE_ACCESS_TOKEN",
     "INSTAGRAM_USER_ID",
     "THREADS_USER_ID",
-    "THREADS_ACCESS_TOKEN"
+    "THREADS_ACCESS_TOKEN",
+    "SCHEDULE_FILE"
   ]) {
     delete envCopy[name];
   }

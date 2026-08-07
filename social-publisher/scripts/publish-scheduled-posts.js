@@ -3,8 +3,6 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { normalizeInstagramImageUrls } from "../src/instagram-images.js";
 
-const schedulePath = resolve(process.env.SCHEDULE_FILE || "scheduled-posts.json");
-
 const requiredSecrets = [
   "META_PAGE_ID",
   "META_PAGE_ACCESS_TOKEN",
@@ -47,12 +45,12 @@ async function loadMetaService() {
   return metaService;
 }
 
-async function loadSchedule() {
+async function loadSchedule(schedulePath) {
   const raw = await readFile(schedulePath, "utf8");
   return JSON.parse(raw);
 }
 
-async function saveSchedule(schedule) {
+async function saveSchedule(schedulePath, schedule) {
   await writeFile(schedulePath, `${JSON.stringify(schedule, null, 2)}\n`);
 }
 
@@ -130,8 +128,9 @@ async function publishPost(post) {
 export async function main() {
   assertSecrets();
 
+  const schedulePath = resolve(process.env.SCHEDULE_FILE || "scheduled-posts.json");
   const now = new Date();
-  const schedule = await loadSchedule();
+  const schedule = await loadSchedule(schedulePath);
   const posts = [];
   let dueCount = 0;
 
@@ -149,7 +148,7 @@ export async function main() {
   console.log(`Scheduled publisher finished. Due posts: ${dueCount}`);
   if (!dueCount) return;
 
-  await saveSchedule({
+  await saveSchedule(schedulePath, {
     ...schedule,
     lastRunAt: now.toISOString(),
     posts
