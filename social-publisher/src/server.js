@@ -24,7 +24,7 @@ import { checkScheduleSync } from "../scripts/check-schedule-sync.js";
 const app = express();
 const siteBaseUrl = "https://shenrong168.github.io/rongxin-shenyu";
 const articlesDir = resolve("..", "articles");
-const schedulePath = resolve("scheduled-posts.json");
+const schedulePath = resolve(process.env.SCHEDULE_FILE || "scheduled-posts.json");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
