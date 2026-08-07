@@ -18,6 +18,7 @@ import {
   publishThreads
 } from "./meta-service.js";
 import { appendPublishLog, loadStore, updateStore } from "./store.js";
+import { parseImageUrlsInput } from "./instagram-images.js";
 import { checkScheduleSync } from "../scripts/check-schedule-sync.js";
 
 const app = express();
@@ -160,6 +161,7 @@ app.post("/publish", async (req, res, next) => {
     const message = String(req.body.message || "").trim();
     const link = String(req.body.link || "").trim();
     const imageUrl = String(req.body.imageUrl || "").trim();
+    const imageUrls = parseImageUrlsInput(req.body.imageUrls);
     const dryRun = req.body.dryRun === "on";
 
     if (!message) throw new Error("Message is required.");
@@ -189,7 +191,7 @@ app.post("/publish", async (req, res, next) => {
           platform: "instagram",
           result: {
             dryRun: true,
-            payload: { instagramUserId: "[connect-instagram-business-after-oauth]", caption: message, imageUrl }
+            payload: { instagramUserId: "[connect-instagram-business-after-oauth]", caption: message, imageUrl, imageUrls }
           }
         });
       } else {
@@ -197,7 +199,7 @@ app.post("/publish", async (req, res, next) => {
       const instagramUserId = state.selectedInstagramUserId || page.instagramBusinessAccount?.id;
       if (!instagramUserId) throw new Error("Selected Facebook Page has no connected Instagram Business account.");
 
-      const payload = { instagramUserId, pageAccessToken: page.accessToken, caption: message, imageUrl };
+      const payload = { instagramUserId, pageAccessToken: page.accessToken, caption: message, imageUrl, imageUrls };
       results.push({
         platform: "instagram",
         result: dryRun ? { dryRun: true, payload: redact(payload) } : await publishInstagram(payload)
@@ -229,7 +231,7 @@ app.post("/publish", async (req, res, next) => {
       }
     }
 
-    await appendPublishLog({ dryRun, platforms, message, link, imageUrl, results });
+    await appendPublishLog({ dryRun, platforms, message, link, imageUrl, imageUrls, results });
 
     res.type("html").send(renderResult({ results, dryRun }));
   } catch (error) {
@@ -467,6 +469,9 @@ function renderHome({ state, articles, schedule, missing }) {
         <label for="imageUrl">公開圖片 URL（IG 必填；FB/Threads 選填）</label>
         <input id="imageUrl" name="imageUrl" type="url" value="${escapeHtml(latestArticle?.image || "")}" placeholder="https://.../image.jpg">
 
+        <label for="imageUrls">IG 輪播圖片 URL（每行一個，2–10 張；填寫後優先於單圖）</label>
+        <textarea id="imageUrls" name="imageUrls" rows="5" placeholder="https://.../slide-1.png&#10;https://.../slide-2.png"></textarea>
+
         <label class="inline"><input type="checkbox" name="dryRun" checked> Dry-run，只測試 payload，不真的發文</label>
         <button type="submit">送出</button>
       </form>
@@ -576,9 +581,11 @@ function renderScheduleSummary(posts) {
 }
 
 function renderScheduleItem(post) {
+  const urls = scheduledImageUrls(post);
+
   return `
     <article class="schedule-item">
-      ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" alt="">` : `<div class="image-placeholder">純文字</div>`}
+      ${urls.length ? `<img src="${escapeHtml(urls[0])}" alt="">` : `<div class="image-placeholder">純文字</div>`}
       <div>
         <div class="log-head">
           <strong>${escapeHtml(statusLabel(post.status))}</strong>
@@ -586,10 +593,16 @@ function renderScheduleItem(post) {
         </div>
         <p>${escapeHtml(truncate(post.message || "", 80))}</p>
         <div class="muted">${escapeHtml((post.platforms || []).join(", "))}</div>
-        ${post.imageUrl ? `<div class="muted">圖片：${escapeHtml(post.imageUrl)}</div>` : ""}
+        ${urls.length > 1 ? `<div class="muted">輪播 ${urls.length} 張</div>` : ""}
+        ${urls.length ? `<div class="muted">圖片：${escapeHtml(urls[0])}</div>` : ""}
       </div>
     </article>
   `;
+}
+
+function scheduledImageUrls(post) {
+  if (Array.isArray(post.imageUrls) && post.imageUrls.length) return post.imageUrls;
+  return post.imageUrl ? [post.imageUrl] : [];
 }
 
 function defaultArticleMessage(article) {

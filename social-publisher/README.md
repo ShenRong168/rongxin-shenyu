@@ -173,7 +173,10 @@ Instagram：
 
 - 這個 MVP 使用 Instagram Graph API content publishing
 - 需要 Instagram 專業帳號，且連到 Facebook Page
-- 目前只做圖片貼文，必須提供公開 `imageUrl`
+- 圖片貼文必須提供公開 HTTP(S) 圖片 URL
+- `imageUrls` 為選填、僅限 Instagram；填入 2-10 個 URL 時會依陣列順序發布輪播
+- `imageUrls` 只有一個 URL 時會使用單圖發文流程；非空 `imageUrls` 會覆寫 Instagram 的 `imageUrl`
+- Facebook 與 Threads 仍只使用 `imageUrl`
 - 不支援純文字 IG 貼文
 - 如果 Facebook 授權視窗有「編輯存取權限」，請只勾榮心紳語粉專和 `yogo918`，避免抓到其他代管粉專或舊資產
 - 目前成效同步可抓：
@@ -243,6 +246,7 @@ social-publisher/scheduled-posts.json
       "message": "貼文內容",
       "link": "",
       "imageUrl": "",
+      "imageUrls": [],
       "status": "queued"
     }
   ]
@@ -254,7 +258,8 @@ social-publisher/scheduled-posts.json
 - `scheduledAt`：發文時間，請使用台灣時區 `+08:00`
 - `platforms`：可填 `facebook`、`instagram`、`threads`
 - `message`：貼文內容
-- `imageUrl`：IG 必填，且必須是公開圖片 URL；FB / Threads 可選填
+- `imageUrl`：IG 單圖發文必填，且必須是公開 HTTP(S) 圖片 URL；FB / Threads 可選填
+- `imageUrls`：選填、僅限 Instagram。2-10 個公開 HTTP(S) 圖片 URL 會依陣列順序發布輪播；一個 URL 使用單圖流程；非空時優先於 `imageUrl`
 - `status`：新貼文填 `queued`
 
 GitHub Secrets 需要設定：
