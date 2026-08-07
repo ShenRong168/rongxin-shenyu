@@ -987,6 +987,17 @@
       "link": "",
       "imageUrl": "",
       "status": "queued"
+    },
+    {
+      "id": "2026-08-10-screen-vs-listen-instagram",
+      "scheduledAt": "2026-08-10T21:00:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "他明明坐在我旁邊，眼睛卻在螢幕裡。\n\n小朋友要的不多——\n就是那幾分鐘，你把手機放下，整個人在這裡。\n\n蹲下來，眼睛對眼睛，他說的話都會更有分量。\n今天，找一個空檔，好好聽他說一次話 🤍\n\n#親子日常 #陪伴時光 #放下手機 #溫暖插畫",
+      "link": "",
+      "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/otouto-screen-vs-listen.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-07T14:30:32.851Z"
