@@ -3,3 +3,4 @@ mobile-check.png
 *.log
 .DS_Store
 video-build/
+.worktrees/
