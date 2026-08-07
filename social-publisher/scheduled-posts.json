@@ -873,6 +873,23 @@
         "https://rongxinshenyu.com/assets/ig-characters/imoto-illustration.png"
       ],
       "status": "queued"
+    },
+    {
+      "id": "2026-08-08-fathers-day-instagram",
+      "scheduledAt": "2026-08-08T09:00:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "小時候他很高，高到你要抬頭才看得到他的臉。\n\n長大後，換他蹲下來，才能跟你平視。\n那雙肩膀，曾經扛過你，也扛過好多好多事。\n\n換個角度看，你會發現愛一直都在，只是換了姿勢。\n\n今天，好好抱抱他，說一聲謝謝 🤍",
+      "link": "",
+      "imageUrl": "",
+      "imageUrls": [
+        "https://rongxinshenyu.com/assets/ig-characters/papaday-scene1-look-up.png",
+        "https://rongxinshenyu.com/assets/ig-characters/papaday-scene2-crouch.png",
+        "https://rongxinshenyu.com/assets/ig-characters/papaday-scene3-shoulders.png",
+        "https://rongxinshenyu.com/assets/ig-characters/papaday-scene4-view.png"
+      ],
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-05T13:40:27.722Z"
