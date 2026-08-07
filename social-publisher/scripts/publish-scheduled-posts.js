@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   publishFacebookPage,
   publishInstagram,
@@ -16,10 +17,20 @@ const requiredSecrets = [
   "THREADS_ACCESS_TOKEN"
 ];
 
-function requireEnv(name) {
-  const value = process.env[name];
+function requireEnv(name, env = process.env) {
+  const value = env[name];
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
+}
+
+export function buildInstagramPublishPayload(post, env = process.env) {
+  return {
+    instagramUserId: requireEnv("INSTAGRAM_USER_ID", env),
+    pageAccessToken: requireEnv("META_PAGE_ACCESS_TOKEN", env),
+    caption: post.message,
+    imageUrl: post.imageUrl || "",
+    imageUrls: post.imageUrls
+  };
 }
 
 function assertSecrets() {
@@ -55,12 +66,7 @@ async function publishPlatform(platform, post) {
   }
 
   if (platform === "instagram") {
-    return publishInstagram({
-      instagramUserId: requireEnv("INSTAGRAM_USER_ID"),
-      pageAccessToken: requireEnv("META_PAGE_ACCESS_TOKEN"),
-      caption: post.message,
-      imageUrl: post.imageUrl || ""
-    });
+    return publishInstagram(buildInstagramPublishPayload(post));
   }
 
   if (platform === "threads") {
@@ -96,7 +102,7 @@ async function publishPost(post) {
   };
 }
 
-async function main() {
+export async function main() {
   assertSecrets();
 
   const now = new Date();
@@ -125,7 +131,9 @@ async function main() {
   });
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
