@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { config } from "./config.js";
 import { fetchJson, formBody } from "./http.js";
+import { normalizeInstagramImageUrls } from "./instagram-images.js";
 
 const facebookGraphBase = `https://graph.facebook.com/${config.graphVersion}`;
 const threadsGraphBase = "https://graph.threads.net/v1.0";
@@ -185,24 +186,59 @@ export async function fetchFacebookPostMetrics({ postId, pageAccessToken }) {
   return metrics;
 }
 
-export async function publishInstagram({
+export async function createInstagramMediaContainer({
   instagramUserId,
   pageAccessToken,
   caption,
   imageUrl,
+  imageUrls,
   containerPollOptions
 }) {
-  if (!imageUrl) {
-    throw new Error("Instagram publishing requires an imageUrl for this MVP.");
+  const normalizedUrls = normalizeInstagramImageUrls({ imageUrl, imageUrls });
+
+  if (normalizedUrls.length === 1) {
+    return createReadyInstagramContainer({
+      instagramUserId,
+      pageAccessToken,
+      values: { image_url: normalizedUrls[0], caption },
+      containerPollOptions
+    });
   }
 
+  const childIds = [];
+  for (const [index, childImageUrl] of normalizedUrls.entries()) {
+    try {
+      const child = await createReadyInstagramContainer({
+        instagramUserId,
+        pageAccessToken,
+        values: { image_url: childImageUrl, is_carousel_item: true },
+        containerPollOptions
+      });
+      childIds.push(child.id);
+    } catch (error) {
+      throw new Error(`Instagram carousel item ${index + 1} failed: ${error.message}`, {
+        cause: error
+      });
+    }
+  }
+
+  return createReadyInstagramContainer({
+    instagramUserId,
+    pageAccessToken,
+    values: { media_type: "CAROUSEL", children: childIds.join(","), caption },
+    containerPollOptions
+  });
+}
+
+async function createReadyInstagramContainer({
+  instagramUserId,
+  pageAccessToken,
+  values,
+  containerPollOptions
+}) {
   const container = await fetchJson(`${facebookGraphBase}/${instagramUserId}/media`, {
     method: "POST",
-    body: formBody({
-      image_url: imageUrl,
-      caption,
-      access_token: pageAccessToken
-    })
+    body: formBody({ ...values, access_token: pageAccessToken })
   });
 
   await waitForInstagramContainer({
@@ -211,11 +247,16 @@ export async function publishInstagram({
     ...containerPollOptions
   });
 
-  return fetchJson(`${facebookGraphBase}/${instagramUserId}/media_publish`, {
+  return container;
+}
+
+export async function publishInstagram(args) {
+  const container = await createInstagramMediaContainer(args);
+  return fetchJson(`${facebookGraphBase}/${args.instagramUserId}/media_publish`, {
     method: "POST",
     body: formBody({
       creation_id: container.id,
-      access_token: pageAccessToken
+      access_token: args.pageAccessToken
     })
   });
 }
