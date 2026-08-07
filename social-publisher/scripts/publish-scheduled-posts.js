@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { normalizeInstagramImageUrls } from "../src/instagram-images.js";
 
 const schedulePath = resolve(process.env.SCHEDULE_FILE || "scheduled-posts.json");
 
@@ -19,12 +20,17 @@ function requireEnv(name, env = process.env) {
 }
 
 export function buildInstagramPublishPayload(post, env = process.env) {
+  const imageUrls = normalizeInstagramImageUrls({
+    imageUrl: post.imageUrl || "",
+    imageUrls: post.imageUrls
+  });
+
   return {
     instagramUserId: requireEnv("INSTAGRAM_USER_ID", env),
     pageAccessToken: requireEnv("META_PAGE_ACCESS_TOKEN", env),
     caption: post.message,
-    imageUrl: post.imageUrl || "",
-    imageUrls: post.imageUrls
+    imageUrl: imageUrls[0],
+    imageUrls
   };
 }
 
@@ -56,7 +62,7 @@ function isDue(post, now) {
   return new Date(post.scheduledAt).getTime() <= now.getTime();
 }
 
-async function publishPlatform(platform, post) {
+async function publishPlatform(platform, post, instagramPayload) {
   if (platform === "facebook") {
     const { publishFacebookPage } = await loadMetaService();
     return publishFacebookPage({
@@ -70,7 +76,7 @@ async function publishPlatform(platform, post) {
 
   if (platform === "instagram") {
     const { publishInstagram } = await loadMetaService();
-    return publishInstagram(buildInstagramPublishPayload(post));
+    return publishInstagram(instagramPayload);
   }
 
   if (platform === "threads") {
@@ -88,10 +94,24 @@ async function publishPlatform(platform, post) {
 
 async function publishPost(post) {
   const results = [];
+  let instagramPayload;
+
+  if ((post.platforms || []).includes("instagram")) {
+    try {
+      instagramPayload = buildInstagramPublishPayload(post);
+    } catch (error) {
+      return {
+        ...post,
+        status: "failed",
+        publishedAt: new Date().toISOString(),
+        results: [{ platform: "instagram", error: error.message }]
+      };
+    }
+  }
 
   for (const platform of post.platforms || []) {
     try {
-      const result = await publishPlatform(platform, post);
+      const result = await publishPlatform(platform, post, instagramPayload);
       results.push({ platform, result });
     } catch (error) {
       results.push({ platform, error: error.message });
@@ -136,8 +156,14 @@ export async function main() {
   });
 }
 
+async function runFromCommandLine() {
+  const { default: dotenv } = await import("dotenv");
+  dotenv.config();
+  await main();
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
+  runFromCommandLine().catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });

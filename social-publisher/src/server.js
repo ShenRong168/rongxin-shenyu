@@ -18,7 +18,7 @@ import {
   publishThreads
 } from "./meta-service.js";
 import { appendPublishLog, loadStore, updateStore } from "./store.js";
-import { parseImageUrlsInput } from "./instagram-images.js";
+import { normalizeInstagramImageUrls, parseImageUrlsInput } from "./instagram-images.js";
 import { checkScheduleSync } from "../scripts/check-schedule-sync.js";
 
 const app = express();
@@ -167,6 +167,15 @@ app.post("/publish", async (req, res, next) => {
     if (!message) throw new Error("Message is required.");
     if (!platforms.length) throw new Error("Select at least one platform.");
 
+    const normalizedInstagramImageUrls = platforms.includes("instagram")
+      ? normalizeInstagramImageUrls({ imageUrl, imageUrls })
+      : null;
+    const instagramImagePayload = normalizedInstagramImageUrls
+      ? {
+          imageUrl: normalizedInstagramImageUrls[0],
+          imageUrls: normalizedInstagramImageUrls
+        }
+      : null;
     const results = [];
 
     if (platforms.includes("facebook")) {
@@ -191,7 +200,11 @@ app.post("/publish", async (req, res, next) => {
           platform: "instagram",
           result: {
             dryRun: true,
-            payload: { instagramUserId: "[connect-instagram-business-after-oauth]", caption: message, imageUrl, imageUrls }
+            payload: {
+              instagramUserId: "[connect-instagram-business-after-oauth]",
+              caption: message,
+              ...instagramImagePayload
+            }
           }
         });
       } else {
@@ -199,7 +212,12 @@ app.post("/publish", async (req, res, next) => {
       const instagramUserId = state.selectedInstagramUserId || page.instagramBusinessAccount?.id;
       if (!instagramUserId) throw new Error("Selected Facebook Page has no connected Instagram Business account.");
 
-      const payload = { instagramUserId, pageAccessToken: page.accessToken, caption: message, imageUrl, imageUrls };
+      const payload = {
+        instagramUserId,
+        pageAccessToken: page.accessToken,
+        caption: message,
+        ...instagramImagePayload
+      };
       results.push({
         platform: "instagram",
         result: dryRun ? { dryRun: true, payload: redact(payload) } : await publishInstagram(payload)

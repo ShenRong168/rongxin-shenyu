@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { publishInstagram } from "../src/meta-service.js";
+import { createInstagramMediaContainer, publishInstagram } from "../src/meta-service.js";
 
 test("publishInstagram waits until the media container is finished", async (t) => {
   const originalFetch = globalThis.fetch;
@@ -89,6 +89,67 @@ test("publishInstagram creates and publishes an ordered image carousel", async (
   assert.equal(calls[4].body.get("children"), "child_1,child_2");
   assert.equal(calls[4].body.get("caption"), "carousel caption");
   assert.equal(calls[6].body.get("creation_id"), "parent_1");
+});
+
+test("publishInstagram uses the single-image path for one imageUrls item", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const call = { url: String(url), body: options.body };
+    calls.push(call);
+    if (call.url.endsWith("/ig_1/media")) return jsonResponse({ id: "container_1" });
+    if (call.url.includes("/container_1?")) return jsonResponse({ status_code: "FINISHED" });
+    if (call.url.endsWith("/ig_1/media_publish")) return jsonResponse({ id: "media_1" });
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  const result = await publishInstagram({
+    instagramUserId: "ig_1",
+    pageAccessToken: "page_token",
+    caption: "single caption",
+    imageUrls: ["https://example.com/one.png"],
+    containerPollOptions: { attempts: 1, delayMs: 0 }
+  });
+
+  assert.deepEqual(result, { id: "media_1" });
+  assert.equal(calls.filter((call) => call.url.endsWith("/ig_1/media")).length, 1);
+  assert.equal(calls.filter((call) => call.url.endsWith("/ig_1/media_publish")).length, 1);
+  assert.equal(calls[0].body.get("image_url"), "https://example.com/one.png");
+  assert.equal(calls[0].body.has("media_type"), false);
+  assert.equal(calls[0].body.has("is_carousel_item"), false);
+});
+
+test("createInstagramMediaContainer never publishes the container", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const call = { url: String(url), body: options.body };
+    calls.push(call);
+    if (call.url.endsWith("/ig_1/media")) return jsonResponse({ id: "container_1" });
+    if (call.url.includes("/container_1?")) return jsonResponse({ status_code: "FINISHED" });
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  const result = await createInstagramMediaContainer({
+    instagramUserId: "ig_1",
+    pageAccessToken: "page_token",
+    caption: "container only",
+    imageUrl: "https://example.com/image.png",
+    containerPollOptions: { attempts: 1, delayMs: 0 }
+  });
+
+  assert.deepEqual(result, { id: "container_1" });
+  assert.equal(calls.filter((call) => call.url.endsWith("/ig_1/media_publish")).length, 0);
 });
 
 test("publishInstagram stops when a carousel child fails", async (t) => {

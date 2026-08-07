@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -14,6 +14,8 @@ test("local publisher renders and dry-runs an Instagram carousel", async (t) => 
   const tokenDir = await mkdtemp(join(tmpdir(), "rongxin-carousel-server-test-"));
   const tokenStorePath = join(tokenDir, "tokens.json");
   const schedulePath = join(tokenDir, "scheduled-posts.json");
+  const networkCallsPath = join(tokenDir, "meta-calls.log");
+  const fetchPreloadPath = join(tokenDir, "mock-fetch.mjs");
   const scheduleImageUrls = [
     "https://example.com/schedule-first.png",
     "https://example.com/schedule-second.png"
@@ -34,14 +36,42 @@ test("local publisher renders and dry-runs an Instagram carousel", async (t) => 
       ]
     })
   );
+  await writeFile(
+    tokenStorePath,
+    JSON.stringify({
+      pages: [
+        {
+          id: "page_1",
+          name: "Test Page",
+          accessToken: "fake_page_token",
+          instagramBusinessAccount: { id: "ig_1" }
+        }
+      ],
+      selectedPageId: "page_1",
+      selectedInstagramUserId: "ig_1"
+    })
+  );
+  await writeFile(
+    fetchPreloadPath,
+    `import { appendFileSync } from "node:fs";
+globalThis.fetch = async (url) => {
+  appendFileSync(process.env.MOCK_META_CALLS_PATH, String(url) + "\\n");
+  return new Response(JSON.stringify({ id: "mock_media" }), {
+    status: 200,
+    headers: { "content-type": "application/json" }
+  });
+};
+`
+  );
   const output = [];
-  const server = spawn(process.execPath, ["src/server.js"], {
+  const server = spawn(process.execPath, ["--import", fetchPreloadPath, "src/server.js"], {
     cwd: publisherDir,
     env: {
       ...process.env,
       PORT: String(port),
       TOKEN_STORE_PATH: tokenStorePath,
       SCHEDULE_FILE: schedulePath,
+      MOCK_META_CALLS_PATH: networkCallsPath,
       SCHEDULE_SYNC_NO_FETCH: "1",
       META_APP_ID: "",
       META_APP_SECRET: "",
@@ -68,12 +98,13 @@ test("local publisher renders and dry-runs an Instagram carousel", async (t) => 
   assert.doesNotMatch(home, /<img src="https:\/\/example\.com\/schedule-second\.png" alt="">/);
   assert.match(home, /輪播 2 張/);
 
-  const imageUrls = "https://example.com/one.png\nhttps://example.com/two.png";
+  const imageUrls = " https://example.com \nhttps://example.com/two.png";
   const response = await fetch(`${baseUrl}/publish`, {
     method: "POST",
     body: new URLSearchParams({
       platforms: "instagram",
       message: "Carousel dry run",
+      imageUrl: "ftp://example.com/ignored.png",
       imageUrls,
       dryRun: "on"
     })
@@ -83,7 +114,9 @@ test("local publisher renders and dry-runs an Instagram carousel", async (t) => 
   assert.equal(response.status, 200);
   assert.match(result, /&quot;dryRun&quot;: true/);
   assert.match(result, /&quot;imageUrls&quot;: \[/);
-  assert.ok(result.indexOf("https://example.com/one.png") < result.indexOf("https://example.com/two.png"));
+  assert.match(result, /https:\/\/example\.com\/(?=&quot;)/);
+  assert.doesNotMatch(result, /ftp:\/\/example\.com\/ignored\.png/);
+  assert.ok(result.indexOf("https://example.com/") < result.indexOf("https://example.com/two.png"));
 
   const singleImageUrl = "https://example.com/single.png";
   const facebookThreadsResponse = await fetch(`${baseUrl}/publish`, {
@@ -105,6 +138,45 @@ test("local publisher renders and dry-runs an Instagram carousel", async (t) => 
   assert.doesNotMatch(facebookThreadsResult, /&quot;imageUrls&quot;/);
   assert.doesNotMatch(facebookThreadsResult, /https:\/\/example\.com\/one\.png/);
   assert.doesNotMatch(facebookThreadsResult, /https:\/\/example\.com\/two\.png/);
+
+  const invalidUrlResponse = await fetch(`${baseUrl}/publish`, {
+    method: "POST",
+    body: new URLSearchParams({
+      platforms: "instagram",
+      message: "Invalid protocol",
+      imageUrls: "ftp://example.com/image.png",
+      dryRun: "on"
+    })
+  });
+  assert.equal(invalidUrlResponse.status, 400);
+  assert.match(await invalidUrlResponse.text(), /must use http or https/);
+
+  const tooManyImagesResponse = await fetch(`${baseUrl}/publish`, {
+    method: "POST",
+    body: new URLSearchParams({
+      platforms: "instagram",
+      message: "Too many images",
+      imageUrls: Array.from({ length: 11 }, (_, index) => `https://example.com/${index}.png`).join("\n"),
+      dryRun: "on"
+    })
+  });
+  assert.equal(tooManyImagesResponse.status, 400);
+  assert.match(await tooManyImagesResponse.text(), /supports at most 10 images/);
+
+  await rm(networkCallsPath, { force: true });
+  const mixedPlatformResponse = await fetch(`${baseUrl}/publish`, {
+    method: "POST",
+    body: new URLSearchParams([
+      ["platforms", "facebook"],
+      ["platforms", "instagram"],
+      ["message", "Reject before publishing"],
+      ["imageUrl", "https://example.com/facebook.png"],
+      ["imageUrls", "ftp://example.com/instagram.png"]
+    ])
+  });
+  assert.equal(mixedPlatformResponse.status, 400);
+  assert.match(await mixedPlatformResponse.text(), /must use http or https/);
+  await assert.rejects(readFile(networkCallsPath), { code: "ENOENT" });
 });
 
 async function unusedPort() {
