@@ -1,11 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import {
-  publishFacebookPage,
-  publishInstagram,
-  publishThreads
-} from "../src/meta-service.js";
 
 const schedulePath = resolve(process.env.SCHEDULE_FILE || "scheduled-posts.json");
 
@@ -39,6 +34,13 @@ function assertSecrets() {
   }
 }
 
+let metaService;
+
+async function loadMetaService() {
+  metaService ||= await import("../src/meta-service.js");
+  return metaService;
+}
+
 async function loadSchedule() {
   const raw = await readFile(schedulePath, "utf8");
   return JSON.parse(raw);
@@ -56,6 +58,7 @@ function isDue(post, now) {
 
 async function publishPlatform(platform, post) {
   if (platform === "facebook") {
+    const { publishFacebookPage } = await loadMetaService();
     return publishFacebookPage({
       pageId: requireEnv("META_PAGE_ID"),
       pageAccessToken: requireEnv("META_PAGE_ACCESS_TOKEN"),
@@ -66,10 +69,12 @@ async function publishPlatform(platform, post) {
   }
 
   if (platform === "instagram") {
+    const { publishInstagram } = await loadMetaService();
     return publishInstagram(buildInstagramPublishPayload(post));
   }
 
   if (platform === "threads") {
+    const { publishThreads } = await loadMetaService();
     return publishThreads({
       threadsUserId: requireEnv("THREADS_USER_ID"),
       accessToken: requireEnv("THREADS_ACCESS_TOKEN"),

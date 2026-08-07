@@ -1,4 +1,9 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { buildInstagramPublishPayload } from "../scripts/publish-scheduled-posts.js";
 
@@ -35,4 +40,29 @@ test("buildInstagramPublishPayload preserves legacy single-image posts", () => {
     ).imageUrl,
     "https://example.com/legacy.png"
   );
+});
+
+test("importing the scheduler has no dotenv, schedule, or publishing side effects", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-posts-"));
+  const schedulerUrl = pathToFileURL(
+    new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname
+  ).href;
+
+  try {
+    writeFileSync(join(cwd, ".env"), "IMPORT_SAFETY_MARKER=loaded\n");
+    const childEnv = { ...process.env };
+    delete childEnv.IMPORT_SAFETY_MARKER;
+
+    execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "-e",
+        `await import(${JSON.stringify(schedulerUrl)});\nif (process.env.IMPORT_SAFETY_MARKER) process.exit(1);`
+      ],
+      { cwd, env: childEnv, stdio: "pipe" }
+    );
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });
