@@ -965,6 +965,17 @@
       "status": "queued"
     },
     {
+      "id": "2026-08-13-im-fine-facebook",
+      "scheduledAt": "2026-08-13T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "「我沒事」是你最常用來擋下追問的一句話。\n\n不是你想騙誰，是說「有事」要付出的代價太大了——要解釋、要被安慰、要面對別人不知道怎麼接住你的沉默。\n\n「沒事」比較省力，說一次，對話就結束了。\n\n但感覺不會因為你說了「沒事」就真的沒事，它只是暫時被你按下去，下次還是會浮上來。\n\n——上一次你說「我沒事」，其實心裡在想什麼？不用給漂亮答案，打出來就好。留言告訴我，我會回你。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/im-fine-quote.png",
+      "status": "queued"
+    },
+    {
       "id": "2026-08-15-already-let-go-threads",
       "scheduledAt": "2026-08-15T21:00:00+08:00",
       "platforms": [
