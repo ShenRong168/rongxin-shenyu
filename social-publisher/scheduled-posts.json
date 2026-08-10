@@ -1028,6 +1028,17 @@
       "status": "queued"
     },
     {
+      "id": "2026-08-17-no-point-saying-facebook",
+      "scheduledAt": "2026-08-17T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "「反正說了也沒用」不一定是事實，是被拒絕太多次之後，學會的自我保護。\n\n不是說的話不重要，是你早就默默算過，說出口要付出的代價，划不划算。\n\n但沒說出口的話不會消失，它只是換一種方式留在身體裡——變成疲憊，變成沒來由的煩躁。\n\n——有什麼話，你已經放棄說出口很久了？寫下來看看。留言告訴我，我會回你。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/no-point-saying-quote.png",
+      "status": "queued"
+    },
+    {
       "id": "2026-08-19-waiting-for-free-time-threads",
       "scheduledAt": "2026-08-19T21:00:00+08:00",
       "platforms": [
