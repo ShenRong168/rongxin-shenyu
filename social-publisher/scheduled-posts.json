@@ -1050,6 +1050,17 @@
       "status": "queued"
     },
     {
+      "id": "2026-08-19-waiting-for-free-time-facebook",
+      "scheduledAt": "2026-08-19T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "「等有空再做」是最容易讓你以為自己沒在拖延的謊言之一。\n\n因為「有空」的時候，你永遠可以選擇做別的事。\n\n拖延的人不是懶，是怕。\n\n怕開始了就要面對做不好，怕動手了就沒有回頭路，\n所以「等有空」比「現在開始」安全太多。\n\n「等有空」不是計畫，是緩期執行。\n\n你不需要先空出一整塊時間才能開始、才能動手、才能踏出第一步。\n\n你只是在等一個能讓自己安心拖延的理由。\n\n——你現在最想拖延的那件事，你怕的到底是什麼？打出來，你會發現「沒空」從來不是真正的原因。留言告訴我，我會回你。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/waiting-for-free-time-quote.png",
+      "status": "queued"
+    },
+    {
       "id": "2026-08-21-series-wrap-threads",
       "scheduledAt": "2026-08-21T21:00:00+08:00",
       "platforms": [
