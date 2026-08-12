@@ -1091,6 +1091,17 @@
       "status": "queued"
     },
     {
+      "id": "2026-08-21-series-wrap-facebook",
+      "scheduledAt": "2026-08-21T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "這系列寫到這裡，講了「等有空」「都是為你好」「習慣了就好」「我沒事」「早就看開了」「反正說了也沒用」——六句你我都說過的話。\n\n它們的共同點，不是誰在說謊，是每一句都在幫你爭取一點時間，不用馬上面對。\n\n拖延、隱忍、否認，說到底都是同一件事——你在保護自己，只是用了一個會讓自己更累的方式。\n\n不用一次全部戳破，能認出一句，就是這系列的目的達到了。\n\n——這幾篇裡，哪一句你唸出來的時候，心裡有點被戳到？留言告訴我，我會回你，也謝謝你陪這個系列走到這裡。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/series-wrap-quote.png",
+      "status": "queued"
+    },
+    {
       "id": "2026-08-10-screen-vs-listen-instagram",
       "scheduledAt": "2026-08-10T21:00:00+08:00",
       "platforms": [
