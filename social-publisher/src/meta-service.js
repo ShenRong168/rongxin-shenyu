@@ -360,12 +360,13 @@ export async function exchangeThreadsCode(code) {
   };
 }
 
-export async function publishThreads({ threadsUserId, accessToken, text, imageUrl }) {
+export async function publishThreads({ threadsUserId, accessToken, text, imageUrl, topicTag }) {
   const container = await fetchJson(`${threadsGraphBase}/${threadsUserId}/threads`, {
     method: "POST",
     body: formBody({
       media_type: imageUrl ? "IMAGE" : "TEXT",
       image_url: imageUrl,
+      topic_tag: topicTag,
       text,
       access_token: accessToken
     })

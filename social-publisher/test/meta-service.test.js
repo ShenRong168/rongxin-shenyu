@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createInstagramMediaContainer, publishInstagram } from "../src/meta-service.js";
+import { createInstagramMediaContainer, publishInstagram, publishThreads } from "../src/meta-service.js";
 
 test("publishInstagram waits until the media container is finished", async (t) => {
   const originalFetch = globalThis.fetch;
@@ -181,6 +181,62 @@ test("publishInstagram stops when a carousel child fails", async (t) => {
 
   assert.equal(calls.filter((call) => call.url.endsWith("/ig_1/media")).length, 1);
   assert.equal(calls.some((call) => call.url.endsWith("/ig_1/media_publish")), false);
+});
+
+test("publishThreads sends topic_tag when topicTag is provided", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const call = { url: String(url), body: options.body };
+    calls.push(call);
+    if (call.url.endsWith("/threads_user/threads")) return jsonResponse({ id: "threads_container_1" });
+    if (call.url.endsWith("/threads_user/threads_publish")) return jsonResponse({ id: "threads_post_1" });
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  const result = await publishThreads({
+    threadsUserId: "threads_user",
+    accessToken: "threads_token",
+    text: "caption",
+    imageUrl: "",
+    topicTag: "人生"
+  });
+
+  assert.deepEqual(result, { id: "threads_post_1" });
+  assert.equal(calls[0].body.get("media_type"), "TEXT");
+  assert.equal(calls[0].body.get("topic_tag"), "人生");
+  assert.equal(calls[1].body.get("creation_id"), "threads_container_1");
+});
+
+test("publishThreads omits topic_tag for legacy posts without topicTag", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const call = { url: String(url), body: options.body };
+    calls.push(call);
+    if (call.url.endsWith("/threads_user/threads")) return jsonResponse({ id: "threads_container_1" });
+    if (call.url.endsWith("/threads_user/threads_publish")) return jsonResponse({ id: "threads_post_1" });
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  await publishThreads({
+    threadsUserId: "threads_user",
+    accessToken: "threads_token",
+    text: "caption",
+    imageUrl: ""
+  });
+
+  assert.equal(calls[0].body.has("topic_tag"), false);
 });
 
 function jsonResponse(body, status = 200) {

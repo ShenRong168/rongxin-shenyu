@@ -5,11 +5,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
-import { buildInstagramPublishPayload } from "../scripts/publish-scheduled-posts.js";
+import {
+  buildInstagramPublishPayload,
+  buildThreadsPublishPayload
+} from "../scripts/publish-scheduled-posts.js";
 
 const env = {
   INSTAGRAM_USER_ID: "ig_1",
-  META_PAGE_ACCESS_TOKEN: "page_token"
+  META_PAGE_ACCESS_TOKEN: "page_token",
+  THREADS_USER_ID: "threads_1",
+  THREADS_ACCESS_TOKEN: "threads_token"
 };
 
 test("buildInstagramPublishPayload forwards carousel images", () => {
@@ -61,6 +66,36 @@ test("buildInstagramPublishPayload rejects invalid image inputs", () => {
       ),
     /supports at most 10 images/
   );
+});
+
+test("buildThreadsPublishPayload forwards optional topicTag", () => {
+  assert.deepEqual(
+    buildThreadsPublishPayload(
+      {
+        message: "caption",
+        imageUrl: "https://example.com/thread.png",
+        topicTag: "人生"
+      },
+      env
+    ),
+    {
+      threadsUserId: "threads_1",
+      accessToken: "threads_token",
+      text: "caption",
+      imageUrl: "https://example.com/thread.png",
+      topicTag: "人生"
+    }
+  );
+});
+
+test("buildThreadsPublishPayload preserves legacy posts without topicTag", () => {
+  assert.deepEqual(buildThreadsPublishPayload({ message: "caption" }, env), {
+    threadsUserId: "threads_1",
+    accessToken: "threads_token",
+    text: "caption",
+    imageUrl: "",
+    topicTag: ""
+  });
 });
 
 test("importing the scheduler has no dotenv, schedule, or publishing side effects", () => {

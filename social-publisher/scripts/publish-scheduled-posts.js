@@ -32,6 +32,16 @@ export function buildInstagramPublishPayload(post, env = process.env) {
   };
 }
 
+export function buildThreadsPublishPayload(post, env = process.env) {
+  return {
+    threadsUserId: requireEnv("THREADS_USER_ID", env),
+    accessToken: requireEnv("THREADS_ACCESS_TOKEN", env),
+    text: post.message,
+    imageUrl: post.imageUrl || "",
+    topicTag: post.topicTag || ""
+  };
+}
+
 function assertSecrets() {
   for (const name of requiredSecrets) {
     requireEnv(name);
@@ -79,12 +89,7 @@ async function publishPlatform(platform, post, instagramPayload) {
 
   if (platform === "threads") {
     const { publishThreads } = await loadMetaService();
-    return publishThreads({
-      threadsUserId: requireEnv("THREADS_USER_ID"),
-      accessToken: requireEnv("THREADS_ACCESS_TOKEN"),
-      text: post.message,
-      imageUrl: post.imageUrl || ""
-    });
+    return publishThreads(buildThreadsPublishPayload(post));
   }
 
   throw new Error(`Unsupported platform: ${platform}`);

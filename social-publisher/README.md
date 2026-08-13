@@ -247,6 +247,7 @@ social-publisher/scheduled-posts.json
       "link": "",
       "imageUrl": "",
       "imageUrls": [],
+      "topicTag": "",
       "status": "queued"
     }
   ]
@@ -260,6 +261,7 @@ social-publisher/scheduled-posts.json
 - `message`：貼文內容
 - `imageUrl`：IG 單圖發文必填，且必須是公開 HTTP(S) 圖片 URL；FB / Threads 可選填
 - `imageUrls`：選填、僅限 Instagram。2-10 個公開 HTTP(S) 圖片 URL 會依陣列順序發布輪播；一個 URL 使用單圖流程；非空時優先於 `imageUrl`
+- `topicTag`：選填、僅限 Threads。填入時會在建立 Threads container 時送出 `topic_tag`；一篇限一個標籤，建議 1-50 字元，避免句點與 `&`。既有未填此欄位的貼文不受影響
 - `status`：新貼文填 `queued`
 
 GitHub Secrets 需要設定：
