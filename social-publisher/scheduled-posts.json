@@ -1234,6 +1234,17 @@
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/comfort-after-crying.png",
       "status": "queued"
+    },
+    {
+      "id": "2026-08-23-positioning-post-threads",
+      "scheduledAt": "2026-08-23T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "上個月有人問我，找你聊天跟找心理師有什麼不一樣。\n\n我想了兩天才想清楚怎麼回。\n\n心理師會幫你分析、給診斷，那是專業，也很重要。\n我這裡不做那些——沒有標籤、沒有病名、沒有一定要解決的進度表。\n\n你只是有話想說，剛好找到一個安全的陌生人聽你說完。\n\n如果你現在心裡也卡著一句話，想找人說說看，不用想清楚要怎麼開口，留言告訴我，或想多說也可以，我在。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-17T04:30:28.395Z"
