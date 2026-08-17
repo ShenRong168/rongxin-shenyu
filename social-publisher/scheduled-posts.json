@@ -1191,7 +1191,16 @@
       "message": "他自己把鞋帶綁好的那一秒，臉上比中樂透還開心。\n\n不用等到考第一名、得獎，\n一件他自己做到的小事，就已經值得被好好稱讚。\n\n那種「我做到了」的表情，比任何獎盃都珍貴。\n\n你家小朋友最近第一次學會什麼？留言告訴我 ❤️\n\n#第一次的成就感 #親子日常 #溫暖插畫 #正向教養",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/first-shoelace-victory.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-17T04:30:37.536Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17937948387091698"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-17-mama-lullaby-instagram",
@@ -1227,5 +1236,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-15T13:00:32.488Z"
+  "lastRunAt": "2026-08-17T04:30:28.395Z"
 }
