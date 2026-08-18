@@ -1250,7 +1250,16 @@
       "message": "這張畫沒有特別的日子，就只是一個普通的午後。\n\n沒有慶生、沒有紀念日，\n只是剛好四個人都在，窩在一起而已。\n\n家不是誰都完美的時候才值得記錄，是隨便一天，你們都在。\n\n今天有沒有一個跟家人窩在一起的小片刻？留言打「有」就好，想多說也歡迎 ❤️\n\n#全家日常 #親子時光 #溫暖插畫",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/whole-family-afternoon.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-18T13:00:54.823Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18089074715217698"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-20-comfort-after-crying-instagram",
@@ -1275,5 +1284,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-17T13:00:40.336Z"
+  "lastRunAt": "2026-08-18T13:00:40.062Z"
 }
