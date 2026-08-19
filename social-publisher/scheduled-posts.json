@@ -1334,6 +1334,39 @@
       "link": "",
       "imageUrl": "",
       "status": "queued"
+    },
+    {
+      "id": "2026-08-22-not-yet-let-go-threads",
+      "scheduledAt": "2026-08-22T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "關係裡最累的不是吵架，是「算了」說出口的那一秒。\n\n因為你其實還沒算了。你只是不想再解釋一次、不想再期待一次、不想再受傷一次。\n\n「算了」不是結束，是你把情緒硬塞回去的聲音。它會一直在，直到你真的把它說出來、或真的放下。\n\n先問自己：這次的「算了」，是真的放下，還是又一次沒說出口？",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-22-not-yet-let-go-facebook",
+      "scheduledAt": "2026-08-22T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "關係裡最累的不是吵架，是「算了」說出口的那一秒。\n\n因為你其實還沒算了。你只是不想再解釋一次、不想再期待一次、不想再受傷一次。\n\n「算了」不是結束，是你把情緒硬塞回去的聲音。它會一直在，直到你真的把它說出來、或真的放下。\n\n先問自己：這次的「算了」，是真的放下，還是又一次沒說出口？\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://rongxinshenyu.com/assets/not-yet-let-go-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-22-not-yet-let-go-instagram",
+      "scheduledAt": "2026-08-22T21:00:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "關係裡最累的不是吵架，是「算了」說出口的那一秒。\n\n你只是不想再解釋一次、不想再期待一次、不想再受傷一次。\n\n先問自己：這次的「算了」，是真的放下，還是又一次沒說出口？\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人",
+      "link": "",
+      "imageUrl": "https://rongxinshenyu.com/assets/not-yet-let-go-quote.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-19T13:00:41.173Z"
