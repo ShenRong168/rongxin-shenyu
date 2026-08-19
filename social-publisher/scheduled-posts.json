@@ -1301,6 +1301,39 @@
       "link": "",
       "imageUrl": "",
       "status": "queued"
+    },
+    {
+      "id": "2026-08-25-listening-blank-threads",
+      "scheduledAt": "2026-08-25T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "如果現在有一個人，什麼都不會說教、只會聽，\n你最想跟他說的第一句話是什麼？\n\n不用完整，不用有頭有尾，想到哪寫到哪就好。\n\n寫在留言，我會回你——或者只是打出來給自己看，也可以。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-27-listen-to-yourself-threads",
+      "scheduledAt": "2026-08-27T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "你很習慣聽別人說話，但你有多久沒好好聽自己說話？\n\n不是給自己建議，不是檢討自己哪裡做錯，是單純聽——\n你現在心裡在想什麼，就只是聽著。\n\n多數人聽別人聽得很好，聽自己卻聽得很少。\n\n今天有沒有哪句話，你一直沒好好聽完？留言打「有」就好，想多說也可以。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
+    },
+    {
+      "id": "2026-08-29-companionship-not-solutions-threads",
+      "scheduledAt": "2026-08-29T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "很多人以為陪伴就是要幫忙想辦法。\n\n其實大部分時候，只是需要有人聽完，不打斷、不給建議、不急著說「你應該」。\n\n問題不一定當下能解決，但被好好聽完的感覺，會讓人有力氣繼續面對。\n\n上一次有人只是聽你說完，沒有給建議，是什麼時候？留言告訴我，想多說也可以。",
+      "link": "",
+      "imageUrl": "",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-19T13:00:41.173Z"
