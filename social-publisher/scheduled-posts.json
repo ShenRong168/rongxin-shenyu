@@ -1289,7 +1289,16 @@
       "message": "他哭到停不下來的時候，我沒有叫他不要哭。\n\n我只是抱著他，讓他哭完。\n\n不用等他不哭了才抱他，\n抱著抱著，他真的會慢慢不哭。\n\n情緒不需要馬上被解決，只需要被陪著。\n\n你家小朋友哭的時候，你通常怎麼做？留言告訴我 ❤️\n\n#正向教養 #情緒陪伴 #溫暖插畫",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/comfort-after-crying.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-20T13:00:48.914Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18062948876760751"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-23-positioning-post-threads",
@@ -1369,5 +1378,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-19T13:00:41.173Z"
+  "lastRunAt": "2026-08-20T13:00:39.542Z"
 }
