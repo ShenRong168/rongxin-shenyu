@@ -26,8 +26,8 @@ Supplying more than one source is an error. Empty strings and an empty `imageUrl
 The normalized descriptor is one of:
 
 ```js
-{ kind: "image", imageUrl, imageUrls: [imageUrl] }
-{ kind: "carousel", imageUrl: imageUrls[0], imageUrls }
+{ kind: "image", imageUrl }
+{ kind: "carousel", imageUrls }
 { kind: "reels", videoUrl }
 ```
 
