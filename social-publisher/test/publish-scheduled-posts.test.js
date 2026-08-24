@@ -30,7 +30,6 @@ test("buildInstagramPublishPayload forwards carousel images", () => {
       instagramUserId: "ig_1",
       pageAccessToken: "page_token",
       caption: "caption",
-      imageUrl: "https://example.com/one.png",
       imageUrls: ["https://example.com/one.png", "https://example.com/two.png"]
     }
   );
@@ -64,8 +63,7 @@ test("buildInstagramPublishPayload preserves legacy single-image posts", () => {
       instagramUserId: "ig_1",
       pageAccessToken: "page_token",
       caption: "caption",
-      imageUrl: "https://example.com/",
-      imageUrls: ["https://example.com/"]
+      imageUrl: "https://example.com/"
     }
   );
 });
@@ -233,7 +231,10 @@ for (const [name, media, expectedError] of [
 }
 
 test("scheduler publishes a queued Instagram Reel with videoUrl", () => {
-  const { schedule, calls, cleanup } = runInstagramReelSchedule();
+  const { schedule, calls, cleanup } = runInstagramSchedule({
+    message: "Scheduled Reel",
+    media: { videoUrl: "https://example.com/reel.mp4" }
+  });
 
   try {
     assert.equal(schedule.posts[0].status, "published");
@@ -245,6 +246,48 @@ test("scheduler publishes a queued Instagram Reel with videoUrl", () => {
     assert.equal(calls[0].body.caption, "Scheduled Reel");
     assert.equal(calls[2].url.endsWith("/test_instagram/media_publish"), true);
     assert.equal(calls[2].body.creation_id, "reel_container_1");
+  } finally {
+    cleanup();
+  }
+});
+
+test("scheduler publishes a valid mixed-platform single image", () => {
+  const { schedule, calls, cleanup } = runInstagramSchedule({
+    message: "Scheduled image",
+    media: { imageUrl: "https://example.com/image.png" },
+    platforms: ["facebook", "instagram"]
+  });
+
+  try {
+    assert.equal(schedule.posts[0].status, "published");
+    assert.equal(schedule.posts[0].results.length, 2);
+    assert.equal(schedule.posts[0].results.some((result) => result.error), false);
+    assert.equal(calls[0].url.endsWith("/test_page/photos"), true);
+    assert.equal(calls[0].body.url, "https://example.com/image.png");
+    const instagramCreate = calls.find((call) => call.url.endsWith("/test_instagram/media"));
+    assert.equal(instagramCreate.body.image_url, "https://example.com/image.png");
+    assert.equal(Object.hasOwn(instagramCreate.body, "video_url"), false);
+  } finally {
+    cleanup();
+  }
+});
+
+test("scheduler publishes a valid Instagram carousel after payload normalization", () => {
+  const imageUrls = ["https://example.com/one.png", "https://example.com/two.png"];
+  const { schedule, calls, cleanup } = runInstagramSchedule({
+    message: "Scheduled carousel",
+    media: { imageUrls }
+  });
+
+  try {
+    assert.equal(schedule.posts[0].status, "published");
+    assert.equal(schedule.posts[0].results[0].error, undefined);
+    const creates = calls.filter((call) => call.url.endsWith("/test_instagram/media"));
+    assert.equal(creates.length, 3);
+    assert.equal(creates[0].body.image_url, imageUrls[0]);
+    assert.equal(creates[1].body.image_url, imageUrls[1]);
+    assert.equal(creates[2].body.media_type, "CAROUSEL");
+    assert.equal(creates[2].body.children, "container_1,container_2");
   } finally {
     cleanup();
   }
@@ -311,7 +354,7 @@ globalThis.fetch = async (url) => {
   }
 }
 
-function runInstagramReelSchedule() {
+function runInstagramSchedule({ message, media, platforms = ["instagram"] }) {
   const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-reel-"));
   const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
   const preloadPath = join(cwd, "mock-fetch.mjs");
@@ -321,13 +364,19 @@ function runInstagramReelSchedule() {
   writeFileSync(
     preloadPath,
     `import { appendFileSync } from "node:fs";
+let mediaCreateCount = 0;
 globalThis.fetch = async (url, options = {}) => {
   const body = options.body instanceof URLSearchParams ? Object.fromEntries(options.body) : {};
   appendFileSync(process.env.MOCK_META_CALLS_PATH, JSON.stringify({ url: String(url), body }) + "\\n");
-  if (String(url).endsWith("/test_instagram/media")) {
-    return new Response(JSON.stringify({ id: "reel_container_1" }), { status: 200 });
+  if (String(url).endsWith("/test_page/photos")) {
+    return new Response(JSON.stringify({ id: "facebook_media_1" }), { status: 200 });
   }
-  if (String(url).includes("/reel_container_1?")) {
+  if (String(url).endsWith("/test_instagram/media")) {
+    mediaCreateCount += 1;
+    const id = body.media_type === "REELS" ? "reel_container_1" : "container_" + mediaCreateCount;
+    return new Response(JSON.stringify({ id }), { status: 200 });
+  }
+  if (String(url).includes("/reel_container_1?") || String(url).includes("/container_")) {
     return new Response(JSON.stringify({ status_code: "FINISHED" }), { status: 200 });
   }
   if (String(url).endsWith("/test_instagram/media_publish")) {
@@ -342,11 +391,11 @@ globalThis.fetch = async (url, options = {}) => {
     JSON.stringify({
       posts: [
         {
-          id: "scheduled-reel",
+          id: "scheduled-instagram-media",
           scheduledAt: "2000-01-01T00:00:00.000Z",
-          platforms: ["instagram"],
-          message: "Scheduled Reel",
-          videoUrl: "https://example.com/reel.mp4",
+          platforms,
+          message,
+          ...media,
           status: "queued"
         }
       ]

@@ -61,12 +61,24 @@ test("local publisher renders and dry-runs Instagram carousel and Reel media", a
   await writeFile(
     fetchPreloadPath,
     `import { appendFileSync } from "node:fs";
-globalThis.fetch = async (url) => {
-  appendFileSync(process.env.MOCK_META_CALLS_PATH, String(url) + "\\n");
-  return new Response(JSON.stringify({ id: "mock_media" }), {
-    status: 200,
-    headers: { "content-type": "application/json" }
-  });
+let mediaCreateCount = 0;
+globalThis.fetch = async (url, options = {}) => {
+  const body = options.body instanceof URLSearchParams ? Object.fromEntries(options.body) : {};
+  appendFileSync(process.env.MOCK_META_CALLS_PATH, JSON.stringify({ url: String(url), body }) + "\\n");
+  if (String(url).endsWith("/page_1/photos")) {
+    return new Response(JSON.stringify({ id: "facebook_media_1" }), { status: 200 });
+  }
+  if (String(url).endsWith("/ig_1/media")) {
+    mediaCreateCount += 1;
+    return new Response(JSON.stringify({ id: "container_" + mediaCreateCount }), { status: 200 });
+  }
+  if (String(url).includes("/container_") && String(url).includes("?")) {
+    return new Response(JSON.stringify({ status_code: "FINISHED" }), { status: 200 });
+  }
+  if (String(url).endsWith("/ig_1/media_publish")) {
+    return new Response(JSON.stringify({ id: "instagram_media_1" }), { status: 200 });
+  }
+  throw new Error("Unexpected fetch: " + url);
 };
 `
   );
@@ -174,6 +186,28 @@ globalThis.fetch = async (url) => {
   assert.doesNotMatch(facebookThreadsResult, /https:\/\/example\.com\/one\.png/);
   assert.doesNotMatch(facebookThreadsResult, /https:\/\/example\.com\/two\.png/);
 
+  await rm(networkCallsPath, { force: true });
+  const mixedValidResponse = await fetch(`${baseUrl}/publish`, {
+    method: "POST",
+    body: new URLSearchParams([
+      ["platforms", "facebook"],
+      ["platforms", "instagram"],
+      ["message", "Valid mixed image"],
+      ["imageUrl", singleImageUrl]
+    ])
+  });
+  const mixedValidResult = await mixedValidResponse.text();
+  assert.equal(mixedValidResponse.status, 200);
+  assert.match(mixedValidResult, /facebook_media_1/);
+  assert.match(mixedValidResult, /instagram_media_1/);
+  const mixedValidCalls = (await readFile(networkCallsPath, "utf8"))
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line));
+  assert.equal(mixedValidCalls[0].url.endsWith("/page_1/photos"), true);
+  assert.equal(mixedValidCalls[1].url.endsWith("/ig_1/media"), true);
+  assert.equal(mixedValidCalls[1].body.image_url, singleImageUrl);
+
   const invalidUrlResponse = await fetch(`${baseUrl}/publish`, {
     method: "POST",
     body: new URLSearchParams({
@@ -198,6 +232,7 @@ globalThis.fetch = async (url) => {
   assert.equal(tooManyImagesResponse.status, 400);
   assert.match(await tooManyImagesResponse.text(), /supports at most 10 images/);
 
+  await rm(networkCallsPath, { force: true });
   const mixedPlatformResponse = await fetch(`${baseUrl}/publish`, {
     method: "POST",
     body: new URLSearchParams([

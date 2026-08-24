@@ -21,9 +21,15 @@ export function normalizeInstagramMediaInput({ imageUrl = "", imageUrls, videoUr
   }
 
   const normalizedImageUrls = normalizeInstagramImageUrls({ imageUrl, imageUrls });
+  if (normalizedImageUrls.length === 1) {
+    return {
+      kind: "image",
+      imageUrl: normalizedImageUrls[0]
+    };
+  }
+
   return {
-    kind: normalizedImageUrls.length === 1 ? "image" : "carousel",
-    imageUrl: normalizedImageUrls[0],
+    kind: "carousel",
     imageUrls: normalizedImageUrls
   };
 }

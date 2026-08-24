@@ -17,8 +17,7 @@ test("normalizeInstagramMediaInput preserves image and carousel behavior", () =>
     normalizeInstagramMediaInput({ imageUrl: "https://example.com/image.png" }),
     {
       kind: "image",
-      imageUrl: "https://example.com/image.png",
-      imageUrls: ["https://example.com/image.png"]
+      imageUrl: "https://example.com/image.png"
     }
   );
 
@@ -28,7 +27,6 @@ test("normalizeInstagramMediaInput preserves image and carousel behavior", () =>
     }),
     {
       kind: "carousel",
-      imageUrl: "https://example.com/one.png",
       imageUrls: ["https://example.com/one.png", "https://example.com/two.png"]
     }
   );

@@ -231,7 +231,7 @@ test("Reel containers use wider polling defaults", async (t) => {
     if (call.url.endsWith("/ig_1/media")) return jsonResponse({ id: "slow_reel_1" });
     if (call.url.includes("/slow_reel_1?")) {
       statusCalls += 1;
-      return jsonResponse({ status_code: statusCalls === 11 ? "FINISHED" : "IN_PROGRESS" });
+      return jsonResponse({ status_code: statusCalls === 60 ? "FINISHED" : "IN_PROGRESS" });
     }
     throw new Error(`Unexpected fetch: ${url}`);
   };
@@ -245,7 +245,7 @@ test("Reel containers use wider polling defaults", async (t) => {
   });
 
   assert.deepEqual(result, { id: "slow_reel_1" });
-  assert.equal(statusCalls, 11);
+  assert.equal(statusCalls, 60);
 });
 
 test("Reel containers use a 5000ms default delay and accept poll overrides", async (t) => {
@@ -320,6 +320,69 @@ test("publishInstagram does not publish a Reel container that fails processing",
     /Instagram media container ERROR/
   );
 
+  assert.equal(calls.some((call) => call.url.endsWith("/ig_1/media_publish")), false);
+});
+
+test("publishInstagram does not publish an expired Reel container", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const call = { url: String(url), body: options.body };
+    calls.push(call);
+    if (call.url.endsWith("/ig_1/media")) return jsonResponse({ id: "expired_reel_1" });
+    if (call.url.includes("/expired_reel_1?")) return jsonResponse({ status_code: "EXPIRED" });
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  await assert.rejects(
+    publishInstagram({
+      instagramUserId: "ig_1",
+      pageAccessToken: "page_token",
+      caption: "expired reel",
+      videoUrl: "https://example.com/expired.mp4",
+      containerPollOptions: { attempts: 1, delayMs: 0 }
+    }),
+    /Instagram media container EXPIRED/
+  );
+
+  assert.equal(calls.some((call) => call.url.endsWith("/ig_1/media_publish")), false);
+});
+
+test("publishInstagram does not publish a Reel container after polling times out", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const call = { url: String(url), body: options.body };
+    calls.push(call);
+    if (call.url.endsWith("/ig_1/media")) return jsonResponse({ id: "timed_out_reel_1" });
+    if (call.url.includes("/timed_out_reel_1?")) {
+      return jsonResponse({ status_code: "IN_PROGRESS" });
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  await assert.rejects(
+    publishInstagram({
+      instagramUserId: "ig_1",
+      pageAccessToken: "page_token",
+      caption: "timed out reel",
+      videoUrl: "https://example.com/timed-out.mp4",
+      containerPollOptions: { attempts: 2, delayMs: 0 }
+    }),
+    /Instagram media container was not ready before timeout/
+  );
+
+  assert.equal(calls.filter((call) => call.url.includes("/timed_out_reel_1?")).length, 2);
   assert.equal(calls.some((call) => call.url.endsWith("/ig_1/media_publish")), false);
 });
 
