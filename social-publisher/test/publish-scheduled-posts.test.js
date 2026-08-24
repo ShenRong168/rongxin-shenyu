@@ -22,7 +22,6 @@ test("buildInstagramPublishPayload forwards carousel images", () => {
     buildInstagramPublishPayload(
       {
         message: "caption",
-        imageUrl: "https://example.com/legacy.png",
         imageUrls: ["https://example.com/one.png", "https://example.com/two.png"]
       },
       env
@@ -33,6 +32,24 @@ test("buildInstagramPublishPayload forwards carousel images", () => {
       caption: "caption",
       imageUrl: "https://example.com/one.png",
       imageUrls: ["https://example.com/one.png", "https://example.com/two.png"]
+    }
+  );
+});
+
+test("buildInstagramPublishPayload forwards a Reel video URL", () => {
+  assert.deepEqual(
+    buildInstagramPublishPayload(
+      {
+        message: "reel caption",
+        videoUrl: "https://example.com/reel.mp4"
+      },
+      env
+    ),
+    {
+      instagramUserId: "ig_1",
+      pageAccessToken: "page_token",
+      caption: "reel caption",
+      videoUrl: "https://example.com/reel.mp4"
     }
   );
 });
@@ -65,6 +82,29 @@ test("buildInstagramPublishPayload rejects invalid image inputs", () => {
         env
       ),
     /supports at most 10 images/
+  );
+});
+
+test("buildInstagramPublishPayload rejects invalid or conflicting Reel inputs", () => {
+  assert.throws(
+    () =>
+      buildInstagramPublishPayload(
+        { message: "caption", videoUrl: "ftp://example.com/reel.mp4" },
+        env
+      ),
+    /Instagram video must use http or https/
+  );
+  assert.throws(
+    () =>
+      buildInstagramPublishPayload(
+        {
+          message: "caption",
+          imageUrl: "https://example.com/image.png",
+          videoUrl: "https://example.com/reel.mp4"
+        },
+        env
+      ),
+    /requires exactly one of imageUrl, imageUrls, or videoUrl/
   );
 });
 
@@ -156,12 +196,29 @@ test("direct scheduler execution loads secrets and SCHEDULE_FILE from a local .e
   }
 });
 
-for (const [name, imageUrls, expectedError] of [
-  ["invalid URL", ["ftp://example.com/image.png"], /must use http or https/],
-  ["11 images", Array(11).fill("https://example.com/image.png"), /supports at most 10 images/]
+for (const [name, media, expectedError] of [
+  ["invalid URL", { imageUrls: ["ftp://example.com/image.png"] }, /must use http or https/],
+  [
+    "11 images",
+    { imageUrls: Array(11).fill("https://example.com/image.png") },
+    /supports at most 10 images/
+  ],
+  [
+    "conflicting Reel media",
+    {
+      imageUrl: "https://example.com/image.png",
+      videoUrl: "https://example.com/reel.mp4"
+    },
+    /requires exactly one of imageUrl, imageUrls, or videoUrl/
+  ],
+  [
+    "invalid Reel URL",
+    { videoUrl: "ftp://example.com/reel.mp4" },
+    /Instagram video must use http or https/
+  ]
 ]) {
   test(`scheduler rejects mixed-platform ${name} before any publish request`, () => {
-    const { schedule, networkCallsPath, cleanup } = runMixedPlatformSchedule(imageUrls);
+    const { schedule, networkCallsPath, cleanup } = runMixedPlatformSchedule(media);
 
     try {
       assert.equal(existsSync(networkCallsPath), false);
@@ -175,7 +232,25 @@ for (const [name, imageUrls, expectedError] of [
   });
 }
 
-function runMixedPlatformSchedule(imageUrls) {
+test("scheduler publishes a queued Instagram Reel with videoUrl", () => {
+  const { schedule, calls, cleanup } = runInstagramReelSchedule();
+
+  try {
+    assert.equal(schedule.posts[0].status, "published");
+    assert.equal(schedule.posts[0].results[0].platform, "instagram");
+    assert.deepEqual(schedule.posts[0].results[0].result, { id: "reel_media_1" });
+    assert.equal(calls[0].url.endsWith("/test_instagram/media"), true);
+    assert.equal(calls[0].body.media_type, "REELS");
+    assert.equal(calls[0].body.video_url, "https://example.com/reel.mp4");
+    assert.equal(calls[0].body.caption, "Scheduled Reel");
+    assert.equal(calls[2].url.endsWith("/test_instagram/media_publish"), true);
+    assert.equal(calls[2].body.creation_id, "reel_container_1");
+  } finally {
+    cleanup();
+  }
+});
+
+function runMixedPlatformSchedule(media) {
   const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-posts-mixed-"));
   const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
   const preloadPath = join(cwd, "mock-fetch.mjs");
@@ -203,8 +278,7 @@ globalThis.fetch = async (url) => {
           scheduledAt: "2000-01-01T00:00:00.000Z",
           platforms: ["facebook", "instagram"],
           message: "Do not partially publish",
-          imageUrl: "https://example.com/facebook.png",
-          imageUrls,
+          ...media,
           status: "queued"
         }
       ]
@@ -229,6 +303,78 @@ globalThis.fetch = async (url) => {
     return {
       schedule: JSON.parse(readFileSync(schedulePath, "utf8")),
       networkCallsPath,
+      cleanup: () => rmSync(cwd, { recursive: true, force: true })
+    };
+  } catch (error) {
+    rmSync(cwd, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+function runInstagramReelSchedule() {
+  const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-reel-"));
+  const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
+  const preloadPath = join(cwd, "mock-fetch.mjs");
+  const callsPath = join(cwd, "meta-calls.jsonl");
+  const schedulePath = join(cwd, "scheduled-posts.json");
+
+  writeFileSync(
+    preloadPath,
+    `import { appendFileSync } from "node:fs";
+globalThis.fetch = async (url, options = {}) => {
+  const body = options.body instanceof URLSearchParams ? Object.fromEntries(options.body) : {};
+  appendFileSync(process.env.MOCK_META_CALLS_PATH, JSON.stringify({ url: String(url), body }) + "\\n");
+  if (String(url).endsWith("/test_instagram/media")) {
+    return new Response(JSON.stringify({ id: "reel_container_1" }), { status: 200 });
+  }
+  if (String(url).includes("/reel_container_1?")) {
+    return new Response(JSON.stringify({ status_code: "FINISHED" }), { status: 200 });
+  }
+  if (String(url).endsWith("/test_instagram/media_publish")) {
+    return new Response(JSON.stringify({ id: "reel_media_1" }), { status: 200 });
+  }
+  throw new Error("Unexpected fetch: " + url);
+};
+`
+  );
+  writeFileSync(
+    schedulePath,
+    JSON.stringify({
+      posts: [
+        {
+          id: "scheduled-reel",
+          scheduledAt: "2000-01-01T00:00:00.000Z",
+          platforms: ["instagram"],
+          message: "Scheduled Reel",
+          videoUrl: "https://example.com/reel.mp4",
+          status: "queued"
+        }
+      ]
+    })
+  );
+
+  try {
+    execFileSync(process.execPath, ["--import", preloadPath, schedulerPath], {
+      cwd,
+      env: {
+        ...withoutPublisherSecrets(process.env),
+        META_PAGE_ID: "test_page",
+        META_PAGE_ACCESS_TOKEN: "test_page_token",
+        INSTAGRAM_USER_ID: "test_instagram",
+        THREADS_USER_ID: "test_threads",
+        THREADS_ACCESS_TOKEN: "test_threads_token",
+        MOCK_META_CALLS_PATH: callsPath
+      },
+      stdio: "pipe"
+    });
+
+    return {
+      schedule: JSON.parse(readFileSync(schedulePath, "utf8")),
+      calls: readFileSync(callsPath, "utf8")
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => JSON.parse(line)),
       cleanup: () => rmSync(cwd, { recursive: true, force: true })
     };
   } catch (error) {

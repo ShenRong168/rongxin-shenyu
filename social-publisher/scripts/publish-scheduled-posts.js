@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { normalizeInstagramImageUrls } from "../src/instagram-images.js";
+import { normalizeInstagramMediaInput } from "../src/instagram-media.js";
 
 const requiredSecrets = [
   "META_PAGE_ID",
@@ -18,17 +18,17 @@ function requireEnv(name, env = process.env) {
 }
 
 export function buildInstagramPublishPayload(post, env = process.env) {
-  const imageUrls = normalizeInstagramImageUrls({
+  const { kind: _kind, ...media } = normalizeInstagramMediaInput({
     imageUrl: post.imageUrl || "",
-    imageUrls: post.imageUrls
+    imageUrls: post.imageUrls,
+    videoUrl: post.videoUrl || ""
   });
 
   return {
     instagramUserId: requireEnv("INSTAGRAM_USER_ID", env),
     pageAccessToken: requireEnv("META_PAGE_ACCESS_TOKEN", env),
     caption: post.message,
-    imageUrl: imageUrls[0],
-    imageUrls
+    ...media
   };
 }
 
