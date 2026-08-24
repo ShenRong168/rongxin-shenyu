@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { config } from "./config.js";
 import { fetchJson, formBody } from "./http.js";
-import { normalizeInstagramImageUrls } from "./instagram-images.js";
+import { normalizeInstagramMediaInput } from "./instagram-media.js";
 
 const facebookGraphBase = `https://graph.facebook.com/${config.graphVersion}`;
 const threadsGraphBase = "https://graph.threads.net/v1.0";
@@ -192,21 +192,35 @@ export async function createInstagramMediaContainer({
   caption,
   imageUrl,
   imageUrls,
+  videoUrl,
   containerPollOptions
 }) {
-  const normalizedUrls = normalizeInstagramImageUrls({ imageUrl, imageUrls });
+  const media = normalizeInstagramMediaInput({ imageUrl, imageUrls, videoUrl });
 
-  if (normalizedUrls.length === 1) {
+  if (media.kind === "reels") {
     return createReadyInstagramContainer({
       instagramUserId,
       pageAccessToken,
-      values: { image_url: normalizedUrls[0], caption },
+      values: { media_type: "REELS", video_url: media.videoUrl, caption },
+      containerPollOptions: {
+        attempts: 60,
+        delayMs: 5000,
+        ...containerPollOptions
+      }
+    });
+  }
+
+  if (media.kind === "image") {
+    return createReadyInstagramContainer({
+      instagramUserId,
+      pageAccessToken,
+      values: { image_url: media.imageUrl, caption },
       containerPollOptions
     });
   }
 
   const childIds = [];
-  for (const [index, childImageUrl] of normalizedUrls.entries()) {
+  for (const [index, childImageUrl] of media.imageUrls.entries()) {
     try {
       const child = await createReadyInstagramContainer({
         instagramUserId,
