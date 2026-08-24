@@ -18,7 +18,8 @@ import {
   publishThreads
 } from "./meta-service.js";
 import { appendPublishLog, loadStore, updateStore } from "./store.js";
-import { normalizeInstagramImageUrls, parseImageUrlsInput } from "./instagram-images.js";
+import { parseImageUrlsInput } from "./instagram-images.js";
+import { normalizeInstagramMediaInput } from "./instagram-media.js";
 import { checkScheduleSync } from "../scripts/check-schedule-sync.js";
 
 const app = express();
@@ -162,19 +163,19 @@ app.post("/publish", async (req, res, next) => {
     const link = String(req.body.link || "").trim();
     const imageUrl = String(req.body.imageUrl || "").trim();
     const imageUrls = parseImageUrlsInput(req.body.imageUrls);
+    const videoUrl = String(req.body.videoUrl || "").trim();
     const dryRun = req.body.dryRun === "on";
 
     if (!message) throw new Error("Message is required.");
     if (!platforms.length) throw new Error("Select at least one platform.");
 
-    const normalizedInstagramImageUrls = platforms.includes("instagram")
-      ? normalizeInstagramImageUrls({ imageUrl, imageUrls })
+    const normalizedInstagramMedia = platforms.includes("instagram")
+      ? normalizeInstagramMediaInput({ imageUrl, imageUrls, videoUrl })
       : null;
-    const instagramImagePayload = normalizedInstagramImageUrls
-      ? {
-          imageUrl: normalizedInstagramImageUrls[0],
-          imageUrls: normalizedInstagramImageUrls
-        }
+    const instagramMediaPayload = normalizedInstagramMedia
+      ? Object.fromEntries(
+          Object.entries(normalizedInstagramMedia).filter(([key]) => key !== "kind")
+        )
       : null;
     const results = [];
 
@@ -203,7 +204,7 @@ app.post("/publish", async (req, res, next) => {
             payload: {
               instagramUserId: "[connect-instagram-business-after-oauth]",
               caption: message,
-              ...instagramImagePayload
+              ...instagramMediaPayload
             }
           }
         });
@@ -216,7 +217,7 @@ app.post("/publish", async (req, res, next) => {
         instagramUserId,
         pageAccessToken: page.accessToken,
         caption: message,
-        ...instagramImagePayload
+        ...instagramMediaPayload
       };
       results.push({
         platform: "instagram",
@@ -249,7 +250,16 @@ app.post("/publish", async (req, res, next) => {
       }
     }
 
-    await appendPublishLog({ dryRun, platforms, message, link, imageUrl, imageUrls, results });
+    await appendPublishLog({
+      dryRun,
+      platforms,
+      message,
+      link,
+      imageUrl,
+      imageUrls,
+      videoUrl,
+      results
+    });
 
     res.type("html").send(renderResult({ results, dryRun }));
   } catch (error) {
@@ -406,7 +416,7 @@ function renderHome({ state, articles, schedule, missing }) {
   return pageShell(`
     <section class="panel">
       <h1>榮心紳語一鍵發文 MVP</h1>
-      <p>先用 dry-run 測 payload，再取消 dry-run 真正發文。IG 目前需要公開圖片網址；FB Page 和 Threads 可發純文字。</p>
+      <p>先用 dry-run 測 payload，再取消 dry-run 真正發文。IG 需要一種公開圖片或影片網址；FB Page 和 Threads 可發純文字。</p>
       ${
         missing.length
           ? `<div class="warning">缺少環境變數：${escapeHtml(missing.join(", "))}。請先複製 .env.example 成 .env 後填入。</div>`
@@ -484,11 +494,14 @@ function renderHome({ state, articles, schedule, missing }) {
         <label for="link">連結（FB 可用，選填）</label>
         <input id="link" name="link" type="url" value="${escapeHtml(latestArticle?.url || "")}" placeholder="https://shenrong168.github.io/rongxin-shenyu/articles/workplace-confusion.html">
 
-        <label for="imageUrl">公開圖片 URL（IG 必填；FB/Threads 選填）</label>
+        <label for="imageUrl">公開單圖 URL（IG 單圖使用；FB/Threads 選填；與輪播／影片互斥）</label>
         <input id="imageUrl" name="imageUrl" type="url" value="${escapeHtml(latestArticle?.image || "")}" placeholder="https://.../image.jpg">
 
-        <label for="imageUrls">IG 輪播圖片 URL（每行一個，2–10 張；填寫後優先於單圖）</label>
+        <label for="imageUrls">IG 輪播圖片 URL（每行一個，2–10 張；與單圖／影片互斥）</label>
         <textarea id="imageUrls" name="imageUrls" rows="5" placeholder="https://.../slide-1.png&#10;https://.../slide-2.png"></textarea>
+
+        <label for="videoUrl">IG Reels 公開影片 URL（與單圖／輪播互斥）</label>
+        <input id="videoUrl" name="videoUrl" type="url" placeholder="https://.../reel.mp4">
 
         <label class="inline"><input type="checkbox" name="dryRun" checked> Dry-run，只測試 payload，不真的發文</label>
         <button type="submit">送出</button>
@@ -600,10 +613,17 @@ function renderScheduleSummary(posts) {
 
 function renderScheduleItem(post) {
   const urls = scheduledImageUrls(post);
+  const videoUrl = String(post.videoUrl || "").trim();
 
   return `
     <article class="schedule-item">
-      ${urls.length ? `<img src="${escapeHtml(urls[0])}" alt="">` : `<div class="image-placeholder">純文字</div>`}
+      ${
+        videoUrl
+          ? `<div class="video-placeholder">Reel</div>`
+          : urls.length
+            ? `<img src="${escapeHtml(urls[0])}" alt="">`
+            : `<div class="image-placeholder">純文字</div>`
+      }
       <div>
         <div class="log-head">
           <strong>${escapeHtml(statusLabel(post.status))}</strong>
@@ -612,7 +632,8 @@ function renderScheduleItem(post) {
         <p>${escapeHtml(truncate(post.message || "", 80))}</p>
         <div class="muted">${escapeHtml((post.platforms || []).join(", "))}</div>
         ${urls.length > 1 ? `<div class="muted">輪播 ${urls.length} 張</div>` : ""}
-        ${urls.length ? `<div class="muted">圖片：${escapeHtml(urls[0])}</div>` : ""}
+        ${videoUrl ? `<div class="muted">影片：${escapeHtml(videoUrl)}</div>` : ""}
+        ${!videoUrl && urls.length ? `<div class="muted">圖片：${escapeHtml(urls[0])}</div>` : ""}
       </div>
     </article>
   `;
@@ -817,12 +838,12 @@ function pageShell(content) {
           .metrics dd { margin:0; font-weight:800; }
           .metric-note { margin:.5rem 0 0; color:#8b2f25; font-size:.9rem; }
           .article-card { display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:start; }
-          .article-card img, .schedule-item img, .image-placeholder { width:100%; aspect-ratio:1 / 1; object-fit:cover; border:1px solid var(--line); border-radius:8px; background:#f5f0e8; }
+          .article-card img, .schedule-item img, .image-placeholder, .video-placeholder { width:100%; aspect-ratio:1 / 1; object-fit:cover; border:1px solid var(--line); border-radius:8px; background:#f5f0e8; }
           .article-card h3 { margin:.2rem 0 .5rem; }
           .schedule-list { display:grid; gap:12px; }
           .schedule-item { display:grid; grid-template-columns:86px 1fr; gap:12px; padding:12px; border:1px solid var(--line); border-radius:8px; background:white; }
           .schedule-item p { margin:.35rem 0; }
-          .image-placeholder { display:grid; place-items:center; color:var(--muted); font-size:.88rem; }
+          .image-placeholder, .video-placeholder { display:grid; place-items:center; color:var(--muted); font-size:.88rem; }
           @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
           @media (max-width:900px) { .metric-grid { grid-template-columns:1fr; } }
           @media (max-width:560px) { .article-card, .schedule-item { grid-template-columns:1fr; } }

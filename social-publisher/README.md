@@ -173,10 +173,12 @@ Instagram：
 
 - 這個 MVP 使用 Instagram Graph API content publishing
 - 需要 Instagram 專業帳號，且連到 Facebook Page
-- 圖片貼文必須提供公開 HTTP(S) 圖片 URL
+- 圖片與 Reels 必須提供公開 HTTP(S) 素材 URL
 - `imageUrls` 為選填、僅限 Instagram；填入 2-10 個 URL 時會依陣列順序發布輪播
-- `imageUrls` 只有一個 URL 時會使用單圖發文流程；非空 `imageUrls` 會覆寫 Instagram 的 `imageUrl`
-- Facebook 與 Threads 仍只使用 `imageUrl`
+- `imageUrls` 只有一個 URL 時會使用單圖發文流程
+- `videoUrl` 為選填、僅限 Instagram；填入時會以 `media_type=REELS` 建立影片 container
+- `imageUrl`、非空 `imageUrls`、`videoUrl` 三者互斥，Instagram 每篇只能提供其中一種
+- Facebook 與 Threads 仍只使用 `imageUrl`，不支援 `videoUrl`
 - 不支援純文字 IG 貼文
 - 如果 Facebook 授權視窗有「編輯存取權限」，請只勾榮心紳語粉專和 `yogo918`，避免抓到其他代管粉專或舊資產
 - 目前成效同步可抓：
@@ -247,6 +249,7 @@ social-publisher/scheduled-posts.json
       "link": "",
       "imageUrl": "",
       "imageUrls": [],
+      "videoUrl": "",
       "topicTag": "",
       "status": "queued"
     }
@@ -259,8 +262,10 @@ social-publisher/scheduled-posts.json
 - `scheduledAt`：發文時間，請使用台灣時區 `+08:00`
 - `platforms`：可填 `facebook`、`instagram`、`threads`
 - `message`：貼文內容
-- `imageUrl`：IG 單圖發文必填，且必須是公開 HTTP(S) 圖片 URL；FB / Threads 可選填
-- `imageUrls`：選填、僅限 Instagram。2-10 個公開 HTTP(S) 圖片 URL 會依陣列順序發布輪播；一個 URL 使用單圖流程；非空時優先於 `imageUrl`
+- `imageUrl`：IG 單圖發文使用，且必須是公開 HTTP(S) 圖片 URL；FB / Threads 可選填
+- `imageUrls`：選填、僅限 Instagram。2-10 個公開 HTTP(S) 圖片 URL 會依陣列順序發布輪播；一個 URL 使用單圖流程
+- `videoUrl`：選填、僅限 Instagram Reels。必須是 Meta 可公開抓取的 HTTP(S) 影片 URL；影片 container 使用較長的處理等待時間
+- Instagram 的 `imageUrl`、非空 `imageUrls`、`videoUrl` 三者互斥，同時提供會在任何平台發文前報錯
 - `topicTag`：選填、僅限 Threads。填入時會在建立 Threads container 時送出 `topic_tag`；一篇限一個標籤，建議 1-50 字元，避免句點與 `&`。既有未填此欄位的貼文不受影響
 - `status`：新貼文填 `queued`
 
@@ -280,7 +285,8 @@ GitHub Secrets 需要設定：
 限制：
 
 - GitHub Actions 的排程不是秒級準時，可能延遲數分鐘
-- IG 不能純文字發文，必須有公開圖片 URL
+- IG 不能純文字發文，必須有一種公開圖片或影片 URL
+- Reels 的實際處理時間通常比圖片長；若影片長時間未完成，排程結果會標為 `failed`，不會呼叫發布步驟
 - 如果 token 過期，需要重新授權並更新 GitHub Secrets
 
 ## 本機資料

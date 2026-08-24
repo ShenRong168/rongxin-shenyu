@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const publisherDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-test("local publisher renders and dry-runs an Instagram carousel", async (t) => {
+test("local publisher renders and dry-runs Instagram carousel and Reel media", async (t) => {
   const port = await unusedPort();
   const tokenDir = await mkdtemp(join(tmpdir(), "rongxin-carousel-server-test-"));
   const tokenStorePath = join(tokenDir, "tokens.json");
@@ -29,8 +29,15 @@ test("local publisher renders and dry-runs an Instagram carousel", async (t) => 
           scheduledAt: "2026-08-07T09:00:00+08:00",
           platforms: ["instagram"],
           message: "Test carousel schedule",
-          imageUrl: "https://example.com/legacy.png",
           imageUrls: scheduleImageUrls,
+          status: "queued"
+        },
+        {
+          id: "test-reel",
+          scheduledAt: "2026-08-08T09:00:00+08:00",
+          platforms: ["instagram"],
+          message: "Test Reel schedule",
+          videoUrl: "https://example.com/scheduled-reel.mp4",
           status: "queued"
         }
       ]
@@ -93,10 +100,13 @@ globalThis.fetch = async (url) => {
 
   const home = await (await fetch(`${baseUrl}/`)).text();
   assert.match(home, /<textarea id="imageUrls" name="imageUrls" rows="5"/);
+  assert.match(home, /<input id="videoUrl" name="videoUrl" type="url"/);
   assert.match(home, /<input type="checkbox" name="dryRun" checked>/);
   assert.match(home, /<img src="https:\/\/example\.com\/schedule-first\.png" alt="">/);
   assert.doesNotMatch(home, /<img src="https:\/\/example\.com\/schedule-second\.png" alt="">/);
   assert.match(home, /輪播 2 張/);
+  assert.match(home, /<div class="video-placeholder">Reel<\/div>/);
+  assert.match(home, /影片：https:\/\/example\.com\/scheduled-reel\.mp4/);
 
   const imageUrls = " https://example.com \nhttps://example.com/two.png";
   const response = await fetch(`${baseUrl}/publish`, {
@@ -104,7 +114,6 @@ globalThis.fetch = async (url) => {
     body: new URLSearchParams({
       platforms: "instagram",
       message: "Carousel dry run",
-      imageUrl: "ftp://example.com/ignored.png",
       imageUrls,
       dryRun: "on"
     })
@@ -115,8 +124,32 @@ globalThis.fetch = async (url) => {
   assert.match(result, /&quot;dryRun&quot;: true/);
   assert.match(result, /&quot;imageUrls&quot;: \[/);
   assert.match(result, /https:\/\/example\.com\/(?=&quot;)/);
-  assert.doesNotMatch(result, /ftp:\/\/example\.com\/ignored\.png/);
   assert.ok(result.indexOf("https://example.com/") < result.indexOf("https://example.com/two.png"));
+
+  await rm(networkCallsPath, { force: true });
+  const videoUrl = "https://example.com/reel.mp4";
+  const reelResponse = await fetch(`${baseUrl}/publish`, {
+    method: "POST",
+    body: new URLSearchParams({
+      platforms: "instagram",
+      message: "Reel dry run",
+      videoUrl,
+      dryRun: "on"
+    })
+  });
+  const reelResult = await reelResponse.text();
+
+  assert.equal(reelResponse.status, 200);
+  assert.match(reelResult, /&quot;dryRun&quot;: true/);
+  assert.match(reelResult, /&quot;videoUrl&quot;: &quot;https:\/\/example\.com\/reel\.mp4&quot;/);
+  assert.doesNotMatch(reelResult, /&quot;imageUrl&quot;/);
+  assert.doesNotMatch(reelResult, /&quot;imageUrls&quot;/);
+  await assert.rejects(readFile(networkCallsPath), { code: "ENOENT" });
+
+  const storedAfterReel = JSON.parse(await readFile(tokenStorePath, "utf8"));
+  assert.equal(storedAfterReel.publishLog[0].videoUrl, videoUrl);
+  assert.equal(storedAfterReel.publishLog[0].imageUrl, "");
+  assert.deepEqual(storedAfterReel.publishLog[0].imageUrls, []);
 
   const singleImageUrl = "https://example.com/single.png";
   const facebookThreadsResponse = await fetch(`${baseUrl}/publish`, {
@@ -127,6 +160,7 @@ globalThis.fetch = async (url) => {
       ["message", "Single-image dry run"],
       ["imageUrl", singleImageUrl],
       ["imageUrls", imageUrls],
+      ["videoUrl", videoUrl],
       ["dryRun", "on"]
     ])
   });
@@ -136,6 +170,7 @@ globalThis.fetch = async (url) => {
   assert.match(facebookThreadsResult, /&quot;dryRun&quot;: true/);
   assert.match(facebookThreadsResult, /https:\/\/example\.com\/single\.png/);
   assert.doesNotMatch(facebookThreadsResult, /&quot;imageUrls&quot;/);
+  assert.doesNotMatch(facebookThreadsResult, /&quot;videoUrl&quot;/);
   assert.doesNotMatch(facebookThreadsResult, /https:\/\/example\.com\/one\.png/);
   assert.doesNotMatch(facebookThreadsResult, /https:\/\/example\.com\/two\.png/);
 
@@ -163,7 +198,6 @@ globalThis.fetch = async (url) => {
   assert.equal(tooManyImagesResponse.status, 400);
   assert.match(await tooManyImagesResponse.text(), /supports at most 10 images/);
 
-  await rm(networkCallsPath, { force: true });
   const mixedPlatformResponse = await fetch(`${baseUrl}/publish`, {
     method: "POST",
     body: new URLSearchParams([
@@ -171,11 +205,14 @@ globalThis.fetch = async (url) => {
       ["platforms", "instagram"],
       ["message", "Reject before publishing"],
       ["imageUrl", "https://example.com/facebook.png"],
-      ["imageUrls", "ftp://example.com/instagram.png"]
+      ["videoUrl", "https://example.com/reel.mp4"]
     ])
   });
   assert.equal(mixedPlatformResponse.status, 400);
-  assert.match(await mixedPlatformResponse.text(), /must use http or https/);
+  assert.match(
+    await mixedPlatformResponse.text(),
+    /requires exactly one of imageUrl, imageUrls, or videoUrl/
+  );
   await assert.rejects(readFile(networkCallsPath), { code: "ENOENT" });
 });
 
