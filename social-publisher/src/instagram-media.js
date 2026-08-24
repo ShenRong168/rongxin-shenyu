@@ -50,4 +50,3 @@ function normalizeVideoUrl(value) {
 
   return parsed.toString();
 }
-

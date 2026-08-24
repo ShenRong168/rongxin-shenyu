@@ -63,4 +63,3 @@ The local form gains an Instagram Reel public video URL field. Dry-run displays 
 - Scheduler tests cover `videoUrl` forwarding and mixed-platform rejection before any request.
 - Server integration tests cover the Reel field, dry-run payload/log behavior, schedule preview, and Facebook/Threads isolation.
 - Final verification runs `npm test`, `npm run check`, `npm run check:schedule-sync`, `git diff --check`, and a byte-integrity check proving `scheduled-posts.json` is unchanged.
-

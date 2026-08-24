@@ -75,4 +75,3 @@ test("normalizeInstagramMediaInput rejects invalid Reel video URLs", () => {
     /Instagram video must be a non-empty URL/
   );
 });
-

@@ -101,4 +101,3 @@
 - [ ] Review the complete branch, fix any important findings, merge to `main`, rerun tests, and push.
 - [ ] Mark the assignment complete, add newest-first `2026-08-24 Codex IG Reels 支援` report, write the log, update project README/index, and mark live Meta publication `待確認`.
 - [ ] Commit only intended vault files; preserve unrelated vault changes.
-
