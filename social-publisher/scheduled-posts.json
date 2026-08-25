@@ -1348,7 +1348,16 @@
       "message": "如果現在有一個人，什麼都不會說教、只會聽，\n你最想跟他說的第一句話是什麼？\n\n不用完整，不用有頭有尾，想到哪寫到哪就好。\n\n寫在留言，我會回你——或者只是打出來給自己看，也可以。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-25T13:00:42.852Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "17942599206323609"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-27-listen-to-yourself-threads",
@@ -1484,7 +1493,17 @@
       "message": "很多人以為傾訴，需要先想清楚要說什麼，才有資格開口。\n\n其實不用。\n\n如果現在有一個人，什麼都不會說教、只會聽，你最想跟他說的第一句話是什麼？\n\n不用完整，不用有頭有尾，想到哪寫到哪就好。\n\n寫在留言，我會回你——或者只是打出來給自己看，也可以。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/listening-blank-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-25T13:00:48.354Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122117008683372954",
+            "post_id": "1230312726828490_122117008707372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-27-listen-to-yourself-facebook",
@@ -1509,5 +1528,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-24T14:20:29.752Z"
+  "lastRunAt": "2026-08-25T13:00:36.096Z"
 }
