@@ -1537,6 +1537,17 @@
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/sharing-toy-scene.png",
       "status": "queued"
+    },
+    {
+      "id": "2026-08-30-reading-picturebook-instagram",
+      "scheduledAt": "2026-08-30T20:00:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "妹妹指著圖畫問東問西，媽媽一句一句慢慢回答，沒有催她快一點。\n\n這種下午，什麼都沒發生，卻很珍貴。\n\n#榮心紳語 #親子日常 #陪伴時光",
+      "link": "",
+      "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/reading-picturebook.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-25T13:00:36.096Z"
