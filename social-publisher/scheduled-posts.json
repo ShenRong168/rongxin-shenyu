@@ -1526,6 +1526,17 @@
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/companionship-not-solutions-quote.png",
       "status": "queued"
+    },
+    {
+      "id": "2026-08-28-sharing-toy-instagram",
+      "scheduledAt": "2026-08-28T12:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "玩具只有一份，妹妹想了兩秒，還是分給弟弟一半。\n\n那個瞬間沒有大道理，只是單純想讓弟弟也開心。\n\n留言分享一句你家小朋友最近說過最可愛的話 🌿\n\n#榮心紳語 #親子日常 #手足時光",
+      "link": "",
+      "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/sharing-toy-scene.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-25T13:00:36.096Z"
