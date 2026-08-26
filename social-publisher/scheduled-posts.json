@@ -1548,6 +1548,17 @@
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/reading-picturebook.png",
       "status": "queued"
+    },
+    {
+      "id": "2026-09-01-tidy-up-praise-instagram",
+      "scheduledAt": "2026-09-01T12:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "message": "弟弟主動把玩具收好，爸爸蹲下來說「你做得很好」。\n\n比起提醒他該收玩具，這句稱讚更讓他記得下次也想這樣做。\n\n#榮心紳語 #育兒小提醒 #親子日常",
+      "link": "",
+      "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/tidy-up-praise.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-25T13:00:36.096Z"
