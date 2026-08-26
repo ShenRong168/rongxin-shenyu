@@ -1569,7 +1569,16 @@
       "videoUrl": "https://rongxinshenyu.com/assets/ig-characters/reels/first-shoelace-victory-reel-final.mp4",
       "message": "他自己把鞋帶綁好的那一秒，臉上比中樂透還開心。\n\n不用等到考第一名、得獎，\n一件他自己做到的小事，就已經值得被好好稱讚。\n\n那種「我做到了」的表情，比任何獎盃都珍貴。\n\n你家小朋友最近第一次學會什麼？留言告訴我 ❤️\n\n#第一次的成就感 #親子日常 #溫暖插畫 #正向教養",
       "link": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-26T14:21:19.908Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18111389489044609"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-27-mama-lullaby-reel-instagram",
@@ -1583,5 +1592,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-25T13:00:36.096Z"
+  "lastRunAt": "2026-08-26T14:20:40.693Z"
 }
