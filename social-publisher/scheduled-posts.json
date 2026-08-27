@@ -1589,8 +1589,17 @@
       "videoUrl": "https://rongxinshenyu.com/assets/ig-characters/reels/mama-lullaby-reel-final.mp4",
       "message": "那首哄睡的歌，你從來沒特地學過，卻怎麼樣都會唱。\n\n可能是媽媽哼過的調，可能是隨口編的旋律，\n沒有歌詞、沒有正確答案，只有你們兩個懂。\n\n孩子聽的不是旋律準不準，是你在身邊的聲音。\n\n你家哄睡的歌是哪一種？留言打「自己編的」「媽媽教的」或「隨便哼的」，我很好奇 ❤️\n\n#親子日常 #睡前時光 #溫暖插畫",
       "link": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-27T12:01:23.300Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18157610488494095"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-08-26T14:20:40.693Z"
+  "lastRunAt": "2026-08-27T12:00:32.706Z"
 }
