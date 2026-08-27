@@ -1368,7 +1368,16 @@
       "message": "你很習慣聽別人說話，但你有多久沒好好聽自己說話？\n\n不是給自己建議，不是檢討自己哪裡做錯，是單純聽——\n你現在心裡在想什麼，就只是聽著。\n\n多數人聽別人聽得很好，聽自己卻聽得很少。\n\n今天有沒有哪句話，你一直沒好好聽完？留言打「有」就好，想多說也可以。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-27T13:00:45.078Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18088837130182441"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-29-companionship-not-solutions-threads",
@@ -1514,7 +1523,17 @@
       "message": "你很習慣聽別人說話，但你有多久沒好好聽自己說話？\n\n不是給自己建議，不是檢討自己哪裡做錯，是單純聽——你現在心裡在想什麼，就只是聽著。\n\n多數人聽別人聽得很好，聽自己卻聽得很少。\n\n今天有沒有哪句話，你一直沒好好聽完？留言打「有」就好，想多說也可以。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/listen-to-yourself-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-27T13:00:50.466Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122117359119372954",
+            "post_id": "1230312726828490_122117359137372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-29-companionship-not-solutions-facebook",
@@ -1601,5 +1620,5 @@
       ]
     }
   ],
-  "lastRunAt": "2026-08-27T12:00:32.706Z"
+  "lastRunAt": "2026-08-27T13:00:38.197Z"
 }
