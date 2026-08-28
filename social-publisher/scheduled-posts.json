@@ -1670,7 +1670,16 @@
       "videoUrl": "https://rongxinshenyu.com/assets/ig-characters/reels/siblings-reconciled-reel-final.mp4",
       "message": "他們五分鐘前才吵完架，現在又抱在一起了。\n\n大人常常要練習很久才學會的「原諒」，\n在他們身上好像不用學，本能就會。\n\n沒有道歉的話術，沒有誰先低頭的較量，\n就只是玩著玩著，又笑在一起了。\n\n如果你也覺得手足情這麼單純很療癒，幫我按個愛心 🤍\n\n#手足日常 #兄妹時光 #溫暖插畫 #親子日常",
       "link": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-28T12:01:22.231Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18153376975507704"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-29-whole-family-afternoon-reel-instagram",
@@ -1684,5 +1693,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-28T04:30:40.262Z"
+  "lastRunAt": "2026-08-28T12:00:40.652Z"
 }
