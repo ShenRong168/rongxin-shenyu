@@ -1555,7 +1555,16 @@
       "message": "玩具只有一份，妹妹想了兩秒，還是分給弟弟一半。\n\n那個瞬間沒有大道理，只是單純想讓弟弟也開心。\n\n留言分享一句你家小朋友最近說過最可愛的話 🌿\n\n#榮心紳語 #親子日常 #手足時光",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/sharing-toy-scene.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-28T04:30:49.566Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17982912441116466"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-30-reading-picturebook-instagram",
@@ -1653,5 +1662,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-27T13:00:38.197Z"
+  "lastRunAt": "2026-08-28T04:30:40.262Z"
 }
