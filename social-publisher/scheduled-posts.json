@@ -1690,8 +1690,17 @@
       "videoUrl": "https://rongxinshenyu.com/assets/ig-characters/reels/whole-family-afternoon-reel-final.mp4",
       "message": "這張畫沒有特別的日子，就只是一個普通的午後。\n\n沒有慶生、沒有紀念日，\n只是剛好四個人都在，窩在一起而已。\n\n家不是誰都完美的時候才值得記錄，是隨便一天，你們都在。\n\n如果也想記住這種普通的片刻，收藏起來，之後想起來可以回來看 ❤️\n\n#全家日常 #親子時光 #溫暖插畫",
       "link": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-29T12:01:17.653Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18103741877579846"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-08-28T12:00:40.652Z"
+  "lastRunAt": "2026-08-29T12:00:36.242Z"
 }
