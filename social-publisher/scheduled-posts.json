@@ -1585,7 +1585,16 @@
       "message": "妹妹指著圖畫問東問西，媽媽一句一句慢慢回答，沒有催她快一點。\n\n這種下午，什麼都沒發生，卻很珍貴。\n\n#榮心紳語 #親子日常 #陪伴時光",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/reading-picturebook.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-08-30T12:00:52.485Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18113538494317603"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-01-tidy-up-praise-instagram",
@@ -1712,5 +1721,5 @@
       ]
     }
   ],
-  "lastRunAt": "2026-08-29T13:00:35.991Z"
+  "lastRunAt": "2026-08-30T12:00:37.016Z"
 }
