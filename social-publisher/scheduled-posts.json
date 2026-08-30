@@ -1381,21 +1381,14 @@
     },
     {
       "id": "2026-08-29-companionship-not-solutions-threads",
-      "scheduledAt": "2026-08-29T21:00:00+08:00",
+      "scheduledAt": "2026-08-30T21:00:00+08:00",
       "platforms": [
         "threads"
       ],
       "message": "很多人以為陪伴就是要幫忙想辦法。\n\n其實大部分時候，只是需要有人聽完，不打斷、不給建議、不急著說「你應該」。\n\n問題不一定當下能解決，但被好好聽完的感覺，會讓人有力氣繼續面對。\n\n上一次有人只是聽你說完，沒有給建議，是什麼時候？留言告訴我，想多說也可以。",
       "link": "",
       "imageUrl": "",
-      "status": "failed",
-      "publishedAt": "2026-08-29T13:00:36.305Z",
-      "results": [
-        {
-          "platform": "threads",
-          "error": "Error validating access token: Session has expired on Friday, 28-Aug-26 20:15:52 PDT. The current time is Saturday, 29-Aug-26 06:00:36 PDT."
-        }
-      ]
+      "status": "queued"
     },
     {
       "id": "2026-08-22-not-yet-let-go-threads",
