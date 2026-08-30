@@ -1,0 +1,36 @@
+name: Refresh Threads Token
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily 00:17 Asia/Taipei. The script only refreshes inside the configured threshold.
+    - cron: "17 16 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: social-publisher/package-lock.json
+
+      - name: Install dependencies
+        working-directory: social-publisher
+        run: npm ci
+
+      - name: Refresh Threads access token if needed
+        working-directory: social-publisher
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_DEBUG_ACCESS_TOKEN: ${{ secrets.THREADS_DEBUG_ACCESS_TOKEN }}
+          THREADS_REFRESH_WITHIN_DAYS: "14"
+          GH_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: npm run refresh:threads-token

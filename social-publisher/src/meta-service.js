@@ -339,6 +339,7 @@ export function buildThreadsAuthUrl(state) {
 }
 
 export async function exchangeThreadsCode(code) {
+  const issuedAt = new Date();
   const shortToken = await fetchJson("https://graph.threads.net/oauth/access_token", {
     method: "POST",
     body: formBody({
@@ -369,8 +370,52 @@ export async function exchangeThreadsCode(code) {
   return {
     accessToken,
     expiresIn: longToken.expires_in || shortToken.expires_in || null,
+    issuedAt: issuedAt.toISOString(),
+    expiresAt:
+      longToken.expires_in || shortToken.expires_in
+        ? new Date(issuedAt.getTime() + (longToken.expires_in || shortToken.expires_in) * 1000).toISOString()
+        : null,
     userId: profile.id,
     username: profile.username
+  };
+}
+
+export async function refreshThreadsAccessToken(accessToken) {
+  if (!accessToken) throw new Error("Threads access token is required.");
+
+  const refreshed = await fetchJson(
+    `https://graph.threads.net/refresh_access_token?${new URLSearchParams({
+      grant_type: "th_refresh_token",
+      access_token: accessToken
+    })}`
+  );
+
+  return {
+    accessToken: refreshed.access_token,
+    tokenType: refreshed.token_type || null,
+    expiresIn: refreshed.expires_in ?? null
+  };
+}
+
+export async function debugThreadsAccessToken(inputToken, debugAccessToken = inputToken) {
+  if (!inputToken) throw new Error("Threads input token is required.");
+  if (!debugAccessToken) throw new Error("Threads debug access token is required.");
+
+  const debug = await fetchJson(
+    `${threadsGraphBase}/debug_token?${new URLSearchParams({
+      access_token: debugAccessToken,
+      input_token: inputToken
+    })}`
+  );
+  const data = debug.data || {};
+
+  return {
+    isValid: data.is_valid === true,
+    issuedAt: unixSecondsToIso(data.issued_at),
+    expiresAt: unixSecondsToIso(data.expires_at),
+    userId: data.user_id || null,
+    scopes: data.scopes || [],
+    raw: data
   };
 }
 
@@ -434,4 +479,9 @@ export async function fetchThreadsPostMetrics({ postId, accessToken }) {
   }
 
   return metrics;
+}
+
+function unixSecondsToIso(value) {
+  if (typeof value !== "number") return null;
+  return new Date(value * 1000).toISOString();
 }

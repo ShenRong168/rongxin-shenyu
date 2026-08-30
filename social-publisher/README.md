@@ -276,6 +276,29 @@ GitHub Secrets 需要設定：
 - `INSTAGRAM_USER_ID`
 - `THREADS_USER_ID`
 - `THREADS_ACCESS_TOKEN`
+- `GH_SECRETS_TOKEN`：供 `.github/workflows/threads-token-refresh.yml` 更新 `THREADS_ACCESS_TOKEN`。需要具備此 repo 的 Actions secrets 寫入權限；不要使用一般發文用 token 代替。
+
+### Threads token 自動續期
+
+Threads 長效 access token 約 60 天到期。`Refresh Threads Token` workflow 每天 00:17（Asia/Taipei）執行一次：
+
+1. 先用 Threads `/debug_token` 讀取 `THREADS_ACCESS_TOKEN` 的有效性與到期時間。
+2. 若剩餘天數大於 `THREADS_REFRESH_WITHIN_DAYS`（預設 14 天），不更新任何 secret。
+3. 若已進入門檻，呼叫官方 `GET https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=...` 換發新的長效 token。
+4. 先用 `gh secret set THREADS_ACCESS_TOKEN` 更新 GitHub Secrets，再更新本機 `data/tokens.json`；若 secret 更新失敗，本機檔不會先寫成新 token，避免再次出現「本機新、Actions 舊」的落差。
+
+本機手動檢查或續期：
+
+```bash
+cd /Volumes/fast/CODEX/rongxin-shenyu/social-publisher && npm run refresh:threads-token
+```
+
+注意：
+
+- GitHub Actions 端要先設定 `GH_SECRETS_TOKEN`，且該 token 必須能寫入 repository Actions secrets。
+- 如果 `/debug_token` 回報 token 已失效，或 refresh 回應失敗，workflow 會失敗並印出「需要 Shen 重新走 OAuth 授權」的錯誤，不會靜默略過。
+- 已徹底過期的長效 token 無法 refresh，只能重新授權。
+- 真實 refresh 需等 token 接近到期門檻時驗證；目前測試以 mock API 確認端點、門檻判斷、secret 寫入順序與失敗保護。
 
 執行後 workflow 會把貼文狀態改成：
 
@@ -287,7 +310,7 @@ GitHub Secrets 需要設定：
 - GitHub Actions 的排程不是秒級準時，可能延遲數分鐘
 - IG 不能純文字發文，必須有一種公開圖片或影片 URL
 - Reels 的實際處理時間通常比圖片長；若影片長時間未完成，排程結果會標為 `failed`，不會呼叫發布步驟
-- 如果 token 過期，需要重新授權並更新 GitHub Secrets
+- 如果 token 已經過期到無法 refresh，需要重新授權並更新 GitHub Secrets
 
 ## 本機資料
 
@@ -366,7 +389,6 @@ META_SCOPES=pages_show_list,pages_read_engagement,pages_manage_posts,instagram_b
 - 使用者帳號系統
 - CSRF 防護
 - 發文前二次確認
-- token refresh / 過期提示
 - 發文佇列與 retry
 - audit log
 
@@ -375,3 +397,4 @@ META_SCOPES=pages_show_list,pages_read_engagement,pages_manage_posts,instagram_b
 - Facebook Pages API：<https://developers.facebook.com/docs/pages-api/>
 - Instagram Platform content publishing：<https://developers.facebook.com/docs/instagram-platform/content-publishing/>
 - Threads API：<https://developers.facebook.com/docs/threads/>
+- Threads long-lived token refresh：<https://developers.facebook.com/documentation/threads/get-started/long-lived-tokens>

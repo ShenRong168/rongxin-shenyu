@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createInstagramMediaContainer, publishInstagram, publishThreads } from "../src/meta-service.js";
+import {
+  createInstagramMediaContainer,
+  debugThreadsAccessToken,
+  publishInstagram,
+  publishThreads,
+  refreshThreadsAccessToken
+} from "../src/meta-service.js";
 
 test("publishInstagram waits until the media container is finished", async (t) => {
   const originalFetch = globalThis.fetch;
@@ -440,6 +446,75 @@ test("publishThreads omits topic_tag for legacy posts without topicTag", async (
   });
 
   assert.equal(calls[0].body.has("topic_tag"), false);
+});
+
+test("refreshThreadsAccessToken uses the official Threads refresh endpoint", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), method: options.method || "GET" });
+    return jsonResponse({
+      access_token: "new_threads_token",
+      token_type: "bearer",
+      expires_in: 5184000
+    });
+  };
+
+  const result = await refreshThreadsAccessToken("old_threads_token");
+
+  assert.deepEqual(result, {
+    accessToken: "new_threads_token",
+    tokenType: "bearer",
+    expiresIn: 5184000
+  });
+  assert.equal(calls.length, 1);
+  const refreshUrl = new URL(calls[0].url);
+  assert.equal(refreshUrl.origin + refreshUrl.pathname, "https://graph.threads.net/refresh_access_token");
+  assert.equal(refreshUrl.searchParams.get("grant_type"), "th_refresh_token");
+  assert.equal(refreshUrl.searchParams.get("access_token"), "old_threads_token");
+  assert.equal(calls[0].method, "GET");
+});
+
+test("debugThreadsAccessToken reads token expiry metadata", async (t) => {
+  const originalFetch = globalThis.fetch;
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url) => {
+    const debugUrl = new URL(String(url));
+    assert.equal(debugUrl.origin + debugUrl.pathname, "https://graph.threads.net/v1.0/debug_token");
+    assert.equal(debugUrl.searchParams.get("access_token"), "debug_token");
+    assert.equal(debugUrl.searchParams.get("input_token"), "current_token");
+    return jsonResponse({
+      data: {
+        is_valid: true,
+        issued_at: 1788062400,
+        expires_at: 1793246400,
+        user_id: "threads_user"
+      }
+    });
+  };
+
+  assert.deepEqual(await debugThreadsAccessToken("current_token", "debug_token"), {
+    isValid: true,
+    issuedAt: "2026-08-30T04:00:00.000Z",
+    expiresAt: "2026-10-29T04:00:00.000Z",
+    userId: "threads_user",
+    scopes: [],
+    raw: {
+      is_valid: true,
+      issued_at: 1788062400,
+      expires_at: 1793246400,
+      user_id: "threads_user"
+    }
+  });
 });
 
 function jsonResponse(body, status = 200) {

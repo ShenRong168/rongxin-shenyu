@@ -10,7 +10,8 @@
     "check:schedule-sync": "node scripts/check-schedule-sync.js",
     "schedule:pull": "git pull --ff-only && node scripts/check-schedule-sync.js",
     "test": "node --test",
-    "publish:scheduled": "node scripts/publish-scheduled-posts.js"
+    "publish:scheduled": "node scripts/publish-scheduled-posts.js",
+    "refresh:threads-token": "node scripts/refresh-threads-token.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
