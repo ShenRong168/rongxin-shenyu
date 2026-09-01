@@ -5,6 +5,8 @@ var SHEET_NAME_ = "官網初步盤點";
 var BOOKING_SOURCE_URL_ = "https://rongxinshenyu.com/booking.html";
 var ALLOWED_ORIGIN_ = "https://rongxinshenyu.com";
 var META_PIXEL_ID_ = "4400969670158242";
+var EFFECT_LEASE_MILLISECONDS_ = 60000;
+var EFFECT_STATE_COLUMN_ = 14;
 var HEADERS_ = [
   "建立時間",
   "event_id",
@@ -20,6 +22,7 @@ var HEADERS_ = [
   "同意版本",
   "審核狀態",
   "Meta CAPI 狀態",
+  "通知狀態",
   "管理備註"
 ];
 
@@ -179,7 +182,12 @@ function buildMetaPayload_(input, config, eventTime) {
   return payload;
 }
 
-function rowFor_(input, capiStatus) {
+function escapeSheetFormula_(value) {
+  var text = String(value);
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
+}
+
+function rowFor_(input) {
   return [
     new Date(),
     input.eventId,
@@ -194,38 +202,57 @@ function rowFor_(input, capiStatus) {
     "是",
     input.consentVersion,
     "待審核",
-    capiStatus,
+    "pending",
+    "pending",
     ""
-  ];
+  ].map(function (value) {
+    return typeof value === "string" ? escapeSheetFormula_(value) : value;
+  });
 }
 
 function processSubmission_(input, deps) {
   var stored = deps.store(input);
-  if (stored.duplicate) {
-    return { ok: true, duplicate: true, eventId: input.eventId };
-  }
-
-  var capiStatus;
+  var claimed;
   try {
-    var sent = deps.sendLead(input);
-    capiStatus = String(sent.status) + ": " + String(sent.responseCode);
+    claimed = deps.claimEffects(stored.rowNumber);
   } catch (error) {
-    capiStatus = "failed: " + (error && error.message ? error.message : String(error));
+    Logger.log("Booking effect claim failed");
+    return { ok: true, duplicate: stored.duplicate, eventId: input.eventId };
   }
 
-  try {
-    deps.updateCapiStatus(stored.rowNumber, capiStatus);
-  } catch (error) {
-    Logger.log("Booking CAPI status update failed");
+  if (claimed.capi) {
+    var capiStatus;
+    try {
+      var sent = deps.sendLead(input);
+      capiStatus = String(sent.status) + ": " + String(sent.responseCode);
+    } catch (error) {
+      capiStatus = "failed: " + (error && error.message ? error.message : String(error));
+    }
+
+    try {
+      deps.completeEffect(stored.rowNumber, "capi", claimed.leaseToken, capiStatus);
+    } catch (error) {
+      Logger.log("Booking CAPI status update failed");
+    }
   }
 
-  try {
-    deps.notify(input);
-  } catch (error) {
-    Logger.log("Booking admin notification failed");
+  if (claimed.notification) {
+    var notificationStatus;
+    try {
+      deps.notify(input);
+      notificationStatus = "sent";
+    } catch (error) {
+      notificationStatus = "failed: " + (error && error.message ? error.message : String(error));
+    }
+
+    try {
+      deps.completeEffect(stored.rowNumber, "notification", claimed.leaseToken, notificationStatus);
+    } catch (error) {
+      Logger.log("Booking notification status update failed");
+    }
   }
 
-  return { ok: true, duplicate: false, eventId: input.eventId };
+  return { ok: true, duplicate: stored.duplicate, eventId: input.eventId };
 }
 
 function renderBridge_(result, origin) {
@@ -282,6 +309,7 @@ function getSheet_(config) {
   }
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, HEADERS_.length).setValues([HEADERS_]);
+    SpreadsheetApp.flush();
   }
   return sheet;
 }
@@ -299,40 +327,153 @@ function findEventRow_(sheet, eventId) {
   return found ? found.getRow() : 0;
 }
 
-function rateLimit_(email) {
-  var cache = CacheService.getScriptCache();
-  var key = "booking-rate-" + sha256Hex_(normalizeEmail_(email));
-  var count = parseInt(cache.get(key), 10);
-  if (!isFinite(count) || count < 0) {
-    count = 0;
-  }
-  if (count >= 5) {
-    throw new Error("Too many submissions");
-  }
-  cache.put(key, String(count + 1), 3600);
+function bestEffortThrottleKey_(email) {
+  return "booking-best-effort-throttle-" + sha256Hex_(normalizeEmail_(email));
 }
 
-function storeInput_(sheet, input) {
+// CacheService can evict entries and is not durable. This is only a gentle,
+// best-effort throttle; validation and deduplication remain the real controls.
+function checkBestEffortThrottle_(email) {
+  var key = bestEffortThrottleKey_(email);
+  try {
+    var cache = CacheService.getScriptCache();
+    var count = parseInt(cache.get(key), 10);
+    if (!isFinite(count) || count < 0) {
+      count = 0;
+    }
+    if (count >= 5) {
+      throw new Error("Too many submissions");
+    }
+    return { cache: cache, key: key, count: count };
+  } catch (error) {
+    if (error && error.message === "Too many submissions") {
+      throw error;
+    }
+    Logger.log("Booking best-effort throttle unavailable");
+    return { cache: null, key: key, count: 0 };
+  }
+}
+
+function recordBestEffortAccepted_(throttle) {
+  if (!throttle.cache) {
+    return;
+  }
+  try {
+    throttle.cache.put(throttle.key, String(throttle.count + 1), 3600);
+  } catch (error) {
+    Logger.log("Booking best-effort throttle record failed");
+  }
+}
+
+function readEffectStates_(sheet, rowNumber) {
+  var values = sheet.getRange(rowNumber, EFFECT_STATE_COLUMN_, 1, 2).getValues()[0];
+  return {
+    capiStatus: String(values[0] || "pending"),
+    notificationStatus: String(values[1] || "pending")
+  };
+}
+
+function storeInput_(config, input) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
+    var sheet = getSheet_(config);
     var existingRow = findEventRow_(sheet, input.eventId);
     if (existingRow) {
-      return { duplicate: true, rowNumber: existingRow };
+      var existingStates = readEffectStates_(sheet, existingRow);
+      return {
+        duplicate: true,
+        rowNumber: existingRow,
+        capiStatus: existingStates.capiStatus,
+        notificationStatus: existingStates.notificationStatus
+      };
     }
-    rateLimit_(input.email);
+    var throttle = checkBestEffortThrottle_(input.email);
     var rowNumber = sheet.getLastRow() + 1;
     sheet.getRange(rowNumber, 1, 1, HEADERS_.length).setValues([
-      rowFor_(input, "pending")
+      rowFor_(input)
     ]);
-    return { duplicate: false, rowNumber: rowNumber };
+    SpreadsheetApp.flush();
+    recordBestEffortAccepted_(throttle);
+    return {
+      duplicate: false,
+      rowNumber: rowNumber,
+      capiStatus: "pending",
+      notificationStatus: "pending"
+    };
   } finally {
     lock.releaseLock();
   }
 }
 
-function updateCapiStatus_(sheet, rowNumber, status) {
-  sheet.getRange(rowNumber, 14).setValue(status);
+function processingState_(leaseToken, expiresAt) {
+  return "processing:" + String(leaseToken) + ":" + String(expiresAt);
+}
+
+function shouldClaimEffect_(status, nowMillis) {
+  var text = String(status || "pending");
+  if (/^sent(?::|$)/.test(text)) {
+    return false;
+  }
+  if (text.indexOf("processing:") !== 0) {
+    return true;
+  }
+  var expiresAt = Number(text.slice(text.lastIndexOf(":") + 1));
+  return !isFinite(expiresAt) || expiresAt <= nowMillis;
+}
+
+function claimEffects_(config, rowNumber, nowMillis, leaseToken) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = getSheet_(config);
+    var range = sheet.getRange(rowNumber, EFFECT_STATE_COLUMN_, 1, 2);
+    var values = range.getValues()[0].map(function (value) { return String(value || "pending"); });
+    var claimCapi = shouldClaimEffect_(values[0], nowMillis);
+    var claimNotification = shouldClaimEffect_(values[1], nowMillis);
+    if (claimCapi || claimNotification) {
+      var leasedState = processingState_(leaseToken, nowMillis + EFFECT_LEASE_MILLISECONDS_);
+      if (claimCapi) {
+        values[0] = leasedState;
+      }
+      if (claimNotification) {
+        values[1] = leasedState;
+      }
+      range.setValues([values]);
+      SpreadsheetApp.flush();
+    }
+    return {
+      leaseToken: String(leaseToken),
+      capi: claimCapi,
+      notification: claimNotification
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function completeEffect_(config, rowNumber, effect, leaseToken, status) {
+  var effectIndex = effect === "capi" ? 0 : effect === "notification" ? 1 : -1;
+  if (effectIndex === -1) {
+    throw new Error("Unknown booking effect");
+  }
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = getSheet_(config);
+    var range = sheet.getRange(rowNumber, EFFECT_STATE_COLUMN_, 1, 2);
+    var values = range.getValues()[0].map(function (value) { return String(value || "pending"); });
+    var ownedPrefix = "processing:" + String(leaseToken) + ":";
+    if (values[effectIndex].indexOf(ownedPrefix) !== 0) {
+      return false;
+    }
+    values[effectIndex] = String(status);
+    range.setValues([values]);
+    SpreadsheetApp.flush();
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function sendLead_(input, config) {
@@ -367,13 +508,13 @@ function sendLead_(input, config) {
   return { status: "sent", responseCode: responseCode };
 }
 
-function notify_(input, config, sheet) {
+function notify_(input, config, spreadsheetUrl) {
   var body = [
     "建立時間：" + new Date().toISOString(),
     "稱呼：" + input.displayName,
     "Email：" + input.email,
     "event_id：" + input.eventId,
-    "試算表：" + sheet.getParent().getUrl()
+    "試算表：" + spreadsheetUrl
   ].join("\n");
   MailApp.sendEmail({
     to: config.adminEmail,
@@ -383,19 +524,22 @@ function notify_(input, config, sheet) {
 }
 
 function createDependencies_(config) {
-  var sheet = getSheet_(config);
   return {
     store: function (input) {
-      return storeInput_(sheet, input);
+      return storeInput_(config, input);
+    },
+    claimEffects: function (rowNumber) {
+      return claimEffects_(config, rowNumber, Date.now(), Utilities.getUuid());
     },
     sendLead: function (input) {
       return sendLead_(input, config);
     },
-    updateCapiStatus: function (rowNumber, status) {
-      updateCapiStatus_(sheet, rowNumber, status);
+    completeEffect: function (rowNumber, effect, leaseToken, status) {
+      return completeEffect_(config, rowNumber, effect, leaseToken, status);
     },
     notify: function (input) {
-      notify_(input, config, sheet);
+      var spreadsheetUrl = SpreadsheetApp.openById(config.spreadsheetId).getUrl();
+      notify_(input, config, spreadsheetUrl);
     }
   };
 }

@@ -215,20 +215,29 @@ test("validateSubmission_ bounds email, tracking IDs, and choice arrays", () => 
   assert.equal(oversizedTracking.fbc, "");
 });
 
-test("processSubmission_ stores, sends Meta Lead, updates status, and notifies", () => {
+test("processSubmission_ stores, claims, sends both effects, and persists sent states", () => {
   const input = sandbox.validateSubmission_(valid);
-  const calls = { store: [], sendLead: [], updateCapiStatus: [], notify: [] };
+  const calls = { store: [], claimEffects: [], sendLead: [], completeEffect: [], notify: [] };
   const deps = {
     store(value) {
       calls.store.push(value);
-      return { duplicate: false, rowNumber: 2 };
+      return {
+        duplicate: false,
+        rowNumber: 2,
+        capiStatus: "pending",
+        notificationStatus: "pending"
+      };
+    },
+    claimEffects(rowNumber) {
+      calls.claimEffects.push(rowNumber);
+      return { leaseToken: "lease-1", capi: true, notification: true };
     },
     sendLead(value) {
       calls.sendLead.push(value);
       return { status: "sent", responseCode: 200 };
     },
-    updateCapiStatus(rowNumber, status) {
-      calls.updateCapiStatus.push([rowNumber, status]);
+    completeEffect(rowNumber, effect, leaseToken, status) {
+      calls.completeEffect.push([rowNumber, effect, leaseToken, status]);
     },
     notify(value) {
       calls.notify.push(value);
@@ -243,22 +252,32 @@ test("processSubmission_ stores, sends Meta Lead, updates status, and notifies",
     eventId: valid.eventId
   });
   assert.equal(calls.store.length, 1);
+  assert.deepEqual(calls.claimEffects, [2]);
   assert.equal(calls.sendLead.length, 1);
-  assert.deepEqual(calls.updateCapiStatus, [[2, "sent: 200"]]);
+  assert.deepEqual(calls.completeEffect, [
+    [2, "capi", "lease-1", "sent: 200"],
+    [2, "notification", "lease-1", "sent"]
+  ]);
   assert.equal(calls.notify.length, 1);
 });
 
-test("processSubmission_ returns duplicate success without side effects", () => {
+test("processSubmission_ returns a fully completed duplicate without effects", () => {
   const input = sandbox.validateSubmission_(valid);
   let storeCalls = 0;
   const untouched = () => assert.fail("duplicate submission triggered a side effect");
   const deps = {
     store() {
       storeCalls += 1;
-      return { duplicate: true, rowNumber: 2 };
+      return {
+        duplicate: true,
+        rowNumber: 2,
+        capiStatus: "sent: 200",
+        notificationStatus: "sent"
+      };
     },
+    claimEffects() { return { leaseToken: "", capi: false, notification: false }; },
     sendLead: untouched,
-    updateCapiStatus: untouched,
+    completeEffect: untouched,
     notify: untouched
   };
 
@@ -272,15 +291,24 @@ test("processSubmission_ returns duplicate success without side effects", () => 
   assert.equal(storeCalls, 1);
 });
 
-test("processSubmission_ keeps a stored lead successful when Meta is unavailable", () => {
+test("processSubmission_ keeps a stored lead successful and records downstream failures", () => {
   const input = sandbox.validateSubmission_(valid);
   const statuses = [];
-  let notifyCalls = 0;
   const result = sandbox.processSubmission_(input, {
-    store() { return { duplicate: false, rowNumber: 2 }; },
+    store() {
+      return {
+        duplicate: false,
+        rowNumber: 2,
+        capiStatus: "pending",
+        notificationStatus: "pending"
+      };
+    },
+    claimEffects() { return { leaseToken: "lease-2", capi: true, notification: true }; },
     sendLead() { throw new Error("Meta unavailable"); },
-    updateCapiStatus(rowNumber, status) { statuses.push([rowNumber, status]); },
-    notify() { notifyCalls += 1; }
+    completeEffect(rowNumber, effect, leaseToken, status) {
+      statuses.push([rowNumber, effect, leaseToken, status]);
+    },
+    notify() { throw new Error("Mail unavailable"); }
   });
 
   assert.deepEqual(JSON.parse(JSON.stringify(result)), {
@@ -288,8 +316,61 @@ test("processSubmission_ keeps a stored lead successful when Meta is unavailable
     duplicate: false,
     eventId: valid.eventId
   });
-  assert.deepEqual(statuses, [[2, "failed: Meta unavailable"]]);
-  assert.equal(notifyCalls, 1);
+  assert.deepEqual(statuses, [
+    [2, "capi", "lease-2", "failed: Meta unavailable"],
+    [2, "notification", "lease-2", "failed: Mail unavailable"]
+  ]);
+});
+
+test("processSubmission_ resumes only failed or incomplete effects on a duplicate", () => {
+  const input = sandbox.validateSubmission_(valid);
+  const calls = [];
+  const result = sandbox.processSubmission_(input, {
+    store() {
+      return {
+        duplicate: true,
+        rowNumber: 2,
+        capiStatus: "failed: Meta unavailable",
+        notificationStatus: "not_configured: admin email"
+      };
+    },
+    claimEffects() { return { leaseToken: "lease-retry", capi: true, notification: true }; },
+    sendLead(value) { calls.push(["capi", value.eventId]); return { status: "sent", responseCode: 200 }; },
+    notify(value) { calls.push(["notification", value.email]); },
+    completeEffect(rowNumber, effect, leaseToken, status) {
+      calls.push(["complete", rowNumber, effect, leaseToken, status]);
+    }
+  });
+
+  assert.equal(result.duplicate, true);
+  assert.deepEqual(calls, [
+    ["capi", valid.eventId],
+    ["complete", 2, "capi", "lease-retry", "sent: 200"],
+    ["notification", "user@example.com"],
+    ["complete", 2, "notification", "lease-retry", "sent"]
+  ]);
+});
+
+test("processSubmission_ accepts an in-progress duplicate without sending effects", () => {
+  const input = sandbox.validateSubmission_(valid);
+  const untouched = () => assert.fail("active lease triggered a duplicate effect");
+  const result = sandbox.processSubmission_(input, {
+    store() {
+      return {
+        duplicate: true,
+        rowNumber: 2,
+        capiStatus: "processing:other:1700000100000",
+        notificationStatus: "processing:other:1700000100000"
+      };
+    },
+    claimEffects() { return { leaseToken: "", capi: false, notification: false }; },
+    sendLead: untouched,
+    notify: untouched,
+    completeEffect: untouched
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.duplicate, true);
 });
 
 test("renderBridge_ posts only the minimal result to the fixed origin", () => {
@@ -304,11 +385,11 @@ test("renderBridge_ posts only the minimal result to the fixed origin", () => {
   assert.equal(html.includes(valid.stuckText), false);
 });
 
-test("rowFor_ creates the approved 15-column review row", () => {
+test("rowFor_ creates the approved 16-column review row with separate pending states", () => {
   const input = sandbox.validateSubmission_(valid);
-  const row = sandbox.rowFor_(input, "pending");
+  const row = sandbox.rowFor_(input);
 
-  assert.equal(row.length, 15);
+  assert.equal(row.length, 16);
   assert.equal(Object.prototype.toString.call(row[0]), "[object Date]");
   assert.deepEqual([...row.slice(1)], [
     valid.eventId,
@@ -324,8 +405,38 @@ test("rowFor_ creates the approved 15-column review row", () => {
     "2026-09-01",
     "待審核",
     "pending",
+    "pending",
     ""
   ]);
+});
+
+test("rowFor_ escapes formula-like public strings without mutating normalized input", () => {
+  for (const field of ["displayName", "stuckText"]) {
+    for (const prefix of ["=", "+", "-", "@"]) {
+      const raw = {
+        ...valid,
+        [field]: field === "stuckText"
+          ? `${prefix}這是一段長度超過二十字而且可能被試算表當公式的卡點敘述。`
+          : `${prefix}危險稱呼`
+      };
+      const input = sandbox.validateSubmission_(raw);
+      const row = sandbox.rowFor_(input);
+      const column = field === "displayName" ? 3 : 5;
+      assert.equal(row[column], `'${input[field]}`);
+      assert.equal(input[field], raw[field]);
+    }
+  }
+
+  const input = sandbox.validateSubmission_({ ...valid, email: "+alias@example.com" });
+  const row = sandbox.rowFor_(input);
+  assert.equal(row[4], "'+alias@example.com");
+  assert.equal(input.email, "+alias@example.com");
+
+  const meta = sandbox.buildMetaPayload_(input, {}, 1700000020);
+  assert.equal(
+    meta.data[0].user_data.em[0],
+    createHash("sha256").update("+alias@example.com").digest("hex")
+  );
 });
 
 test("loadConfig_ requires the fixed site origin, pixel, and safe graph version", () => {
@@ -358,7 +469,8 @@ test("loadConfig_ requires the fixed site origin, pixel, and safe graph version"
   assert.throws(() => sandbox.loadConfig_(), /META_GRAPH_VERSION/);
 });
 
-test("getSheet_ initializes once and storeInput_ deduplicates before rate limiting", () => {
+test("storeInput_ initializes and writes under one lock, flushes, then records best-effort acceptance", () => {
+  const timeline = [];
   const writes = [];
   let lastRow = 0;
   let existingEventId = "";
@@ -380,6 +492,9 @@ test("getSheet_ initializes once and storeInput_ deduplicates before rate limiti
           }
         };
       }
+      if (column === 14 && columns === 2) {
+        return { getValues() { return [["sent: 200", "sent"]]; } };
+      }
       return {
         setValues(values) {
           writes.push({ row, column, rows, columns, values });
@@ -390,6 +505,8 @@ test("getSheet_ initializes once and storeInput_ deduplicates before rate limiti
   };
   const spreadsheet = {
     getSheetByName(name) {
+      timeline.push("getSheet");
+      assert.equal(timeline.includes("lock-held"), true);
       assert.equal(name, "官網初步盤點");
       return null;
     },
@@ -402,14 +519,21 @@ test("getSheet_ initializes once and storeInput_ deduplicates before rate limiti
     openById(id) {
       assert.equal(id, "sheet-1");
       return spreadsheet;
-    }
+    },
+    flush() { timeline.push("flush"); }
   };
   let lockReleases = 0;
   sandbox.LockService = {
     getScriptLock() {
       return {
-        waitLock(milliseconds) { assert.equal(milliseconds, 10000); },
-        releaseLock() { lockReleases += 1; }
+        waitLock(milliseconds) {
+          assert.equal(milliseconds, 10000);
+          timeline.push("lock-held");
+        },
+        releaseLock() {
+          timeline.push("release");
+          lockReleases += 1;
+        }
       };
     }
   };
@@ -418,48 +542,178 @@ test("getSheet_ initializes once and storeInput_ deduplicates before rate limiti
     getScriptCache() {
       return {
         get() { return null; },
-        put(key, value, seconds) { cachePuts.push({ key, value, seconds }); }
+        put(key, value, seconds) {
+          timeline.push("cache-put");
+          cachePuts.push({ key, value, seconds });
+        }
       };
     }
   };
 
-  const initialized = sandbox.getSheet_({ spreadsheetId: "sheet-1" });
-  assert.equal(initialized, sheet);
-  assert.deepEqual([...writes[0].values[0]], [...sandbox.HEADERS_]);
-
   const input = sandbox.validateSubmission_(valid);
-  const stored = sandbox.storeInput_(sheet, input);
-  assert.deepEqual(JSON.parse(JSON.stringify(stored)), { duplicate: false, rowNumber: 2 });
+  const stored = sandbox.storeInput_({ spreadsheetId: "sheet-1" }, input);
+  assert.deepEqual(JSON.parse(JSON.stringify(stored)), {
+    duplicate: false,
+    rowNumber: 2,
+    capiStatus: "pending",
+    notificationStatus: "pending"
+  });
+  assert.deepEqual([...writes[0].values[0]], [...sandbox.HEADERS_]);
+  assert.equal(writes[1].values[0].length, 16);
   assert.equal(cachePuts.length, 1);
   assert.equal(cachePuts[0].key.includes("user@example.com"), false);
-  assert.match(cachePuts[0].key, /^booking-rate-[0-9a-f]{64}$/);
+  assert.match(cachePuts[0].key, /^booking-best-effort-throttle-[0-9a-f]{64}$/);
   assert.deepEqual(cachePuts[0], { key: cachePuts[0].key, value: "1", seconds: 3600 });
 
   existingEventId = valid.eventId;
-  const duplicate = sandbox.storeInput_(sheet, input);
-  assert.deepEqual(JSON.parse(JSON.stringify(duplicate)), { duplicate: true, rowNumber: 2 });
+  spreadsheet.getSheetByName = function () {
+    timeline.push("getSheet");
+    assert.equal(timeline.at(-2), "lock-held");
+    return sheet;
+  };
+  const duplicate = sandbox.storeInput_({ spreadsheetId: "sheet-1" }, input);
+  assert.deepEqual(JSON.parse(JSON.stringify(duplicate)), {
+    duplicate: true,
+    rowNumber: 2,
+    capiStatus: "sent: 200",
+    notificationStatus: "sent"
+  });
+  assert.equal(writes.length, 2, "duplicate event_id wrote a second row");
   assert.equal(cachePuts.length, 1);
   assert.equal(lockReleases, 2);
+  assert.equal(timeline.indexOf("flush") < timeline.indexOf("cache-put"), true);
+  assert.equal(timeline.indexOf("cache-put") < timeline.indexOf("release"), true);
 });
 
-test("rateLimit_ rejects the sixth accepted submission and updateCapiStatus_ writes column 14", () => {
+test("storeInput_ does not consume best-effort acceptance when the row write fails", () => {
+  let cachePuts = 0;
+  let released = false;
+  const sheet = {
+    getLastRow() { return 1; },
+    getRange() {
+      return { setValues() { throw new Error("sheet write failed"); } };
+    }
+  };
+  sandbox.SpreadsheetApp = {
+    openById() { return { getSheetByName() { return sheet; } }; },
+    flush() { assert.fail("failed row write must not flush as accepted"); }
+  };
+  sandbox.LockService = {
+    getScriptLock() {
+      return {
+        waitLock() {},
+        releaseLock() { released = true; }
+      };
+    }
+  };
   sandbox.CacheService = {
     getScriptCache() {
       return {
-        get() { return "5"; },
+        get() { return "0"; },
+        put() { cachePuts += 1; }
+      };
+    }
+  };
+
+  assert.throws(
+    () => sandbox.storeInput_({ spreadsheetId: "sheet-1" }, sandbox.validateSubmission_(valid)),
+    /sheet write failed/
+  );
+  assert.equal(cachePuts, 0);
+  assert.equal(released, true);
+});
+
+test("best-effort throttle rejects the sixth cached accepted submission without exposing email", () => {
+  let observedKey = "";
+  sandbox.CacheService = {
+    getScriptCache() {
+      return {
+        get(key) { observedKey = key; return "5"; },
         put() { assert.fail("rejected rate limit should not increment"); }
       };
     }
   };
-  assert.throws(() => sandbox.rateLimit_("user@example.com"), /too many/i);
+  assert.throws(() => sandbox.checkBestEffortThrottle_("user@example.com"), /too many/i);
+  assert.equal(observedKey.includes("user@example.com"), false);
+  assert.match(observedKey, /^booking-best-effort-throttle-[0-9a-f]{64}$/);
+});
 
-  const writes = [];
-  sandbox.updateCapiStatus_({
-    getRange(row, column) {
-      return { setValue(value) { writes.push([row, column, value]); } };
+test("claimEffects_ skips sent and active leases but resumes failed and stale states", () => {
+  let statuses = ["sent: 200", "processing:other:1700000100000"];
+  const stateWrites = [];
+  let flushes = 0;
+  const sheet = {
+    getLastRow() { return 2; },
+    getRange(row, column, rows, columns) {
+      assert.equal(row, 2);
+      assert.equal(column, 14);
+      assert.equal(rows, 1);
+      assert.equal(columns, 2);
+      return {
+        getValues() { return [[...statuses]]; },
+        setValues(values) { statuses = [...values[0]]; stateWrites.push([...values[0]]); }
+      };
     }
-  }, 9, "sent: 200");
-  assert.deepEqual(writes, [[9, 14, "sent: 200"]]);
+  };
+  sandbox.SpreadsheetApp = {
+    openById() { return { getSheetByName() { return sheet; } }; },
+    flush() { flushes += 1; }
+  };
+  sandbox.LockService = {
+    getScriptLock() {
+      return { waitLock() {}, releaseLock() {} };
+    }
+  };
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.claimEffects_({ spreadsheetId: "sheet-1" }, 2, 1700000000000, "lease-a"))),
+    { leaseToken: "lease-a", capi: false, notification: false }
+  );
+  assert.equal(stateWrites.length, 0);
+
+  statuses = ["failed: Meta unavailable", "processing:other:1699999999999"];
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.claimEffects_({ spreadsheetId: "sheet-1" }, 2, 1700000000000, "lease-b"))),
+    { leaseToken: "lease-b", capi: true, notification: true }
+  );
+  assert.deepEqual(stateWrites.at(-1), [
+    "processing:lease-b:1700000060000",
+    "processing:lease-b:1700000060000"
+  ]);
+  assert.equal(flushes, 1);
+});
+
+test("completeEffect_ changes only its owned lease and flushes before releasing lock", () => {
+  let statuses = ["processing:lease-a:1700000060000", "processing:lease-a:1700000060000"];
+  const timeline = [];
+  const sheet = {
+    getLastRow() { return 2; },
+    getRange() {
+      return {
+        getValues() { return [[...statuses]]; },
+        setValues(values) { statuses = [...values[0]]; timeline.push("write"); }
+      };
+    }
+  };
+  sandbox.SpreadsheetApp = {
+    openById() { return { getSheetByName() { return sheet; } }; },
+    flush() { timeline.push("flush"); }
+  };
+  sandbox.LockService = {
+    getScriptLock() {
+      return {
+        waitLock() { timeline.push("lock"); },
+        releaseLock() { timeline.push("release"); }
+      };
+    }
+  };
+
+  assert.equal(sandbox.completeEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", "lease-a", "sent: 200"), true);
+  assert.deepEqual(statuses, ["sent: 200", "processing:lease-a:1700000060000"]);
+  assert.deepEqual(timeline, ["lock", "write", "flush", "release"]);
+
+  assert.equal(sandbox.completeEffect_({ spreadsheetId: "sheet-1" }, 2, "notification", "wrong", "sent"), false);
+  assert.deepEqual(statuses, ["sent: 200", "processing:lease-a:1700000060000"]);
 });
 
 test("sendLead_ posts only buildMetaPayload_ and rejects unsafe Meta responses", () => {
@@ -511,22 +765,21 @@ test("sendLead_ posts only buildMetaPayload_ and rejects unsafe Meta responses",
   assert.throws(() => sandbox.sendLead_(input, config), /^Error: Meta CAPI did not accept event$/);
 });
 
-test("notify_ sends only the minimal lead notice and parseRequest_ whitelists fields", () => {
+test("notify_ sends only the minimal unescaped lead notice and parseRequest_ whitelists fields", () => {
   const sent = [];
   sandbox.MailApp = { sendEmail(message) { sent.push(message); } };
-  const input = sandbox.validateSubmission_(valid);
-  const sheet = {
-    getParent() {
-      return { getUrl() { return "https://docs.google.com/spreadsheets/d/sheet-1/edit"; } };
-    }
-  };
+  const input = sandbox.validateSubmission_({ ...valid, displayName: "+小榮", email: "+alias@example.com" });
 
-  sandbox.notify_(input, { adminEmail: "admin@example.com" }, sheet);
+  sandbox.notify_(
+    input,
+    { adminEmail: "admin@example.com" },
+    "https://docs.google.com/spreadsheets/d/sheet-1/edit"
+  );
 
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, "admin@example.com");
   assert.equal(sent[0].subject, "榮心紳語｜新的官網初步盤點");
-  for (const included of ["建立時間", "稱呼：小榮", "Email：user@example.com", valid.eventId, "https://docs.google.com/spreadsheets/d/sheet-1/edit"]) {
+  for (const included of ["建立時間", "稱呼：+小榮", "Email：+alias@example.com", valid.eventId, "https://docs.google.com/spreadsheets/d/sheet-1/edit"]) {
     assert.equal(sent[0].body.includes(included), true, `notice omitted ${included}`);
   }
   for (const excluded of [valid.stuckText, valid.topic, valid.goals[0], valid.availability[0], valid.fbp, valid.fbc, "同意版本"]) {
@@ -551,7 +804,7 @@ test("notify_ sends only the minimal lead notice and parseRequest_ whitelists fi
   ]);
 });
 
-test("createDependencies_ opens one sheet and doPost returns an ALLOWALL fixed-origin bridge", () => {
+test("createDependencies_ is lazy and doPost returns an ALLOWALL fixed-origin bridge", () => {
   let sheetOpens = 0;
   const sheet = { getLastRow() { return 1; } };
   sandbox.SpreadsheetApp = {
@@ -570,8 +823,8 @@ test("createDependencies_ opens one sheet and doPost returns an ALLOWALL fixed-o
     testEventCode: ""
   };
   const deps = sandbox.createDependencies_(config);
-  assert.equal(sheetOpens, 1);
-  for (const name of ["store", "sendLead", "updateCapiStatus", "notify"]) {
+  assert.equal(sheetOpens, 0);
+  for (const name of ["store", "claimEffects", "sendLead", "completeEffect", "notify"]) {
     assert.equal(typeof deps[name], "function");
   }
 
@@ -580,9 +833,17 @@ test("createDependencies_ opens one sheet and doPost returns an ALLOWALL fixed-o
   let xFrameMode = "";
   sandbox.loadConfig_ = () => config;
   sandbox.createDependencies_ = () => ({
-    store() { return { duplicate: true, rowNumber: 2 }; },
+    store() {
+      return {
+        duplicate: true,
+        rowNumber: 2,
+        capiStatus: "sent: 200",
+        notificationStatus: "sent"
+      };
+    },
+    claimEffects() { return { leaseToken: "", capi: false, notification: false }; },
     sendLead() { assert.fail("duplicate should not send"); },
-    updateCapiStatus() { assert.fail("duplicate should not update"); },
+    completeEffect() { assert.fail("duplicate should not update"); },
     notify() { assert.fail("duplicate should not notify"); }
   });
   sandbox.HtmlService = {
