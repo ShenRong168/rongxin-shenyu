@@ -1770,6 +1770,28 @@
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/im-fine-answer-quote.png",
       "status": "queued"
+    },
+    {
+      "id": "2026-09-06-stranger-vs-friend-facebook",
+      "scheduledAt": "2026-09-06T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "有人問我，為什麼要找一個陌生人說，不找認識很久的朋友？\n\n我想了想，答案很簡單：認識越久的人，你越會顧慮他怎麼看你。\n\n朋友聽你說完，可能會記住很久，可能會在別的場合想起來，\n可能會忍不住給建議、忍不住擔心。\n\n陌生人不會。陌生人只會聽完，然後這件事就留在那裡，不會跟著你走。\n\n如果你現在打給認識最久的朋友，你會把心裡真正的事情說出來嗎？\n留言打「會」或「不會」就好。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/stranger-vs-friend-quote.png",
+      "status": "queued"
+    },
+    {
+      "id": "2026-09-08-doing-okay-or-truth-facebook",
+      "scheduledAt": "2026-09-08T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "message": "如果有人問你「今天過得好不好」，你通常怎麼回答？\n\n大部分時候是「還好」，\n但心裡真正想講的，常常不是「還好」兩個字能裝下的。\n\n「還好」有時候是真的還好，\n有時候只是不想在對方面前，把真話攤開來。\n\n你今天如果被問「過得好不好」，會回答「還好」還是「真話」？\n留言打「還好」或「真話」，我很好奇。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/doing-okay-or-truth-quote.png",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-08-31T13:00:43.675Z"
