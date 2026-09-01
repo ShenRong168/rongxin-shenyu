@@ -1614,7 +1614,16 @@
       "message": "弟弟主動把玩具收好，爸爸蹲下來說「你做得很好」。\n\n比起提醒他該收玩具，這句稱讚更讓他記得下次也想這樣做。\n\n#榮心紳語 #育兒小提醒 #親子日常",
       "link": "",
       "imageUrl": "https://rongxinshenyu.com/assets/ig-characters/tidy-up-praise.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-01T04:30:45.681Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18114442168788128"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-26-first-shoelace-victory-reel-instagram",
@@ -1794,5 +1803,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-08-31T13:00:43.675Z"
+  "lastRunAt": "2026-09-01T04:30:36.201Z"
 }
