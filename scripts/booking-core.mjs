@@ -23,6 +23,7 @@ export function normalizeEmail(value) {
 }
 
 export function validateBooking(payload = {}) {
+  payload = payload || {};
   const errors = {};
   const displayName = String(payload.displayName || "").trim();
   const email = normalizeEmail(payload.email);
@@ -46,13 +47,18 @@ export function validateBooking(payload = {}) {
     errors.topic = "請選擇一個主要卡點。";
   }
 
-  if (!Array.isArray(payload.goals) || !payload.goals.some((goal) => GOALS.has(goal))) {
+  if (
+    !Array.isArray(payload.goals) ||
+    payload.goals.length === 0 ||
+    !payload.goals.every((goal) => GOALS.has(goal))
+  ) {
     errors.goals = "請至少選擇一項希望帶走的結果。";
   }
 
   if (
     !Array.isArray(payload.availability) ||
-    !payload.availability.some((slot) => AVAILABILITY.has(slot))
+    payload.availability.length === 0 ||
+    !payload.availability.every((slot) => AVAILABILITY.has(slot))
   ) {
     errors.availability = "請至少選擇一個方便時段。";
   }
@@ -98,7 +104,7 @@ export function buildFbc(url, now = Date.now()) {
       return "";
     }
 
-    return `fb.1.${Math.floor(now / 1000)}.${fbclid}`;
+    return `fb.1.${now}.${fbclid}`;
   } catch {
     return "";
   }
@@ -113,14 +119,22 @@ export function isTrustedReply(event, pending) {
     return false;
   }
 
-  let hostname;
+  let origin;
   try {
-    hostname = new URL(event.origin).hostname;
+    origin = new URL(event.origin);
   } catch {
     return false;
   }
 
-  if (hostname !== "script.google.com" && !hostname.endsWith(".script.googleusercontent.com")) {
+  if (origin.protocol !== "https:" || origin.port !== "") {
+    return false;
+  }
+
+  const trustedHostname =
+    origin.hostname === "script.google.com" ||
+    origin.hostname === "script.googleusercontent.com" ||
+    origin.hostname.endsWith(".script.googleusercontent.com");
+  if (!trustedHostname) {
     return false;
   }
 
