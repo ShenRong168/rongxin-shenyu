@@ -24,28 +24,32 @@ Script Properties are the only approved location for the CAPI credential; never 
 2. Copy the complete local `Code.gs` into the editor. In **Project Settings**, enable **Show "appsscript.json" manifest file in editor**, then replace the manifest with the complete local `appsscript.json`.
 3. Add the Script Properties above. Do not paste secret values into source code.
 4. Save the project, run an authorized function once if prompted, and review the requested scopes. The deployer must authorize spreadsheet access, external requests, email sending, and script storage.
-5. Choose **Deploy → New deployment → Web app** and create a versioned deployment. Set **Execute as** to the deployer and **Who has access** to **Anyone**.
+5. For the **first deployment** only, choose **Deploy → New deployment → Web app** to create the initial versioned deployment. Set **Execute as** to the deployer and **Who has access** to **Anyone**.
 6. Copy the official production Web app URL ending in `/exec` into the website release configuration. Never publish or test the public form with the editor-only `/dev` URL.
 
-Every code or manifest update requires a new versioned deployment. Do not silently edit the production version in place.
+For every **update**, save the code and manifest, then choose **Deploy → Manage deployments → Edit existing deployment → New version** and deploy that version. Edit the existing production deployment; do not create another deployment. This preserves the same deployment ID and the same `/exec` URL already configured on the site.
 
 ## Verification before release
 
-Run the local functional suite:
+Run the complete local booking suite, including `test/booking-deployment-assets.test.mjs`:
 
 ```bash
-node --test test/booking-apps-script.test.mjs test/booking-core.test.mjs
+node --test test/*.test.mjs
 ```
 
-The expected baseline is **33 tests passing**. Those tests cover the current **17-column** response model, including formula safety for sheet-bound public strings, separate **Meta CAPI** and **notification** statuses, the deterministic **submission fingerprint**, and **lock-fenced** effects that hold the lock across each external action and its durable status transition.
+Require every discovered test to pass with zero failures. The suite covers the current **17-column** response model, formula safety for sheet-bound public strings, separate **Meta CAPI** and **notification** statuses, the deterministic **submission fingerprint**, **lock-fenced** effects that hold the lock across each external action and its durable status transition, and the deployment assets in this directory.
 
 Also confirm all of the following against a non-production test submission before releasing the booking page:
 
-- The response sheet contains the exact 17-column header and a new row with independent Meta CAPI and notification state cells.
+- The response sheet contains the exact 17-column header and a new row whose Meta CAPI state is exactly `sent: 200`.
+- The same row's notification state is exactly `sent`, independent of the Meta CAPI state.
 - Formula-like input is stored as text, not evaluated as a spreadsheet formula.
 - Reusing the same `event_id` with the same submission fingerprint is idempotent; changing a bound field is rejected as a conflicting duplicate.
+- Confirm the browser Pixel `Lead` and server CAPI `Lead` use the same `event_id`.
+- Confirm Meta Events Manager reports the browser and server Lead as deduplicated, rather than two conversions.
 - Meta receives only the approved `Lead` payload and the admin email contains the minimal notification fields.
-- A temporary Meta test event is visible if `META_TEST_EVENT_CODE` was used; remove that property immediately afterward.
+- Record the synthetic submission's `event_id`, then delete only the exact synthetic test row identified by that value; do not delete or alter any other response row.
+- After confirming the test event and row, delete the temporary `META_TEST_EVENT_CODE` Script Property.
 - The production iframe receives its response from the official `/exec` URL and no credential appears in browser, Apps Script, or repository logs. Run the repository's credential audit before release; a clean result produces no matches.
 
 ## Rollback
