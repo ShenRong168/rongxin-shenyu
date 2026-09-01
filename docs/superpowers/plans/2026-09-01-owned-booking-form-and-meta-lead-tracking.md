@@ -474,6 +474,7 @@ test("stores one row, notifies once, and records CAPI success", () => {
   assert.equal(result.ok, true);
   assert.equal(result.duplicate, false);
   assert.equal(calls.filter(([name]) => name === "store").length, 1);
+  assert.deepEqual(calls.find(([name]) => name === "status"), ["status", 2, "sent: 200"]);
   assert.deepEqual(calls.at(-1), ["notify", valid.eventId]);
 });
 
@@ -506,6 +507,7 @@ test("CAPI failure does not erase a stored lead", () => {
 test("bridge contains no submitted email or narrative", () => {
   const html = sandbox.renderBridge_({ ok: true, eventId: valid.eventId }, "https://rongxinshenyu.com");
   assert.match(html, /rongxin-booking/);
+  assert.match(html, /postMessage\([\s\S]*https:\/\/rongxinshenyu\.com/);
   assert.equal(html.includes(valid.email), false);
   assert.equal(html.includes(valid.stuckText), false);
 });
@@ -520,29 +522,32 @@ Expected: FAIL because `processSubmission_` and `renderBridge_` are not defined.
 - [ ] **Step 3: Add the orchestration boundary**
 
 ```js
+var ALLOWED_ORIGIN_ = "https://rongxinshenyu.com";
+var META_PIXEL_ID_ = "4400969670158242";
+
 function rowFor_(input, capiStatus) {
-  return [new Date(), input.eventId, input.sourceUrl, input.displayName, input.email, input.stuckText, input.topic, input.goals.join("、"), input.availability.join("、"), "是", "是", input.consentVersion, "待審核", capiStatus, ""];
+  return [new Date(), input.eventId, BOOKING_SOURCE_URL_, input.displayName, input.email, input.stuckText, input.topic, input.goals.join("、"), input.availability.join("、"), "是", "是", input.consentVersion, "待審核", capiStatus, ""];
 }
 
 function processSubmission_(input, deps) {
   var stored = deps.store(input);
   if (stored.duplicate) return { ok: true, duplicate: true, eventId: input.eventId };
-  var rowNumber = stored.rowNumber;
   var capiStatus;
   try {
-    var meta = deps.sendLead(input);
-    capiStatus = meta.status + ": " + meta.responseCode;
+    var sent = deps.sendLead(input);
+    capiStatus = String(sent.status) + ": " + String(sent.responseCode);
   } catch (error) {
-    capiStatus = "failed: " + error.message;
+    capiStatus = "failed: " + (error && error.message ? error.message : String(error));
   }
-  try { deps.updateCapiStatus(rowNumber, capiStatus); } catch (error) { console.error("Booking status update failed", error); }
-  try { deps.notify(input); } catch (error) { console.error("Booking notification failed", error); }
+  try { deps.updateCapiStatus(stored.rowNumber, capiStatus); } catch (error) { Logger.log("Booking CAPI status update failed"); }
+  try { deps.notify(input); } catch (error) { Logger.log("Booking admin notification failed"); }
   return { ok: true, duplicate: false, eventId: input.eventId };
 }
 
 function renderBridge_(result, origin) {
-  var safe = JSON.stringify({ type: "rongxin-booking", ok: Boolean(result.ok), eventId: String(result.eventId || ""), message: String(result.message || "") }).replace(/</g, "\\u003c");
-  return "<!doctype html><meta charset=\"utf-8\"><script>window.parent.postMessage(" + safe + "," + JSON.stringify(origin) + ");<\/script>";
+  var safe = JSON.stringify({ type: "rongxin-booking", ok: Boolean(result && result.ok === true), eventId: String(result && result.eventId || ""), message: String(result && result.message || "") }).replace(/</g, "\\u003c");
+  var target = JSON.stringify(String(origin)).replace(/</g, "\\u003c");
+  return "<!doctype html><meta charset=\"utf-8\"><script>parent.postMessage(" + safe + "," + target + ");<\/script>";
 }
 ```
 
@@ -552,52 +557,48 @@ Add these adapters and `doPost(e)` to `Code.gs`:
 
 ```js
 function doPost(e) {
-  var config = loadConfig_();
-  var eventId = String(e && e.parameter && e.parameter.eventId || "");
+  var parsed = parseRequest_(e);
+  var eventId = String(parsed.eventId || "");
+  var result;
   try {
-    var input = validateSubmission_(parseRequest_(e));
-    var result = processSubmission_(input, createDependencies_(config));
-    return HtmlService.createHtmlOutput(renderBridge_(result, config.allowedOrigin)).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    var input = validateSubmission_(parsed);
+    var config = loadConfig_();
+    result = processSubmission_(input, createDependencies_(config));
   } catch (error) {
-    console.error("Booking submission failed", error);
-    var failure = { ok: false, eventId: eventId, message: "目前無法送出，請稍後重試。" };
-    return HtmlService.createHtmlOutput(renderBridge_(failure, config.allowedOrigin)).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    Logger.log("Booking submission failed");
+    result = { ok: false, eventId: eventId, message: "目前無法送出，請稍後重試。" };
   }
+  return HtmlService.createHtmlOutput(renderBridge_(result, ALLOWED_ORIGIN_)).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function parseRequest_(e) {
-  var p = e.parameter || {};
-  var ps = e.parameters || {};
-  return {
-    eventId: p.eventId,
-    sourceUrl: p.sourceUrl,
-    displayName: p.displayName,
-    email: p.email,
-    stuckText: p.stuckText,
-    topic: p.topic,
-    goals: ps.goals || [],
-    availability: ps.availability || [],
-    adultConfirmed: p.adultConfirmed,
-    taiwanConfirmed: p.taiwanConfirmed,
-    consentConfirmed: p.consentConfirmed,
-    consentVersion: p.consentVersion,
-    startedAt: p.startedAt,
-    submittedAt: p.submittedAt,
-    website: p.website,
-    fbp: p.fbp,
-    fbc: p.fbc
-  };
+  var parameter = e && e.parameter || {};
+  var parameters = e && e.parameters || {};
+  var fields = [
+    "eventId", "sourceUrl", "displayName", "email", "stuckText", "topic",
+    "goals", "availability", "adultConfirmed", "taiwanConfirmed",
+    "consentConfirmed", "consentVersion", "startedAt", "submittedAt",
+    "website", "fbp", "fbc"
+  ];
+  var parsed = {};
+  fields.forEach(function (name) {
+    if ((name === "goals" || name === "availability") && parameters[name] != null) parsed[name] = parameters[name];
+    else if (parameter[name] != null) parsed[name] = parameter[name];
+    else if (parameters[name] != null) parsed[name] = parameters[name][0];
+    else parsed[name] = undefined;
+  });
+  return parsed;
 }
 
 function requiredProperty_(properties, name) {
-  var value = String(properties.getProperty(name) || "").trim();
-  if (!value) throw new Error("Missing Script Property: " + name);
-  return value;
+  var value = properties.getProperty(name);
+  if (value == null || String(value).trim() === "") throw new Error("Missing required property: " + name);
+  return String(value).trim();
 }
 
 function loadConfig_() {
   var properties = PropertiesService.getScriptProperties();
-  return {
+  var config = {
     spreadsheetId: requiredProperty_(properties, "SPREADSHEET_ID"),
     adminEmail: requiredProperty_(properties, "ADMIN_EMAIL"),
     allowedOrigin: requiredProperty_(properties, "ALLOWED_ORIGIN"),
@@ -606,10 +607,14 @@ function loadConfig_() {
     capiToken: String(properties.getProperty("META_CAPI_TOKEN") || "").trim(),
     testEventCode: String(properties.getProperty("META_TEST_EVENT_CODE") || "").trim()
   };
+  if (config.allowedOrigin !== ALLOWED_ORIGIN_) throw new Error("ALLOWED_ORIGIN is not allowed");
+  if (config.pixelId !== META_PIXEL_ID_) throw new Error("META_PIXEL_ID is not allowed");
+  if (!/^v\d+\.\d+$/.test(config.graphVersion)) throw new Error("META_GRAPH_VERSION is invalid");
+  return config;
 }
 
-function getSheet_(spreadsheetId) {
-  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+function getSheet_(config) {
+  var spreadsheet = SpreadsheetApp.openById(config.spreadsheetId);
   var sheet = spreadsheet.getSheetByName(SHEET_NAME_);
   if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAME_);
   if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, HEADERS_.length).setValues([HEADERS_]);
@@ -617,9 +622,10 @@ function getSheet_(spreadsheetId) {
 }
 
 function findEventRow_(sheet, eventId) {
-  if (sheet.getLastRow() < 2) return 0;
-  var match = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).createTextFinder(eventId).matchEntireCell(true).findNext();
-  return match ? match.getRow() : 0;
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  var found = sheet.getRange(2, 2, lastRow - 1, 1).createTextFinder(String(eventId)).matchEntireCell(true).findNext();
+  return found ? found.getRow() : 0;
 }
 
 function storeInput_(sheet, input) {
@@ -643,9 +649,10 @@ function updateCapiStatus_(sheet, rowNumber, status) {
 
 function rateLimit_(email) {
   var cache = CacheService.getScriptCache();
-  var key = "booking-rate-" + sha256Hex_(email);
-  var count = Number(cache.get(key) || "0");
-  if (count >= 5) throw new Error("Submission rate limit exceeded");
+  var key = "booking-rate-" + sha256Hex_(normalizeEmail_(email));
+  var count = parseInt(cache.get(key), 10);
+  if (!isFinite(count) || count < 0) count = 0;
+  if (count >= 5) throw new Error("Too many submissions");
   cache.put(key, String(count + 1), 3600);
 }
 
@@ -662,13 +669,12 @@ function sendLead_(input, config) {
   var code = response.getResponseCode();
   if (code < 200 || code >= 300) throw new Error("Meta CAPI HTTP " + code);
   var body;
-  try { body = JSON.parse(response.getContentText() || "{}"); } catch (error) { throw new Error("Meta CAPI invalid response"); }
-  if (Number(body.events_received) !== 1) throw new Error("Meta CAPI did not accept event");
+  try { body = JSON.parse(response.getContentText()); } catch (error) { throw new Error("Meta CAPI invalid response"); }
+  if (body.events_received !== 1) throw new Error("Meta CAPI did not accept event");
   return { status: "sent", responseCode: code };
 }
 
-function notify_(input, config) {
-  var spreadsheetUrl = "https://docs.google.com/spreadsheets/d/" + config.spreadsheetId + "/edit";
+function notify_(input, config, sheet) {
   MailApp.sendEmail({
     to: config.adminEmail,
     subject: "榮心紳語｜新的官網初步盤點",
@@ -677,18 +683,18 @@ function notify_(input, config) {
       "稱呼：" + input.displayName,
       "Email：" + input.email,
       "event_id：" + input.eventId,
-      "試算表：" + spreadsheetUrl
+      "試算表：" + sheet.getParent().getUrl()
     ].join("\n")
   });
 }
 
 function createDependencies_(config) {
-  var sheet = getSheet_(config.spreadsheetId);
+  var sheet = getSheet_(config);
   return {
     store: function (input) { return storeInput_(sheet, input); },
     sendLead: function (input) { return sendLead_(input, config); },
     updateCapiStatus: function (row, status) { updateCapiStatus_(sheet, row, status); },
-    notify: function (input) { notify_(input, config); }
+    notify: function (input) { notify_(input, config, sheet); }
   };
 }
 ```
@@ -699,7 +705,7 @@ The `sendLead_` adapter posts only `buildMetaPayload_` output. It never passes `
 
 Run: `node --test test/booking-apps-script.test.mjs`
 
-Expected: 7 tests PASS, 0 FAIL.
+Expected: 17 tests PASS, 0 FAIL.
 
 - [ ] **Step 6: Commit the Apps Script behavior**
 
