@@ -2,6 +2,7 @@ var TOPICS_ = ["心態", "關係", "行動", "資源", "不確定", "其他"];
 var GOALS_ = ["被理解", "釐清方向", "具體行動", "溝通策略", "資源盤點", "情緒安定"];
 var AVAILABILITY_ = ["平日上午", "平日下午", "平日晚上", "週末上午", "週末下午", "目前先不預約"];
 var SHEET_NAME_ = "官網初步盤點";
+var BOOKING_SOURCE_URL_ = "https://rongxinshenyu.com/booking.html";
 var HEADERS_ = [
   "建立時間",
   "event_id",
@@ -43,8 +44,8 @@ function requireChoice_(value, allowed, label) {
 
 function requireChoices_(value, allowed, label) {
   var choices = asArray_(value);
-  if (!choices.length || choices.some(function (choice) {
-    return allowed.indexOf(choice) === -1;
+  if (!choices.length || choices.length > allowed.length || choices.some(function (choice, index) {
+    return allowed.indexOf(choice) === -1 || choices.indexOf(choice) !== index;
   })) {
     throw new Error(label + "不正確");
   }
@@ -75,7 +76,7 @@ function validateSubmission_(raw) {
   }
 
   var email = normalizeEmail_(raw.email);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new Error("Email不正確");
   }
 
@@ -111,12 +112,15 @@ function validateSubmission_(raw) {
   var topic = requireChoice_(raw.topic, TOPICS_, "主要卡點");
   var goals = requireChoices_(raw.goals, GOALS_, "期待結果");
   var availability = requireChoices_(raw.availability, AVAILABILITY_, "可聯絡／對談時段");
+  if (availability.indexOf("目前先不預約") !== -1 && availability.length !== 1) {
+    throw new Error("可聯絡／對談時段不正確");
+  }
   var fbp = String(raw.fbp || "");
   var fbc = String(raw.fbc || "");
 
   return {
     eventId: eventId,
-    sourceUrl: sourceUrl,
+    sourceUrl: BOOKING_SOURCE_URL_,
     displayName: displayName,
     email: email,
     stuckText: stuckText,
@@ -130,8 +134,8 @@ function validateSubmission_(raw) {
     startedAt: startedAt,
     submittedAt: submittedAt,
     website: "",
-    fbp: /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : "",
-    fbc: /^fb\.1\.\d+\.[A-Za-z0-9_-]+$/.test(fbc) ? fbc : ""
+    fbp: fbp.length <= 100 && /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : "",
+    fbc: fbc.length <= 300 && /^fb\.1\.\d+\.[A-Za-z0-9_-]+$/.test(fbc) ? fbc : ""
   };
 }
 

@@ -271,18 +271,18 @@ const valid = {
   fbc: "fb.1.1700000000000.abc"
 };
 
-test("validates and normalizes the approved server payload", () => {
+test("validateSubmission_ normalizes approved input", () => {
   const result = sandbox.validateSubmission_(valid);
   assert.equal(result.email, "user@example.com");
   assert.equal(result.topic, "行動");
 });
 
-test("rejects bots and invalid enumerations", () => {
+test("validateSubmission_ rejects spam, unknown choices, and malformed submissions", () => {
   assert.throws(() => sandbox.validateSubmission_({ ...valid, website: "spam" }), /invalid submission/i);
   assert.throws(() => sandbox.validateSubmission_({ ...valid, topic: "診斷" }), /主要卡點/);
 });
 
-test("builds a Lead event without form answers", () => {
+test("buildMetaPayload_ hashes email and excludes form answers", () => {
   const input = sandbox.validateSubmission_(valid);
   const payload = sandbox.buildMetaPayload_(input, { pixelId: "4400969670158242", testEventCode: "TEST123" }, 1700000020);
   const serialized = JSON.stringify(payload);
@@ -292,6 +292,47 @@ test("builds a Lead event without form answers", () => {
   assert.equal(serialized.includes(input.stuckText), false);
   assert.equal(serialized.includes(input.topic), false);
   assert.equal(payload.data[0].user_data.em[0], createHash("sha256").update("user@example.com").digest("hex"));
+});
+
+test("canonicalizes a privacy-sensitive submitted source URL before storage and Meta", () => {
+  const privateEmail = "private@example.com";
+  const privateNarrative = "private-story";
+  const privateFragment = "private-fragment";
+  const input = sandbox.validateSubmission_({
+    ...valid,
+    sourceUrl: `https://rongxinshenyu.com/booking.html?email=${privateEmail}&story=${privateNarrative}#${privateFragment}`
+  });
+  const payload = sandbox.buildMetaPayload_(input, { pixelId: "4400969670158242" }, 1700000020);
+  assert.equal(input.sourceUrl, "https://rongxinshenyu.com/booking.html");
+  assert.equal(payload.data[0].event_source_url, "https://rongxinshenyu.com/booking.html");
+  for (const privateValue of [privateEmail, privateNarrative, privateFragment]) {
+    assert.equal(JSON.stringify(payload).includes(privateValue), false);
+  }
+});
+
+test("buildMetaPayload_ allows only the approved exact object shape", () => {
+  const withOptional = sandbox.buildMetaPayload_(sandbox.validateSubmission_(valid), { testEventCode: "TEST123" }, 1700000020);
+  assert.deepEqual(Object.keys(withOptional), ["data", "test_event_code"]);
+  assert.deepEqual(Object.keys(withOptional.data[0]), ["event_name", "event_time", "event_id", "action_source", "event_source_url", "user_data"]);
+  assert.deepEqual(Object.keys(withOptional.data[0].user_data), ["em", "fbp", "fbc"]);
+  const withoutOptional = sandbox.buildMetaPayload_(sandbox.validateSubmission_({ ...valid, fbp: "", fbc: "" }), {}, 1700000020);
+  assert.deepEqual(Object.keys(withoutOptional), ["data"]);
+  assert.deepEqual(Object.keys(withoutOptional.data[0]), Object.keys(withOptional.data[0]));
+  assert.deepEqual(Object.keys(withoutOptional.data[0].user_data), ["em"]);
+});
+
+test("validateSubmission_ bounds email, tracking IDs, and choice arrays", () => {
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, email: `${"a".repeat(250)}@x.co` }), /Email/);
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, goals: ["釐清方向", "釐清方向"] }), /期待結果/);
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, goals: ["被理解", "釐清方向", "具體行動", "溝通策略", "資源盤點", "情緒安定", "被理解"] }), /期待結果/);
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, availability: ["目前先不預約", "平日晚上"] }), /可聯絡／對談時段/);
+  const filtered = sandbox.validateSubmission_({
+    ...valid,
+    fbp: `fb.1.1.${"1".repeat(94)}`,
+    fbc: `fb.1.1.${"a".repeat(294)}`
+  });
+  assert.equal(filtered.fbp, "");
+  assert.equal(filtered.fbc, "");
 });
 ```
 
@@ -309,6 +350,7 @@ var TOPICS_ = ["心態", "關係", "行動", "資源", "不確定", "其他"];
 var GOALS_ = ["被理解", "釐清方向", "具體行動", "溝通策略", "資源盤點", "情緒安定"];
 var AVAILABILITY_ = ["平日上午", "平日下午", "平日晚上", "週末上午", "週末下午", "目前先不預約"];
 var SHEET_NAME_ = "官網初步盤點";
+var BOOKING_SOURCE_URL_ = "https://rongxinshenyu.com/booking.html";
 var HEADERS_ = ["建立時間", "event_id", "來源頁面", "稱呼", "Email", "目前卡點", "主要分類", "期待結果", "可聯絡／對談時段", "成人確認", "台灣確認", "同意版本", "審核狀態", "Meta CAPI 狀態", "管理備註"];
 
 function normalizeEmail_(value) {
@@ -327,37 +369,47 @@ function requireChoice_(value, allowed, label) {
 
 function requireChoices_(values, allowed, label) {
   var normalized = asArray_(values);
-  if (!normalized.length || normalized.some(function (value) { return allowed.indexOf(value) === -1; })) throw new Error(label + "不正確");
+  if (!normalized.length || normalized.length > allowed.length || normalized.some(function (value, index) {
+    return allowed.indexOf(value) === -1 || normalized.indexOf(value) !== index;
+  })) throw new Error(label + "不正確");
   return normalized;
 }
 
 function validateSubmission_(raw) {
   if (String(raw.website || "") !== "") throw new Error("Invalid submission");
-  var startedAt = Number(raw.startedAt);
-  var submittedAt = Number(raw.submittedAt);
-  if (!Number.isFinite(startedAt) || !Number.isFinite(submittedAt) || submittedAt - startedAt < 3000 || submittedAt - startedAt > 86400000) throw new Error("Invalid submission timing");
+  var startedAtText = String(raw.startedAt == null ? "" : raw.startedAt);
+  var submittedAtText = String(raw.submittedAt == null ? "" : raw.submittedAt);
+  var startedAt = Number(startedAtText);
+  var submittedAt = Number(submittedAtText);
+  if (!/^\d+$/.test(startedAtText) || !/^\d+$/.test(submittedAtText) || submittedAt - startedAt < 3000 || submittedAt - startedAt > 86400000) throw new Error("Invalid submission timing");
   var displayName = String(raw.displayName || "").trim();
   var email = normalizeEmail_(raw.email);
   var stuckText = String(raw.stuckText || "").trim();
   if (displayName.length < 1 || displayName.length > 50) throw new Error("稱呼長度不正確");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email 格式不正確");
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email 格式不正確");
   if (stuckText.length < 20 || stuckText.length > 1500) throw new Error("目前卡點長度不正確");
-  if (!/^lead_[0-9a-f-]{36}$/i.test(String(raw.eventId || ""))) throw new Error("event_id 不正確");
-  if (!/^https:\/\/rongxinshenyu\.com\/booking\.html(?:[?#]|$)/.test(String(raw.sourceUrl || ""))) throw new Error("來源頁面不正確");
+  if (!/^lead_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(raw.eventId || ""))) throw new Error("event_id 不正確");
+  var submittedSourceUrl = String(raw.sourceUrl || "");
+  if (submittedSourceUrl.length > 500 || !/^https:\/\/rongxinshenyu\.com\/booking\.html(?:[?#]|$)/.test(submittedSourceUrl)) throw new Error("來源頁面不正確");
   if (String(raw.consentVersion || "") !== "2026-09-01") throw new Error("同意版本不正確");
   if (raw.adultConfirmed !== "true" || raw.taiwanConfirmed !== "true" || raw.consentConfirmed !== "true") throw new Error("必要確認未完成");
+  var goals = requireChoices_(raw.goals, GOALS_, "期待結果");
+  var availability = requireChoices_(raw.availability, AVAILABILITY_, "可聯絡／對談時段");
+  if (availability.indexOf("目前先不預約") !== -1 && availability.length !== 1) throw new Error("可聯絡／對談時段不正確");
+  var fbp = String(raw.fbp || "");
+  var fbc = String(raw.fbc || "");
   return {
     eventId: String(raw.eventId),
-    sourceUrl: String(raw.sourceUrl || "").slice(0, 500),
+    sourceUrl: BOOKING_SOURCE_URL_,
     displayName: displayName,
     email: email,
     stuckText: stuckText,
     topic: requireChoice_(String(raw.topic || ""), TOPICS_, "主要卡點"),
-    goals: requireChoices_(raw.goals, GOALS_, "期待結果"),
-    availability: requireChoices_(raw.availability, AVAILABILITY_, "方便時段"),
+    goals: goals,
+    availability: availability,
     consentVersion: String(raw.consentVersion),
-    fbp: /^fb\.1\.\d+\.\d+$/.test(String(raw.fbp || "")) ? String(raw.fbp) : "",
-    fbc: /^fb\.1\.\d+\.[A-Za-z0-9_-]+$/.test(String(raw.fbc || "")) ? String(raw.fbc) : ""
+    fbp: fbp.length <= 100 && /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : "",
+    fbc: fbc.length <= 300 && /^fb\.1\.\d+\.[A-Za-z0-9_-]+$/.test(fbc) ? fbc : ""
   };
 }
 
@@ -389,7 +441,7 @@ function buildMetaPayload_(input, config, eventTime) {
 
 Run: `node --test test/booking-core.test.mjs test/booking-apps-script.test.mjs`
 
-Expected: 11 tests PASS, 0 FAIL.
+Expected: 14 tests PASS, 0 FAIL.
 
 - [ ] **Step 5: Commit the server contract**
 

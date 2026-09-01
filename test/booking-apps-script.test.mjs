@@ -122,3 +122,94 @@ test("buildMetaPayload_ hashes email and excludes form answers", () => {
     assert.equal(serialized.includes(excluded), false, `payload leaked ${excluded}`);
   }
 });
+
+test("canonicalizes a privacy-sensitive submitted source URL before storage and Meta", () => {
+  const privateEmail = "private.person@example.com";
+  const privateNarrative = "我不想讓這段敘述進入Meta";
+  const privateFragment = "private-fragment";
+  const input = sandbox.validateSubmission_({
+    ...valid,
+    sourceUrl: `https://rongxinshenyu.com/booking.html?email=${privateEmail}&story=${privateNarrative}#${privateFragment}`
+  });
+  const payload = sandbox.buildMetaPayload_(input, { pixelId: "4400969670158242" }, 1700000020);
+
+  assert.equal(input.sourceUrl, "https://rongxinshenyu.com/booking.html");
+  assert.equal(payload.data[0].event_source_url, "https://rongxinshenyu.com/booking.html");
+  const serialized = JSON.stringify(payload);
+  for (const privateValue of [privateEmail, privateNarrative, privateFragment]) {
+    assert.equal(serialized.includes(privateValue), false, `payload leaked ${privateValue}`);
+  }
+});
+
+test("buildMetaPayload_ allows only the approved exact object shape", () => {
+  const withOptional = sandbox.buildMetaPayload_(
+    sandbox.validateSubmission_(valid),
+    { pixelId: "4400969670158242", testEventCode: "TEST123" },
+    1700000020
+  );
+  assert.deepEqual(Object.keys(withOptional), ["data", "test_event_code"]);
+  assert.deepEqual(Object.keys(withOptional.data[0]), [
+    "event_name",
+    "event_time",
+    "event_id",
+    "action_source",
+    "event_source_url",
+    "user_data"
+  ]);
+  assert.deepEqual(Object.keys(withOptional.data[0].user_data), ["em", "fbp", "fbc"]);
+
+  const withoutOptional = sandbox.buildMetaPayload_(
+    sandbox.validateSubmission_({ ...valid, fbp: "", fbc: "" }),
+    { pixelId: "4400969670158242", testEventCode: "" },
+    1700000020
+  );
+  assert.deepEqual(Object.keys(withoutOptional), ["data"]);
+  assert.deepEqual(Object.keys(withoutOptional.data[0]), [
+    "event_name",
+    "event_time",
+    "event_id",
+    "action_source",
+    "event_source_url",
+    "user_data"
+  ]);
+  assert.deepEqual(Object.keys(withoutOptional.data[0].user_data), ["em"]);
+});
+
+test("validateSubmission_ bounds email, tracking IDs, and choice arrays", () => {
+  const oversizedEmail = `${"a".repeat(250)}@x.co`;
+  assert.equal(oversizedEmail.length, 255);
+  assert.throws(
+    () => sandbox.validateSubmission_({ ...valid, email: oversizedEmail }),
+    /Email/
+  );
+  assert.throws(
+    () => sandbox.validateSubmission_({ ...valid, goals: ["釐清方向", "釐清方向"] }),
+    /期待結果/
+  );
+  assert.throws(
+    () => sandbox.validateSubmission_({
+      ...valid,
+      goals: ["被理解", "釐清方向", "具體行動", "溝通策略", "資源盤點", "情緒安定", "被理解"]
+    }),
+    /期待結果/
+  );
+  assert.throws(
+    () => sandbox.validateSubmission_({
+      ...valid,
+      availability: ["平日上午", "平日下午", "平日晚上", "週末上午", "週末下午", "目前先不預約", "平日上午"]
+    }),
+    /可聯絡／對談時段/
+  );
+  assert.throws(
+    () => sandbox.validateSubmission_({ ...valid, availability: ["目前先不預約", "平日晚上"] }),
+    /可聯絡／對談時段/
+  );
+
+  const oversizedTracking = sandbox.validateSubmission_({
+    ...valid,
+    fbp: `fb.1.1.${"1".repeat(94)}`,
+    fbc: `fb.1.1.${"a".repeat(294)}`
+  });
+  assert.equal(oversizedTracking.fbp, "");
+  assert.equal(oversizedTracking.fbc, "");
+});
