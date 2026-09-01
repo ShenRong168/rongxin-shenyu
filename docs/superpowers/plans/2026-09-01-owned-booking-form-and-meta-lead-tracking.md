@@ -389,7 +389,7 @@ function buildMetaPayload_(input, config, eventTime) {
 
 Run: `node --test test/booking-core.test.mjs test/booking-apps-script.test.mjs`
 
-Expected: 9 tests PASS, 0 FAIL.
+Expected: 11 tests PASS, 0 FAIL.
 
 - [ ] **Step 5: Commit the server contract**
 
