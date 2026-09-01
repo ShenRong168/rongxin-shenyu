@@ -351,7 +351,7 @@ var GOALS_ = ["被理解", "釐清方向", "具體行動", "溝通策略", "資�
 var AVAILABILITY_ = ["平日上午", "平日下午", "平日晚上", "週末上午", "週末下午", "目前先不預約"];
 var SHEET_NAME_ = "官網初步盤點";
 var BOOKING_SOURCE_URL_ = "https://rongxinshenyu.com/booking.html";
-var HEADERS_ = ["建立時間", "event_id", "來源頁面", "稱呼", "Email", "目前卡點", "主要分類", "期待結果", "可聯絡／對談時段", "成人確認", "台灣確認", "同意版本", "審核狀態", "Meta CAPI 狀態", "通知狀態", "管理備註"];
+var HEADERS_ = ["建立時間", "event_id", "來源頁面", "稱呼", "Email", "目前卡點", "主要分類", "期待結果", "可聯絡／對談時段", "成人確認", "台灣確認", "同意版本", "提交指紋", "審核狀態", "Meta CAPI 狀態", "通知狀態", "管理備註"];
 
 function normalizeEmail_(value) {
   return String(value || "").trim().toLowerCase();
@@ -457,7 +457,7 @@ git commit -m "Add booking intake server contract"
 - Modify: `apps-script/booking-intake/Code.gs`
 - Modify: `test/booking-apps-script.test.mjs`
 
-**Final hardening contract:** the sheet has 16 columns, including separate `Meta CAPI 狀態` and `通知狀態` columns. Public strings are formula-escaped only at the row boundary. `CacheService` is explicitly a non-durable best-effort throttle. Sheet creation/header initialization, row deduplication/write, effect claims, and state transitions use the script lock and flush before releasing after writes. CAPI and Email are resumable independent effects with a 60-second persisted processing lease. Meta retries reuse the same `event_id`; MailApp has no idempotency key, so an interruption after delivery but before status persistence can produce an at-least-once duplicate notification.
+**Final hardening contract:** the sheet has 17 columns, including `提交指紋` plus separate `Meta CAPI 狀態` and `通知狀態` columns. Public strings are formula-escaped only at the row boundary. `CacheService` is explicitly a non-durable best-effort throttle. Sheet creation/header initialization and row deduplication/write use the script lock and flush before releasing after writes. Each external effect runs alone in its own lock-fenced section: read state, persist `processing`, call the service while retaining the lock, persist the final state, then release. This intentionally serializes low trial traffic. Meta retries reuse the same `event_id`; MailApp has no idempotency key, so an interruption after delivery but before status persistence can produce an at-least-once duplicate notification.
 
 - [ ] **Step 1: Add failing orchestration and bridge tests**
 
@@ -465,26 +465,32 @@ Add tests that inject a fake dependency object and assert these exact outcomes:
 
 - formula-like `displayName`, `stuckText`, and valid formula-like Email values are escaped in the sheet row but remain original for Meta hashing and notification;
 - a failed row write does not increment the best-effort throttle, while a sixth cached accepted submission is rejected;
-- `store` returns `rowNumber`, `duplicate`, `capiStatus`, and `notificationStatus`, and repeated `event_id` values leave one row only;
-- completed duplicates send no effects, failed effects resume, active leases send no effects, and stale leases resume;
-- sheet lookup/creation happens while the script lock is held and every header, row, claim, or completion write is flushed before lock release;
+- `store` returns `rowNumber`, `duplicate`, `capiStatus`, and `notificationStatus`, repeated identical `event_id` values leave one row only, and changed payloads with the same ID fail their persisted fingerprint comparison before effects;
+- completed duplicates send no effects, interrupted `processing` resumes after the abandoned Apps Script lock is automatically released, and a busy/timeout condition returns minimal retryable `ok:false`;
+- sheet lookup/creation happens while the script lock is held, and every header, row, processing, or final-state write is flushed before lock release;
 - once the row is durable, CAPI/notification errors still return accepted success.
 
 ```js
-test("stores, claims, sends both effects, and persists sent states", () => {
+test("executes Meta and notification as separate lock-fenced effects", () => {
   const calls = [];
   const deps = {
     store: () => ({ duplicate: false, rowNumber: 2, capiStatus: "pending", notificationStatus: "pending" }),
-    claimEffects: () => ({ leaseToken: "lease-1", capi: true, notification: true }),
+    runEffect: (row, effect, operation) => {
+      calls.push(["lock-start", row, effect]);
+      const status = operation();
+      calls.push(["lock-end", row, effect, status]);
+      return { retryable: false, status };
+    },
     sendLead: () => ({ status: "sent", responseCode: 200 }),
-    completeEffect: (row, effect, lease, status) => calls.push([row, effect, lease, status]),
     notify: () => undefined
   };
   const result = sandbox.processSubmission_(sandbox.validateSubmission_(valid), deps);
   assert.equal(result.ok, true);
   assert.deepEqual(calls, [
-    [2, "capi", "lease-1", "sent: 200"],
-    [2, "notification", "lease-1", "sent"]
+    ["lock-start", 2, "capi"],
+    ["lock-end", 2, "capi", "sent: 200"],
+    ["lock-start", 2, "notification"],
+    ["lock-end", 2, "notification", "sent"]
   ]);
 });
 
@@ -492,9 +498,8 @@ test("fully completed duplicate claims no effects", () => {
   let touched = false;
   const deps = {
     store: () => ({ duplicate: true, rowNumber: 2, capiStatus: "sent: 200", notificationStatus: "sent" }),
-    claimEffects: () => ({ leaseToken: "", capi: false, notification: false }),
+    runEffect: () => ({ retryable: false, skipped: true, status: "sent" }),
     sendLead: () => { touched = true; },
-    completeEffect: () => { touched = true; },
     notify: () => { touched = true; }
   };
   const result = sandbox.processSubmission_(sandbox.validateSubmission_(valid), deps);
@@ -502,8 +507,8 @@ test("fully completed duplicate claims no effects", () => {
   assert.equal(touched, false);
 });
 
-// Additional tests cover failed CAPI/notification resume, active-lease skip,
-// stale-lease resume, one-row-only deduplication, and downstream failure success semantics.
+// Additional tests cover fingerprint mismatch rejection, one-row-only deduplication,
+// interrupted-processing resume, lock timeout retry responses, and downstream failures.
 
 test("bridge contains no submitted email or narrative", () => {
   const html = sandbox.renderBridge_({ ok: true, eventId: valid.eventId }, "https://rongxinshenyu.com");
@@ -518,7 +523,7 @@ test("bridge contains no submitted email or narrative", () => {
 
 Run: `node --test test/booking-apps-script.test.mjs`
 
-Expected: FAIL because the resumable effect interfaces and formula-safe 16-column row are not implemented.
+Expected: FAIL because the lock-fenced effect interface, submission fingerprint, and formula-safe 17-column row are not implemented.
 
 - [ ] **Step 3: Add the orchestration boundary**
 
@@ -528,12 +533,24 @@ function escapeSheetFormula_(value) {
   return /^[=+\-@]/.test(text) ? "'" + text : text;
 }
 
+function inputFingerprint_(input) {
+  return sha256Hex_(JSON.stringify([
+    String(input.eventId), String(input.sourceUrl), String(input.displayName),
+    String(input.email), String(input.stuckText), String(input.topic),
+    input.goals.map(String), input.availability.map(String),
+    String(input.adultConfirmed), String(input.taiwanConfirmed),
+    String(input.consentConfirmed), String(input.consentVersion),
+    Number(input.startedAt), Number(input.submittedAt), String(input.website),
+    String(input.fbp), String(input.fbc)
+  ]));
+}
+
 function rowFor_(input) {
   return [
     new Date(), input.eventId, BOOKING_SOURCE_URL_, input.displayName,
     input.email, input.stuckText, input.topic, input.goals.join("、"),
     input.availability.join("、"), "是", "是", input.consentVersion,
-    "待審核", "pending", "pending", ""
+    inputFingerprint_(input), "待審核", "pending", "pending", ""
   ].map(function (value) {
     return typeof value === "string" ? escapeSheetFormula_(value) : value;
   });
@@ -541,11 +558,16 @@ function rowFor_(input) {
 
 function processSubmission_(input, deps) {
   var stored = deps.store(input);
-  var claimed;
-  try { claimed = deps.claimEffects(stored.rowNumber); }
-  catch (error) { return { ok: true, duplicate: stored.duplicate, eventId: input.eventId }; }
-  // Run only claimed effects. Persist sent/failed/not_configured through
-  // completeEffect(rowNumber, effectName, leaseToken, status).
+  var capi = deps.runEffect(stored.rowNumber, "capi", function () {
+    var sent = deps.sendLead(input);
+    return String(sent.status) + ": " + String(sent.responseCode);
+  });
+  if (capi.retryable) return { ok: false, duplicate: stored.duplicate, eventId: input.eventId, message: "目前忙碌中，請稍後重試。" };
+  var notification = deps.runEffect(stored.rowNumber, "notification", function () {
+    deps.notify(input);
+    return "sent";
+  });
+  if (notification.retryable) return { ok: false, duplicate: stored.duplicate, eventId: input.eventId, message: "目前忙碌中，請稍後重試。" };
   return { ok: true, duplicate: stored.duplicate, eventId: input.eventId };
 }
 
@@ -636,6 +658,15 @@ function findEventRow_(sheet, eventId) {
   return found ? found.getRow() : 0;
 }
 
+function readStoredSubmission_(sheet, rowNumber) {
+  var values = sheet.getRange(rowNumber, 13, 1, 4).getValues()[0];
+  return {
+    fingerprint: String(values[0] || ""),
+    capiStatus: String(values[2] || "pending"),
+    notificationStatus: String(values[3] || "pending")
+  };
+}
+
 function storeInput_(config, input) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
@@ -643,12 +674,15 @@ function storeInput_(config, input) {
     var sheet = getSheet_(config); // creation and header init happen under this lock
     var existing = findEventRow_(sheet, input.eventId);
     if (existing) {
-      var states = readEffectStates_(sheet, existing);
+      var stored = readStoredSubmission_(sheet, existing);
+      if (stored.fingerprint !== inputFingerprint_(input)) {
+        throw new Error("Invalid duplicate submission");
+      }
       return {
         duplicate: true,
         rowNumber: existing,
-        capiStatus: states.capiStatus,
-        notificationStatus: states.notificationStatus
+        capiStatus: stored.capiStatus,
+        notificationStatus: stored.notificationStatus
       };
     }
     var throttle = checkBestEffortThrottle_(input.email);
@@ -677,15 +711,12 @@ function recordBestEffortAccepted_(checkedThrottle) {
   // Called only after row setValues + SpreadsheetApp.flush succeeds.
 }
 
-function claimEffects_(config, rowNumber, nowMillis, leaseToken) {
-  // Under the script lock, read columns 14-15. Leave sent... and an unexpired
-  // processing lease untouched. Rewrite pending, failed..., not_configured...,
-  // or stale processing states to processing:<leaseToken>:<now+60000>, then flush.
-}
-
-function completeEffect_(config, rowNumber, effect, leaseToken, status) {
-  // Under the script lock, transition only a state still owned by leaseToken,
-  // flush the 2-column state range, and release. `effect` is capi|notification.
+function runEffect_(config, rowNumber, effect, operation) {
+  // Wait up to 120 seconds for the script lock. Once held, read only this
+  // effect's column (15 for CAPI, 16 for notification). Skip sent...; otherwise
+  // persist processing + flush, call operation while still holding the lock,
+  // persist sent/not_configured/failed + flush, and only then release.
+  // Any lock timeout or unconfirmed state persistence returns {retryable:true}.
 }
 
 function sendLead_(input, config) {
@@ -723,13 +754,10 @@ function notify_(input, config, spreadsheetUrl) {
 function createDependencies_(config) {
   return {
     store: function (input) { return storeInput_(config, input); },
-    claimEffects: function (row) {
-      return claimEffects_(config, row, Date.now(), Utilities.getUuid());
+    runEffect: function (row, effect, operation) {
+      return runEffect_(config, row, effect, operation);
     },
     sendLead: function (input) { return sendLead_(input, config); },
-    completeEffect: function (row, effect, lease, status) {
-      return completeEffect_(config, row, effect, lease, status);
-    },
     notify: function (input) {
       var spreadsheetUrl = SpreadsheetApp.openById(config.spreadsheetId).getUrl();
       notify_(input, config, spreadsheetUrl);
@@ -738,13 +766,13 @@ function createDependencies_(config) {
 }
 ```
 
-The `sendLead_` adapter posts only `buildMetaPayload_` output. It never passes `stuckText`, `topic`, `goals`, or `availability` to Meta. Formula escaping exists only in `rowFor_`; `sendLead_` and `notify_` receive the original normalized input. CAPI retries keep the original `event_id`. Notification retries are at-least-once because MailApp has no idempotency key; the persisted notification state makes that limitation visible.
+The `sendLead_` adapter posts only `buildMetaPayload_` output. It never passes `stuckText`, `topic`, `goals`, `availability`, or the submission fingerprint to Meta. Formula escaping exists only in `rowFor_`; `sendLead_` and `notify_` receive the original normalized input. CAPI retries keep the original `event_id`. Notification retries are at-least-once because MailApp has no idempotency key; the persisted notification state makes that limitation visible. Holding the script lock across each external call is an intentional low-throughput tradeoff for the initial trial.
 
 - [ ] **Step 5: Run the Apps Script tests**
 
 Run: `node --test test/booking-apps-script.test.mjs`
 
-Expected: 23 Apps Script tests PASS, 0 FAIL (31 total with `booking-core.test.mjs`).
+Expected: 25 Apps Script tests PASS, 0 FAIL (33 total with `booking-core.test.mjs`).
 
 - [ ] **Step 6: Commit the Apps Script behavior**
 
@@ -811,7 +839,7 @@ Create `apps-script/booking-intake/README.md` with this exact content:
 
 1. 先設定 `META_TEST_EVENT_CODE`。
 2. 用稱呼 `測試－官網Lead驗收` 送出一筆非敏感測試資料。
-3. 確認「官網初步盤點」只有一列、共有 16 欄、通知信沒有卡點敘述、CAPI 狀態為 `sent: 200`、通知狀態為 `sent`。
+3. 確認「官網初步盤點」只有一列、共有 17 欄且含「提交指紋」、通知信沒有卡點敘述或指紋、CAPI 狀態為 `sent: 200`、通知狀態為 `sent`。
 4. 在 Meta 測試事件確認 browser/server `Lead` 的 `event_id` 相同且已去重。
 5. 刪除該測試列與 `META_TEST_EVENT_CODE`，保留正式 deployment 與 `META_CAPI_TOKEN`。
 

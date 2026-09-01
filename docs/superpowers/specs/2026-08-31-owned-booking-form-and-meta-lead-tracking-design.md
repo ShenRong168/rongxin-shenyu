@@ -108,8 +108,9 @@ Apps Script 綁定現有 Google 試算表，原始碼另存於 repo 的 `apps-sc
 - honeypot 必須為空，且送出時間不得不合理地短於最小填寫時間。
 - 以雜湊 Email 配合 `CacheService` 做溫和的短期 **best-effort throttle**。Cache 可能被提早淘汰，這不是持久或安全邊界；先檢查、待列資料成功寫入且 `SpreadsheetApp.flush()` 後才記錄接受次數，寫入失敗不耗用次數。
 - 工作表取得／建立、標題初始化、冪等查找與列寫入都在同一把 script lock 內完成；所有持久寫入都先 `SpreadsheetApp.flush()` 再釋放鎖，避免首次建立與同時送出競態。
-- 為同一 `event_id` 做列級冪等檢查；重送永遠不新增第二列。CAPI 與管理通知各自有持久狀態，可在 `pending`、`failed...`、`not_configured...` 或逾期 lease 時恢復，完成的 `sent...` 副作用則略過。
-- 副作用開始前，短期 processing lease 會在 script lock 內寫入兩個狀態欄。另一個仍有效 lease 的重送只回覆已接受，不重複送出；lease 逾期後可恢復。
+- 為同一 `event_id` 做列級冪等檢查；重送永遠不新增第二列。另以固定欄位順序計算正規化提交內容的 SHA-256「提交指紋」；相同 `event_id` 若帶入不同內容，視為無效冪等重送，在任何外部副作用前拒絕，原列不被覆寫。
+- CAPI 與管理通知分成兩個獨立的 lock-fenced 副作用。每次只處理一項：取得 script lock 後讀取該項狀態，`sent...` 即略過；其餘狀態先寫成 `processing` 並 flush，在同一把鎖仍持有時呼叫外部服務，再寫入 `sent...`、`not_configured...` 或 `failed...` 並 flush，最後才釋放鎖。
+- 試辦流量低，接受外部呼叫期間序列化的吞吐量代價。並行重送會等待鎖後看到 `sent...`，或在前一 worker 終止、Apps Script 自動釋放鎖後看到 `processing` 並恢復。若在 bounded wait 內拿不到鎖或無法確認狀態落盤，回傳最小 `ok:false` 可重試結果，讓瀏覽器保留輸入而不是靜默視為完整成功。
 - 所有準備寫入試算表、且可能來自使用者的字串，只要以 `=`、`+`、`-`、`@` 開頭就加上前置 apostrophe，避免公式注入。正規化原值仍保留給 Email 與 Meta hashing，不傳送轉義後的顯示字串。
 - 回應頁以 `HtmlService` 產生，僅為讓背景 iframe 將成功／失敗狀態送回官網；設定允許 iframe 載入時，回傳訊息的目標 origin 仍固定為 `https://rongxinshenyu.com`。
 
@@ -129,6 +130,7 @@ Apps Script 綁定現有 Google 試算表，原始碼另存於 repo 的 `apps-sc
 - 成人確認
 - 台灣確認
 - 同意版本
+- 提交指紋（正規化已知欄位的 SHA-256，不傳往 Meta／Email）
 - 審核狀態（預設「待審核」）
 - Meta CAPI 狀態
 - 通知狀態
@@ -138,7 +140,7 @@ Apps Script 綁定現有 Google 試算表，原始碼另存於 repo 的 `apps-sc
 
 ### 通知信
 
-成功新增資料後寄到 Script Properties 設定的管理信箱。通知只含建立時間、稱呼、Email、event_id 與試算表連結；完整敘述留在試算表，避免敏感內容散落於 Email。通知狀態獨立持久化並可從失敗或逾期 lease 恢復。`MailApp` 沒有 idempotency key，因此若信件已送出、但狀態在落盤前中斷，逾期恢復可能再寄一次；這是可見、可查核的 at-least-once 限制。
+成功新增資料後寄到 Script Properties 設定的管理信箱。通知只含建立時間、稱呼、Email、event_id 與試算表連結；完整敘述與提交指紋留在試算表，避免敏感內容散落於 Email。通知狀態獨立持久化並在自己的 lock-fenced 區段執行。`MailApp` 沒有 idempotency key，因此若信件已送出、但 `sent` 狀態在落盤前中斷，worker 終止後的重試可能再寄一次；這是可見、可查核的 at-least-once 限制。
 
 ### Meta CAPI
 
@@ -180,7 +182,7 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 ### 自動檢查
 
 - 純函式測試：欄位驗證、列舉白名單、Email 正規化、`event_id`／一次性標記、Payload shaping。
-- Apps Script 可測部分：伺服器驗證、16 欄列資料、公式注入防護、best-effort throttle、鎖與 flush 順序、單列冪等、lease claim／逾期恢復、CAPI／通知獨立狀態、CAPI payload 與敏感欄位排除；Google 服務以替身注入。
+- Apps Script 可測部分：伺服器驗證、17 欄列資料、提交指紋與變造重送拒絕、公式注入防護、best-effort throttle、鎖與 flush 順序、單列冪等、逐副作用 lock fencing／中斷恢復／busy 可重試回應、CAPI／通知獨立狀態、CAPI payload 與敏感欄位排除；Google 服務以替身注入。
 - 靜態檢查：主要 CTA 不再直連 Google 表單、所有頁面使用現行 Pixel、repo 無 CAPI 權杖、`sitemap.xml` 包含新頁面。
 - `git diff --check` 與既有 social-publisher 測試保持通過。
 

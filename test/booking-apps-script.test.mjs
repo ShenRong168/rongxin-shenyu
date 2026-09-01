@@ -215,12 +215,12 @@ test("validateSubmission_ bounds email, tracking IDs, and choice arrays", () => 
   assert.equal(oversizedTracking.fbc, "");
 });
 
-test("processSubmission_ stores, claims, sends both effects, and persists sent states", () => {
+test("processSubmission_ executes Meta and notification as separate lock-fenced effects", () => {
   const input = sandbox.validateSubmission_(valid);
-  const calls = { store: [], claimEffects: [], sendLead: [], completeEffect: [], notify: [] };
+  const calls = [];
   const deps = {
     store(value) {
-      calls.store.push(value);
+      calls.push(["store", value.eventId]);
       return {
         duplicate: false,
         rowNumber: 2,
@@ -228,19 +228,18 @@ test("processSubmission_ stores, claims, sends both effects, and persists sent s
         notificationStatus: "pending"
       };
     },
-    claimEffects(rowNumber) {
-      calls.claimEffects.push(rowNumber);
-      return { leaseToken: "lease-1", capi: true, notification: true };
+    runEffect(rowNumber, effect, operation) {
+      calls.push(["lock-start", rowNumber, effect]);
+      const status = operation();
+      calls.push(["lock-end", rowNumber, effect, status]);
+      return { retryable: false, status };
     },
     sendLead(value) {
-      calls.sendLead.push(value);
+      calls.push(["capi", value.eventId]);
       return { status: "sent", responseCode: 200 };
     },
-    completeEffect(rowNumber, effect, leaseToken, status) {
-      calls.completeEffect.push([rowNumber, effect, leaseToken, status]);
-    },
     notify(value) {
-      calls.notify.push(value);
+      calls.push(["notification", value.email]);
     }
   };
 
@@ -251,14 +250,15 @@ test("processSubmission_ stores, claims, sends both effects, and persists sent s
     duplicate: false,
     eventId: valid.eventId
   });
-  assert.equal(calls.store.length, 1);
-  assert.deepEqual(calls.claimEffects, [2]);
-  assert.equal(calls.sendLead.length, 1);
-  assert.deepEqual(calls.completeEffect, [
-    [2, "capi", "lease-1", "sent: 200"],
-    [2, "notification", "lease-1", "sent"]
+  assert.deepEqual(calls, [
+    ["store", valid.eventId],
+    ["lock-start", 2, "capi"],
+    ["capi", valid.eventId],
+    ["lock-end", 2, "capi", "sent: 200"],
+    ["lock-start", 2, "notification"],
+    ["notification", "user@example.com"],
+    ["lock-end", 2, "notification", "sent"]
   ]);
-  assert.equal(calls.notify.length, 1);
 });
 
 test("processSubmission_ returns a fully completed duplicate without effects", () => {
@@ -275,9 +275,8 @@ test("processSubmission_ returns a fully completed duplicate without effects", (
         notificationStatus: "sent"
       };
     },
-    claimEffects() { return { leaseToken: "", capi: false, notification: false }; },
+    runEffect() { return { retryable: false, skipped: true, status: "sent" }; },
     sendLead: untouched,
-    completeEffect: untouched,
     notify: untouched
   };
 
@@ -291,7 +290,7 @@ test("processSubmission_ returns a fully completed duplicate without effects", (
   assert.equal(storeCalls, 1);
 });
 
-test("processSubmission_ keeps a stored lead successful and records downstream failures", () => {
+test("processSubmission_ keeps a stored lead successful after ordinary downstream failures", () => {
   const input = sandbox.validateSubmission_(valid);
   const statuses = [];
   const result = sandbox.processSubmission_(input, {
@@ -303,11 +302,17 @@ test("processSubmission_ keeps a stored lead successful and records downstream f
         notificationStatus: "pending"
       };
     },
-    claimEffects() { return { leaseToken: "lease-2", capi: true, notification: true }; },
-    sendLead() { throw new Error("Meta unavailable"); },
-    completeEffect(rowNumber, effect, leaseToken, status) {
-      statuses.push([rowNumber, effect, leaseToken, status]);
+    runEffect(_rowNumber, effect, operation) {
+      let status;
+      try {
+        status = operation();
+      } catch (error) {
+        status = `failed: ${error.message}`;
+      }
+      statuses.push([effect, status]);
+      return { retryable: false, status };
     },
+    sendLead() { throw new Error("Meta unavailable"); },
     notify() { throw new Error("Mail unavailable"); }
   });
 
@@ -317,60 +322,71 @@ test("processSubmission_ keeps a stored lead successful and records downstream f
     eventId: valid.eventId
   });
   assert.deepEqual(statuses, [
-    [2, "capi", "lease-2", "failed: Meta unavailable"],
-    [2, "notification", "lease-2", "failed: Mail unavailable"]
+    ["capi", "failed: Meta unavailable"],
+    ["notification", "failed: Mail unavailable"]
   ]);
 });
 
-test("processSubmission_ resumes only failed or incomplete effects on a duplicate", () => {
+test("processSubmission_ reports a retryable failure when an effect lock is busy", () => {
   const input = sandbox.validateSubmission_(valid);
-  const calls = [];
+  let notificationAttempted = false;
   const result = sandbox.processSubmission_(input, {
     store() {
       return {
         duplicate: true,
         rowNumber: 2,
-        capiStatus: "failed: Meta unavailable",
-        notificationStatus: "not_configured: admin email"
+        capiStatus: "processing",
+        notificationStatus: "pending"
       };
     },
-    claimEffects() { return { leaseToken: "lease-retry", capi: true, notification: true }; },
-    sendLead(value) { calls.push(["capi", value.eventId]); return { status: "sent", responseCode: 200 }; },
-    notify(value) { calls.push(["notification", value.email]); },
-    completeEffect(rowNumber, effect, leaseToken, status) {
-      calls.push(["complete", rowNumber, effect, leaseToken, status]);
-    }
+    runEffect() { return { retryable: true }; },
+    sendLead() { assert.fail("busy lock executed Meta"); },
+    notify() { notificationAttempted = true; }
   });
 
+  assert.equal(result.ok, false);
   assert.equal(result.duplicate, true);
-  assert.deepEqual(calls, [
-    ["capi", valid.eventId],
-    ["complete", 2, "capi", "lease-retry", "sent: 200"],
-    ["notification", "user@example.com"],
-    ["complete", 2, "notification", "lease-retry", "sent"]
-  ]);
+  assert.equal(result.eventId, valid.eventId);
+  assert.equal(result.message, "目前忙碌中，請稍後重試。");
+  assert.equal(notificationAttempted, false);
+  const html = sandbox.renderBridge_(result, "https://rongxinshenyu.com");
+  assert.match(html, /"ok":false/);
+  assert.equal(html.includes(valid.stuckText), false);
+  assert.equal(html.includes(valid.email), false);
 });
 
-test("processSubmission_ accepts an in-progress duplicate without sending effects", () => {
+test("inputFingerprint_ is stable for canonical input and changes with any bound payload field", () => {
   const input = sandbox.validateSubmission_(valid);
-  const untouched = () => assert.fail("active lease triggered a duplicate effect");
-  const result = sandbox.processSubmission_(input, {
-    store() {
-      return {
-        duplicate: true,
-        rowNumber: 2,
-        capiStatus: "processing:other:1700000100000",
-        notificationStatus: "processing:other:1700000100000"
-      };
-    },
-    claimEffects() { return { leaseToken: "", capi: false, notification: false }; },
-    sendLead: untouched,
-    notify: untouched,
-    completeEffect: untouched
-  });
+  assert.equal(sandbox.inputFingerprint_(input), sandbox.inputFingerprint_({ ...input }));
+  for (const changed of [
+    { displayName: "另一個人" },
+    { stuckText: `${input.stuckText}不同` },
+    { email: "other@example.com" },
+    { goals: ["被理解"] },
+    { submittedAt: input.submittedAt + 1 }
+  ]) {
+    assert.notEqual(
+      sandbox.inputFingerprint_(input),
+      sandbox.inputFingerprint_({ ...input, ...changed })
+    );
+  }
+  const fingerprint = sandbox.inputFingerprint_(input);
+  assert.match(fingerprint, /^[0-9a-f]{64}$/);
+  const meta = sandbox.buildMetaPayload_(input, {}, 1700000020);
+  assert.equal(JSON.stringify(meta).includes(fingerprint), false);
+});
 
-  assert.equal(result.ok, true);
-  assert.equal(result.duplicate, true);
+test("processSubmission_ never runs effects when duplicate payload identity is rejected", () => {
+  const untouched = () => assert.fail("changed duplicate triggered an effect");
+  assert.throws(
+    () => sandbox.processSubmission_(sandbox.validateSubmission_(valid), {
+      store() { throw new Error("Invalid duplicate submission"); },
+      runEffect: untouched,
+      sendLead: untouched,
+      notify: untouched
+    }),
+    /invalid duplicate submission/i
+  );
 });
 
 test("renderBridge_ posts only the minimal result to the fixed origin", () => {
@@ -385,11 +401,11 @@ test("renderBridge_ posts only the minimal result to the fixed origin", () => {
   assert.equal(html.includes(valid.stuckText), false);
 });
 
-test("rowFor_ creates the approved 16-column review row with separate pending states", () => {
+test("rowFor_ creates the approved 17-column row with fingerprint and separate states", () => {
   const input = sandbox.validateSubmission_(valid);
   const row = sandbox.rowFor_(input);
 
-  assert.equal(row.length, 16);
+  assert.equal(row.length, 17);
   assert.equal(Object.prototype.toString.call(row[0]), "[object Date]");
   assert.deepEqual([...row.slice(1)], [
     valid.eventId,
@@ -403,6 +419,7 @@ test("rowFor_ creates the approved 16-column review row with separate pending st
     "是",
     "是",
     "2026-09-01",
+    sandbox.inputFingerprint_(input),
     "待審核",
     "pending",
     "pending",
@@ -492,8 +509,9 @@ test("storeInput_ initializes and writes under one lock, flushes, then records b
           }
         };
       }
-      if (column === 14 && columns === 2) {
-        return { getValues() { return [["sent: 200", "sent"]]; } };
+      if (column === 13 && columns === 4) {
+        const storedRow = writes[1].values[0];
+        return { getValues() { return [[storedRow[12], storedRow[13], "sent: 200", "sent"]]; } };
       }
       return {
         setValues(values) {
@@ -559,7 +577,8 @@ test("storeInput_ initializes and writes under one lock, flushes, then records b
     notificationStatus: "pending"
   });
   assert.deepEqual([...writes[0].values[0]], [...sandbox.HEADERS_]);
-  assert.equal(writes[1].values[0].length, 16);
+  assert.equal(writes[1].values[0].length, 17);
+  assert.equal(writes[1].values[0][12], sandbox.inputFingerprint_(input));
   assert.equal(cachePuts.length, 1);
   assert.equal(cachePuts[0].key.includes("user@example.com"), false);
   assert.match(cachePuts[0].key, /^booking-best-effort-throttle-[0-9a-f]{64}$/);
@@ -583,6 +602,15 @@ test("storeInput_ initializes and writes under one lock, flushes, then records b
   assert.equal(lockReleases, 2);
   assert.equal(timeline.indexOf("flush") < timeline.indexOf("cache-put"), true);
   assert.equal(timeline.indexOf("cache-put") < timeline.indexOf("release"), true);
+
+  assert.throws(
+    () => sandbox.storeInput_(
+      { spreadsheetId: "sheet-1" },
+      sandbox.validateSubmission_({ ...valid, displayName: "被換掉的稱呼" })
+    ),
+    /invalid duplicate submission/i
+  );
+  assert.equal(writes.length, 2, "changed duplicate replaced the original row");
 });
 
 test("storeInput_ does not consume best-effort acceptance when the row write fails", () => {
@@ -638,82 +666,181 @@ test("best-effort throttle rejects the sixth cached accepted submission without 
   assert.match(observedKey, /^booking-best-effort-throttle-[0-9a-f]{64}$/);
 });
 
-test("claimEffects_ skips sent and active leases but resumes failed and stale states", () => {
-  let statuses = ["sent: 200", "processing:other:1700000100000"];
-  const stateWrites = [];
-  let flushes = 0;
+test("runEffect_ holds one lock across one external effect and its durable state transitions", () => {
+  const statuses = { 15: "pending", 16: "pending" };
+  const timeline = [];
+  let lockHeld = false;
   const sheet = {
     getLastRow() { return 2; },
-    getRange(row, column, rows, columns) {
+    getRange(row, column) {
       assert.equal(row, 2);
-      assert.equal(column, 14);
-      assert.equal(rows, 1);
-      assert.equal(columns, 2);
       return {
-        getValues() { return [[...statuses]]; },
-        setValues(values) { statuses = [...values[0]]; stateWrites.push([...values[0]]); }
+        getValue() {
+          assert.equal(lockHeld, true);
+          timeline.push(["read", column, statuses[column]]);
+          return statuses[column];
+        },
+        setValue(value) {
+          assert.equal(lockHeld, true);
+          statuses[column] = value;
+          timeline.push(["write", column, value]);
+        }
       };
     }
   };
   sandbox.SpreadsheetApp = {
     openById() { return { getSheetByName() { return sheet; } }; },
-    flush() { flushes += 1; }
+    flush() { assert.equal(lockHeld, true); timeline.push(["flush"]); }
   };
   sandbox.LockService = {
     getScriptLock() {
-      return { waitLock() {}, releaseLock() {} };
+      return {
+        waitLock(milliseconds) {
+          assert.equal(milliseconds, 120000);
+          assert.equal(lockHeld, false);
+          lockHeld = true;
+          timeline.push(["lock"]);
+        },
+        releaseLock() {
+          assert.equal(lockHeld, true);
+          timeline.push(["release"]);
+          lockHeld = false;
+        }
+      };
     }
   };
 
-  assert.deepEqual(
-    JSON.parse(JSON.stringify(sandbox.claimEffects_({ spreadsheetId: "sheet-1" }, 2, 1700000000000, "lease-a"))),
-    { leaseToken: "lease-a", capi: false, notification: false }
-  );
-  assert.equal(stateWrites.length, 0);
+  const capi = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", () => {
+    assert.equal(lockHeld, true);
+    assert.equal(statuses[15], "processing");
+    assert.equal(statuses[16], "pending", "notification was claimed during Meta");
+    timeline.push(["external", "capi"]);
+    return "sent: 200";
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(capi)), { retryable: false, skipped: false, status: "sent: 200" });
+  assert.equal(statuses[15], "sent: 200");
+  assert.equal(statuses[16], "pending");
 
-  statuses = ["failed: Meta unavailable", "processing:other:1699999999999"];
-  assert.deepEqual(
-    JSON.parse(JSON.stringify(sandbox.claimEffects_({ spreadsheetId: "sheet-1" }, 2, 1700000000000, "lease-b"))),
-    { leaseToken: "lease-b", capi: true, notification: true }
-  );
-  assert.deepEqual(stateWrites.at(-1), [
-    "processing:lease-b:1700000060000",
-    "processing:lease-b:1700000060000"
-  ]);
-  assert.equal(flushes, 1);
+  const notification = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "notification", () => {
+    assert.equal(lockHeld, true);
+    assert.equal(statuses[15], "sent: 200");
+    assert.equal(statuses[16], "processing");
+    timeline.push(["external", "notification"]);
+    return "sent";
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(notification)), { retryable: false, skipped: false, status: "sent" });
+  assert.equal(statuses[16], "sent");
+  assert.equal(timeline.filter(([event]) => event === "lock").length, 2);
+  assert.equal(timeline.filter(([event]) => event === "release").length, 2);
 });
 
-test("completeEffect_ changes only its owned lease and flushes before releasing lock", () => {
-  let statuses = ["processing:lease-a:1700000060000", "processing:lease-a:1700000060000"];
-  const timeline = [];
+test("runEffect_ skips sent state and resumes interrupted processing while holding the lock", () => {
+  let status = "sent: 200";
+  let calls = 0;
+  let lockHeld = false;
   const sheet = {
     getLastRow() { return 2; },
     getRange() {
       return {
-        getValues() { return [[...statuses]]; },
-        setValues(values) { statuses = [...values[0]]; timeline.push("write"); }
+        getValue() { assert.equal(lockHeld, true); return status; },
+        setValue(value) { assert.equal(lockHeld, true); status = value; }
       };
     }
   };
   sandbox.SpreadsheetApp = {
     openById() { return { getSheetByName() { return sheet; } }; },
-    flush() { timeline.push("flush"); }
+    flush() { assert.equal(lockHeld, true); }
   };
   sandbox.LockService = {
     getScriptLock() {
       return {
-        waitLock() { timeline.push("lock"); },
-        releaseLock() { timeline.push("release"); }
+        waitLock() { lockHeld = true; },
+        releaseLock() { lockHeld = false; }
       };
     }
   };
 
-  assert.equal(sandbox.completeEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", "lease-a", "sent: 200"), true);
-  assert.deepEqual(statuses, ["sent: 200", "processing:lease-a:1700000060000"]);
-  assert.deepEqual(timeline, ["lock", "write", "flush", "release"]);
+  const skipped = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", () => {
+    calls += 1;
+    return "sent: 200";
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(skipped)), { retryable: false, skipped: true, status: "sent: 200" });
+  assert.equal(calls, 0);
 
-  assert.equal(sandbox.completeEffect_({ spreadsheetId: "sheet-1" }, 2, "notification", "wrong", "sent"), false);
-  assert.deepEqual(statuses, ["sent: 200", "processing:lease-a:1700000060000"]);
+  status = "processing";
+  const resumed = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", () => {
+    assert.equal(lockHeld, true);
+    calls += 1;
+    return "sent: 200";
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(resumed)), { retryable: false, skipped: false, status: "sent: 200" });
+  assert.equal(calls, 1);
+  assert.equal(status, "sent: 200");
+
+  status = "pending";
+  const failed = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "notification", () => {
+    throw new Error("Mail unavailable");
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(failed)), {
+    retryable: false,
+    skipped: false,
+    status: "failed: Mail unavailable"
+  });
+  assert.equal(status, "failed: Mail unavailable");
+});
+
+test("runEffect_ returns retryable failure when lock acquisition or state persistence is busy", () => {
+  let releases = 0;
+  sandbox.LockService = {
+    getScriptLock() {
+      return {
+        waitLock() { throw new Error("Lock timeout"); },
+        releaseLock() { releases += 1; }
+      };
+    }
+  };
+  let called = false;
+  const result = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", () => {
+    called = true;
+    return "sent: 200";
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { retryable: true });
+  assert.equal(called, false);
+  assert.equal(releases, 0);
+
+  sandbox.LockService = {
+    getScriptLock() {
+      return {
+        waitLock() {},
+        releaseLock() { releases += 1; }
+      };
+    }
+  };
+  sandbox.SpreadsheetApp = {
+    openById() {
+      return {
+        getSheetByName() {
+          return {
+            getLastRow() { return 2; },
+            getRange() {
+              return {
+                getValue() { return "pending"; },
+                setValue() { throw new Error("sheet busy"); }
+              };
+            }
+          };
+        }
+      };
+    },
+    flush() {}
+  };
+  const stateBusy = sandbox.runEffect_({ spreadsheetId: "sheet-1" }, 2, "capi", () => {
+    called = true;
+    return "sent: 200";
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(stateBusy)), { retryable: true });
+  assert.equal(called, false);
+  assert.equal(releases, 1);
 });
 
 test("sendLead_ posts only buildMetaPayload_ and rejects unsafe Meta responses", () => {
@@ -785,6 +912,7 @@ test("notify_ sends only the minimal unescaped lead notice and parseRequest_ whi
   for (const excluded of [valid.stuckText, valid.topic, valid.goals[0], valid.availability[0], valid.fbp, valid.fbc, "同意版本"]) {
     assert.equal(sent[0].body.includes(excluded), false, `notice leaked ${excluded}`);
   }
+  assert.equal(sent[0].body.includes(sandbox.inputFingerprint_(input)), false, "notice leaked fingerprint");
 
   const parsed = sandbox.parseRequest_({
     parameter: { ...valid, ignored: "secret" },
@@ -824,7 +952,7 @@ test("createDependencies_ is lazy and doPost returns an ALLOWALL fixed-origin br
   };
   const deps = sandbox.createDependencies_(config);
   assert.equal(sheetOpens, 0);
-  for (const name of ["store", "claimEffects", "sendLead", "completeEffect", "notify"]) {
+  for (const name of ["store", "runEffect", "sendLead", "notify"]) {
     assert.equal(typeof deps[name], "function");
   }
 
@@ -841,9 +969,8 @@ test("createDependencies_ is lazy and doPost returns an ALLOWALL fixed-origin br
         notificationStatus: "sent"
       };
     },
-    claimEffects() { return { leaseToken: "", capi: false, notification: false }; },
+    runEffect() { return { retryable: false, skipped: true, status: "sent" }; },
     sendLead() { assert.fail("duplicate should not send"); },
-    completeEffect() { assert.fail("duplicate should not update"); },
     notify() { assert.fail("duplicate should not notify"); }
   });
   sandbox.HtmlService = {

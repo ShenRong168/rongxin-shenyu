@@ -5,8 +5,9 @@ var SHEET_NAME_ = "官網初步盤點";
 var BOOKING_SOURCE_URL_ = "https://rongxinshenyu.com/booking.html";
 var ALLOWED_ORIGIN_ = "https://rongxinshenyu.com";
 var META_PIXEL_ID_ = "4400969670158242";
-var EFFECT_LEASE_MILLISECONDS_ = 60000;
-var EFFECT_STATE_COLUMN_ = 14;
+var EFFECT_LOCK_WAIT_MILLISECONDS_ = 120000;
+var CAPI_STATE_COLUMN_ = 15;
+var NOTIFICATION_STATE_COLUMN_ = 16;
 var HEADERS_ = [
   "建立時間",
   "event_id",
@@ -20,6 +21,7 @@ var HEADERS_ = [
   "成人確認",
   "台灣確認",
   "同意版本",
+  "提交指紋",
   "審核狀態",
   "Meta CAPI 狀態",
   "通知狀態",
@@ -155,6 +157,28 @@ function sha256Hex_(value) {
   }).join("");
 }
 
+function inputFingerprint_(input) {
+  return sha256Hex_(JSON.stringify([
+    String(input.eventId),
+    String(input.sourceUrl),
+    String(input.displayName),
+    String(input.email),
+    String(input.stuckText),
+    String(input.topic),
+    input.goals.map(String),
+    input.availability.map(String),
+    String(input.adultConfirmed),
+    String(input.taiwanConfirmed),
+    String(input.consentConfirmed),
+    String(input.consentVersion),
+    Number(input.startedAt),
+    Number(input.submittedAt),
+    String(input.website),
+    String(input.fbp),
+    String(input.fbc)
+  ]));
+}
+
 function buildMetaPayload_(input, config, eventTime) {
   var userData = {
     em: [sha256Hex_(normalizeEmail_(input.email))]
@@ -201,6 +225,7 @@ function rowFor_(input) {
     "是",
     "是",
     input.consentVersion,
+    inputFingerprint_(input),
     "待審核",
     "pending",
     "pending",
@@ -212,44 +237,30 @@ function rowFor_(input) {
 
 function processSubmission_(input, deps) {
   var stored = deps.store(input);
-  var claimed;
-  try {
-    claimed = deps.claimEffects(stored.rowNumber);
-  } catch (error) {
-    Logger.log("Booking effect claim failed");
-    return { ok: true, duplicate: stored.duplicate, eventId: input.eventId };
+  var capiResult = deps.runEffect(stored.rowNumber, "capi", function () {
+    var sent = deps.sendLead(input);
+    return String(sent.status) + ": " + String(sent.responseCode);
+  });
+  if (capiResult.retryable) {
+    return {
+      ok: false,
+      duplicate: stored.duplicate,
+      eventId: input.eventId,
+      message: "目前忙碌中，請稍後重試。"
+    };
   }
 
-  if (claimed.capi) {
-    var capiStatus;
-    try {
-      var sent = deps.sendLead(input);
-      capiStatus = String(sent.status) + ": " + String(sent.responseCode);
-    } catch (error) {
-      capiStatus = "failed: " + (error && error.message ? error.message : String(error));
-    }
-
-    try {
-      deps.completeEffect(stored.rowNumber, "capi", claimed.leaseToken, capiStatus);
-    } catch (error) {
-      Logger.log("Booking CAPI status update failed");
-    }
-  }
-
-  if (claimed.notification) {
-    var notificationStatus;
-    try {
-      deps.notify(input);
-      notificationStatus = "sent";
-    } catch (error) {
-      notificationStatus = "failed: " + (error && error.message ? error.message : String(error));
-    }
-
-    try {
-      deps.completeEffect(stored.rowNumber, "notification", claimed.leaseToken, notificationStatus);
-    } catch (error) {
-      Logger.log("Booking notification status update failed");
-    }
+  var notificationResult = deps.runEffect(stored.rowNumber, "notification", function () {
+    deps.notify(input);
+    return "sent";
+  });
+  if (notificationResult.retryable) {
+    return {
+      ok: false,
+      duplicate: stored.duplicate,
+      eventId: input.eventId,
+      message: "目前忙碌中，請稍後重試。"
+    };
   }
 
   return { ok: true, duplicate: stored.duplicate, eventId: input.eventId };
@@ -365,11 +376,12 @@ function recordBestEffortAccepted_(throttle) {
   }
 }
 
-function readEffectStates_(sheet, rowNumber) {
-  var values = sheet.getRange(rowNumber, EFFECT_STATE_COLUMN_, 1, 2).getValues()[0];
+function readStoredSubmission_(sheet, rowNumber) {
+  var values = sheet.getRange(rowNumber, 13, 1, 4).getValues()[0];
   return {
-    capiStatus: String(values[0] || "pending"),
-    notificationStatus: String(values[1] || "pending")
+    fingerprint: String(values[0] || ""),
+    capiStatus: String(values[2] || "pending"),
+    notificationStatus: String(values[3] || "pending")
   };
 }
 
@@ -380,12 +392,15 @@ function storeInput_(config, input) {
     var sheet = getSheet_(config);
     var existingRow = findEventRow_(sheet, input.eventId);
     if (existingRow) {
-      var existingStates = readEffectStates_(sheet, existingRow);
+      var existing = readStoredSubmission_(sheet, existingRow);
+      if (existing.fingerprint !== inputFingerprint_(input)) {
+        throw new Error("Invalid duplicate submission");
+      }
       return {
         duplicate: true,
         rowNumber: existingRow,
-        capiStatus: existingStates.capiStatus,
-        notificationStatus: existingStates.notificationStatus
+        capiStatus: existing.capiStatus,
+        notificationStatus: existing.notificationStatus
       };
     }
     var throttle = checkBestEffortThrottle_(input.email);
@@ -406,73 +421,54 @@ function storeInput_(config, input) {
   }
 }
 
-function processingState_(leaseToken, expiresAt) {
-  return "processing:" + String(leaseToken) + ":" + String(expiresAt);
+function effectColumn_(effect) {
+  if (effect === "capi") {
+    return CAPI_STATE_COLUMN_;
+  }
+  if (effect === "notification") {
+    return NOTIFICATION_STATE_COLUMN_;
+  }
+  throw new Error("Unknown booking effect");
 }
 
-function shouldClaimEffect_(status, nowMillis) {
-  var text = String(status || "pending");
-  if (/^sent(?::|$)/.test(text)) {
-    return false;
-  }
-  if (text.indexOf("processing:") !== 0) {
-    return true;
-  }
-  var expiresAt = Number(text.slice(text.lastIndexOf(":") + 1));
-  return !isFinite(expiresAt) || expiresAt <= nowMillis;
-}
-
-function claimEffects_(config, rowNumber, nowMillis, leaseToken) {
+function runEffect_(config, rowNumber, effect, operation) {
   var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  var lockAcquired = false;
   try {
-    var sheet = getSheet_(config);
-    var range = sheet.getRange(rowNumber, EFFECT_STATE_COLUMN_, 1, 2);
-    var values = range.getValues()[0].map(function (value) { return String(value || "pending"); });
-    var claimCapi = shouldClaimEffect_(values[0], nowMillis);
-    var claimNotification = shouldClaimEffect_(values[1], nowMillis);
-    if (claimCapi || claimNotification) {
-      var leasedState = processingState_(leaseToken, nowMillis + EFFECT_LEASE_MILLISECONDS_);
-      if (claimCapi) {
-        values[0] = leasedState;
-      }
-      if (claimNotification) {
-        values[1] = leasedState;
-      }
-      range.setValues([values]);
-      SpreadsheetApp.flush();
+    try {
+      lock.waitLock(EFFECT_LOCK_WAIT_MILLISECONDS_);
+      lockAcquired = true;
+    } catch (error) {
+      Logger.log("Booking effect lock busy");
+      return { retryable: true };
     }
-    return {
-      leaseToken: String(leaseToken),
-      capi: claimCapi,
-      notification: claimNotification
-    };
-  } finally {
-    lock.releaseLock();
-  }
-}
 
-function completeEffect_(config, rowNumber, effect, leaseToken, status) {
-  var effectIndex = effect === "capi" ? 0 : effect === "notification" ? 1 : -1;
-  if (effectIndex === -1) {
-    throw new Error("Unknown booking effect");
-  }
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
     var sheet = getSheet_(config);
-    var range = sheet.getRange(rowNumber, EFFECT_STATE_COLUMN_, 1, 2);
-    var values = range.getValues()[0].map(function (value) { return String(value || "pending"); });
-    var ownedPrefix = "processing:" + String(leaseToken) + ":";
-    if (values[effectIndex].indexOf(ownedPrefix) !== 0) {
-      return false;
+    var range = sheet.getRange(rowNumber, effectColumn_(effect));
+    var currentStatus = String(range.getValue() || "pending");
+    if (/^sent(?::|$)/.test(currentStatus)) {
+      return { retryable: false, skipped: true, status: currentStatus };
     }
-    values[effectIndex] = String(status);
-    range.setValues([values]);
+
+    range.setValue("processing");
     SpreadsheetApp.flush();
-    return true;
+
+    var finalStatus;
+    try {
+      finalStatus = String(operation());
+    } catch (error) {
+      finalStatus = "failed: " + (error && error.message ? error.message : String(error));
+    }
+    range.setValue(finalStatus);
+    SpreadsheetApp.flush();
+    return { retryable: false, skipped: false, status: finalStatus };
+  } catch (error) {
+    Logger.log("Booking effect state unavailable");
+    return { retryable: true };
   } finally {
-    lock.releaseLock();
+    if (lockAcquired) {
+      lock.releaseLock();
+    }
   }
 }
 
@@ -528,14 +524,11 @@ function createDependencies_(config) {
     store: function (input) {
       return storeInput_(config, input);
     },
-    claimEffects: function (rowNumber) {
-      return claimEffects_(config, rowNumber, Date.now(), Utilities.getUuid());
+    runEffect: function (rowNumber, effect, operation) {
+      return runEffect_(config, rowNumber, effect, operation);
     },
     sendLead: function (input) {
       return sendLead_(input, config);
-    },
-    completeEffect: function (rowNumber, effect, leaseToken, status) {
-      return completeEffect_(config, rowNumber, effect, leaseToken, status);
     },
     notify: function (input) {
       var spreadsheetUrl = SpreadsheetApp.openById(config.spreadsheetId).getUrl();
