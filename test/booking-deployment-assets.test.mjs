@@ -43,9 +43,15 @@ function findAssignedSecrets(source) {
     }
   ];
 
-  return patterns.flatMap(({ kind, expression }) =>
-    [...source.matchAll(expression)].map((match) => ({ kind, match: match[0] }))
-  );
+  return patterns.flatMap(({ kind, expression }) => {
+    expression.lastIndex = 0;
+    let count = 0;
+    while (expression.test(source)) {
+      count += 1;
+    }
+    expression.lastIndex = 0;
+    return count > 0 ? [{ kind, count }] : [];
+  });
 }
 
 async function readFilesRecursively(directoryUrl) {
@@ -130,6 +136,31 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
   assert.deepEqual(
     findAssignedSecrets("| `META_CAPI_TOKEN` | Store the user-provided value in Script Properties. |"),
     []
+  );
+});
+
+test("secret scanner findings and assertion failures never retain credential values", () => {
+  const distinctiveToken = "EAADistinctiveDoNotExpose9876543210";
+  const findings = findAssignedSecrets(`META_CAPI_TOKEN=${distinctiveToken}`);
+  let scanFailure;
+  try {
+    assert.deepEqual(findings, []);
+  } catch (error) {
+    scanFailure = error;
+  }
+
+  assert.deepEqual(
+    {
+      detected: findings.length > 0,
+      findingsAreRedacted: !JSON.stringify(findings).includes(distinctiveToken),
+      assertionIsRedacted:
+        Boolean(scanFailure) && !String(scanFailure.stack || scanFailure).includes(distinctiveToken)
+    },
+    {
+      detected: true,
+      findingsAreRedacted: true,
+      assertionIsRedacted: true
+    }
   );
 });
 
