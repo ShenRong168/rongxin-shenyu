@@ -45,6 +45,14 @@ test("rejects any unknown goal or availability value", () => {
   assert.equal(errors.availability, "請至少選擇一個方便時段。");
 });
 
+test("rejects no-booking availability combined with a concrete time", () => {
+  const errors = validateBooking({
+    ...valid,
+    availability: ["平日晚上", "目前先不預約"]
+  });
+  assert.equal(errors.availability, "目前先不預約不能和其他時段同時選擇。");
+});
+
 test("treats a null payload as missing required fields", () => {
   assert.deepEqual(validateBooking(null), {
     displayName: "請輸入 1–50 個字的稱呼。",

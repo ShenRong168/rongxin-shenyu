@@ -61,6 +61,11 @@ export function validateBooking(payload = {}) {
     !payload.availability.every((slot) => AVAILABILITY.has(slot))
   ) {
     errors.availability = "請至少選擇一個方便時段。";
+  } else if (
+    payload.availability.includes("目前先不預約") &&
+    payload.availability.length > 1
+  ) {
+    errors.availability = "目前先不預約不能和其他時段同時選擇。";
   }
 
   if (payload.adultConfirmed !== true) {
