@@ -1756,7 +1756,16 @@
       "videoUrl": "https://rongxinshenyu.com/assets/ig-characters/reels/otouto-screen-vs-listen-reel-final.mp4",
       "message": "平板放在旁邊，螢幕是暗的。\n\n不是規定不能玩，是這一刻他自己選擇了不看。\n\n陪伴不用刻意安排，只是在他身邊，他就知道還有更好玩的事。\n\n如果也想多一點放下螢幕的時刻，幫我按個愛心 🤍\n\n#親子日常 #陪伴時光 #溫暖插畫",
       "link": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-02T12:01:20.497Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18574637677064655"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-03-sharing-toy-scene-reel-instagram",
@@ -1803,5 +1812,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-09-01T04:30:36.201Z"
+  "lastRunAt": "2026-09-02T12:00:47.016Z"
 }
