@@ -276,7 +276,11 @@ function renderBridge_(result, origin) {
   var serializedMessage = JSON.stringify(message).replace(/</g, "\\u003c");
   var serializedOrigin = JSON.stringify(String(origin)).replace(/</g, "\\u003c");
   return "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><script>" +
-    "window.top.postMessage(" + serializedMessage + "," + serializedOrigin + ");" +
+    "function emit(){" +
+      "window.top.postMessage(" + serializedMessage + "," + serializedOrigin + ");" +
+      "window.parent.postMessage(" + serializedMessage + "," + serializedOrigin + ");" +
+    "}" +
+    "emit();setTimeout(emit,250);setTimeout(emit,1000);" +
     "</script></body></html>";
 }
 

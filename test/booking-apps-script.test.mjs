@@ -409,6 +409,9 @@ test("renderBridge_ reaches the outer site through the HtmlService iframe sandbo
 
   assert.match(html, /^<!doctype html><html><head><meta charset="utf-8"><\/head><body>/);
   assert.match(html, /window\.top\.postMessage\(/);
+  assert.match(html, /window\.parent\.postMessage\(/);
+  assert.match(html, /setTimeout\(emit,250\)/);
+  assert.match(html, /setTimeout\(emit,1000\)/);
   assert.doesNotMatch(html, /(?:^|[^.])parent\.postMessage\(/);
   assert.match(html, /<\/body><\/html>$/);
 });
