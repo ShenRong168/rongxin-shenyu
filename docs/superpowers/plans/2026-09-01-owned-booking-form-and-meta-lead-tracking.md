@@ -1670,10 +1670,12 @@ Keep the external Google Form URL only as the hidden failure fallback inside `bo
 Replace the existing「網站流量分析」paragraph with this exact disclosure while keeping the existing retention, contact, rights, and service-boundary language:
 
 ```html
-<p>本網站使用 Meta Pixel 與 Conversions API 進行流量及轉換成效分析。使用者成功送出第一階段盤點時，Meta 只會收到事件名稱與時間、來源網址、可用的瀏覽器識別資料，以及經單向雜湊處理的 Email；不會收到你填寫的卡點敘述、主要分類、期待結果、方便時段或安全分流內容。第一階段回答會儲存在 Google 試算表供榮心紳語進行人工評估。若你使用瀏覽器追蹤保護或廣告攔截工具，可能阻擋瀏覽器端統計，但不影響表單送出。</p>
+<p>本網站使用 Meta Pixel 與 Conversions API 進行流量及轉換成效分析。使用者成功送出第一階段盤點時，Meta 只會收到事件名稱與時間、隨機事件識別碼（用於瀏覽器與伺服器事件去重）、來源網址、可用的瀏覽器識別資料，以及經單向雜湊處理的 Email；不會收到你填寫的卡點敘述、主要分類、期待結果、方便時段或安全分流內容。第一階段回答會儲存在 Google 試算表供榮心紳語進行人工評估。若你使用瀏覽器追蹤保護或廣告攔截工具，可能阻擋瀏覽器端統計，但不影響表單送出。</p>
 ```
 
 - [ ] **Step 5: Update sitemap and README**
+
+Update the homepage `lastmod` to `2026-09-02`, the date the homepage CTA and privacy copy changed.
 
 Insert this exact entry immediately after the homepage entry in `sitemap.xml`:
 
@@ -1697,10 +1699,23 @@ Append this exact section to the root `README.md`:
 
 ### Booking Verification
 
+Before running the configuration check, copy `social-publisher/.env.example` to `social-publisher/.env`, add the required values locally, and never commit that file or print its secret values.
+
+Run each command separately and stop if any command exits non-zero.
+
 ```bash
 node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+```
+
+```bash
 npm --prefix social-publisher test
+```
+
+```bash
 npm --prefix social-publisher run check
+```
+
+```bash
 git diff --check
 ```
 ````

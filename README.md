@@ -2,9 +2,9 @@
 
 Static first version for a warm botanical boutique-style communication, inner-stability, and life debugging service website.
 
-Public URL after GitHub Pages setup:
+Public URL:
 
-`https://shenrong168.github.io/rongxin-shenyu/`
+`https://rongxinshenyu.com/`
 
 ## Files
 
@@ -16,7 +16,7 @@ Public URL after GitHub Pages setup:
 
 ## Edit Notes
 
-- Google Form links are connected and include privacy notices.
+- Google Form fallback link is retained only in `booking.html` and includes a privacy notice.
 - Service price, booking terms, service boundaries, and privacy notice are published on the site.
 - Static article previews are in the `#articles` section.
 - Keep the service distinction clear: coaching/communication support is separate from licensed psychological counseling or therapy.
@@ -29,9 +29,22 @@ Public URL after GitHub Pages setup:
 
 ### Booking Verification
 
+Before running the configuration check, copy `social-publisher/.env.example` to `social-publisher/.env`, add the required values locally, and never commit that file or print its secret values.
+
+Run each command separately and stop if any command exits non-zero.
+
 ```bash
 node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+```
+
+```bash
 npm --prefix social-publisher test
+```
+
+```bash
 npm --prefix social-publisher run check
+```
+
+```bash
 git diff --check
 ```
