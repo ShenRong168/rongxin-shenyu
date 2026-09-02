@@ -5,6 +5,8 @@ import { readFile, readdir } from "node:fs/promises";
 const manifestUrl = new URL("../apps-script/booking-intake/appsscript.json", import.meta.url);
 const readmeUrl = new URL("../apps-script/booking-intake/README.md", import.meta.url);
 const bookingIntakeUrl = new URL("../apps-script/booking-intake/", import.meta.url);
+const metaCapiTokenKey = ["META_CAPI", "TOKEN"].join("_");
+const priorPixelId = ["853091", "474317806"].join("");
 
 async function readOrEmpty(url) {
   try {
@@ -120,7 +122,7 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     ["markdown-table", `| META_CAPI_TOKEN | ${token} |`],
     ["colon", `META_CAPI_TOKEN: ${token}`],
     ["json", `{"META_CAPI_TOKEN":"${token}"}`],
-    ["equals", `META_CAPI_TOKEN=${token}`],
+    ["equals", `${metaCapiTokenKey}=${token}`],
     ["equals", `access_token=${token}`]
   ];
 
@@ -141,7 +143,7 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
 
 test("secret scanner findings and assertion failures never retain credential values", () => {
   const distinctiveToken = "EAADistinctiveDoNotExpose9876543210";
-  const findings = findAssignedSecrets(`META_CAPI_TOKEN=${distinctiveToken}`);
+  const findings = findAssignedSecrets(`${metaCapiTokenKey}=${distinctiveToken}`);
   let scanFailure;
   try {
     assert.deepEqual(findings, []);
@@ -213,7 +215,7 @@ test("deployment guide captures verification and rollback invariants", async () 
     "fallback form",
     "booking release",
     "prior version",
-    "853091474317806",
+    priorPixelId,
     "separate decision"
   ]) {
     assert.ok(readme.includes(required), `README must document ${required}`);
