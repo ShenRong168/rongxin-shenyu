@@ -7,11 +7,23 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 const obsoletePixelId = ["853091", "474317806"].join("");
 const assignedSecretPattern = /(?<![A-Za-z0-9_])(?:["'`]\s*)?(META_CAPI_TOKEN|access_token)(?:\s*["'`])?\s*[:=]\s*(?:"([^"\r\n]*)"|'([^'\r\n]*)'|`([^`\r\n]*)`|([^"'`\s,;#\]\r\n]+))/gi;
+const markdownTableSecretPattern = /^\s*\|\s*(?:["'`]\s*)?(META_CAPI_TOKEN|access_token)(?:\s*["'`])?\s*\|\s*([^|\r\n]*)\|/gim;
 const bearerTokenPattern = /\bBearer\s+["'`]?([A-Za-z0-9._~+/=-]{12,})/gi;
 const metaTokenPattern = /\bEAA[A-Za-z0-9_-]{12,}\b/g;
 
-function isPlaceholder(value) {
+function unwrapScalar(value) {
   const candidate = String(value || "").trim();
+  if (candidate.length >= 2) {
+    const first = candidate[0];
+    if ((first === '"' || first === "'" || first === "`") && candidate.at(-1) === first) {
+      return candidate.slice(1, -1).trim();
+    }
+  }
+  return candidate;
+}
+
+function isPlaceholder(value) {
+  const candidate = unwrapScalar(value);
   if (!candidate) return true;
   if (candidate.includes("${") || /^\$\{\{/.test(candidate)) return true;
   if (/^(?:\$[A-Z_][A-Z0-9_]*|\{\{[^}]+\}\}|<[^>]+>|\.{3}|…)$/i.test(candidate)) return true;
@@ -22,6 +34,11 @@ function isPlaceholder(value) {
   const compact = candidate.toLowerCase().replace(/[\s_-]+/g, "");
   return /^(?:your)?(?:meta|capi|access)?token$/.test(compact)
     || /^(?:replace(?:me)?|placeholder|example|sample|redacted|masked|changeme|todo|tbd|null|undefined|none)$/.test(compact);
+}
+
+function isOpaqueSecret(value) {
+  const candidate = unwrapScalar(value);
+  return !isPlaceholder(candidate) && /^[A-Za-z0-9._~+/=-]{20,}$/.test(candidate);
 }
 
 function lineNumberAt(source, offset) {
@@ -49,6 +66,11 @@ export function findBookingSecrets(source, path = "<memory>") {
   for (const match of text.matchAll(assignedSecretPattern)) {
     const value = match.slice(2).find((candidate) => candidate !== undefined) || "";
     if (!isPlaceholder(value)) addFinding("assigned-sensitive-key", match.index);
+  }
+
+  markdownTableSecretPattern.lastIndex = 0;
+  for (const match of text.matchAll(markdownTableSecretPattern)) {
+    if (isOpaqueSecret(match[2])) addFinding("assigned-sensitive-key", match.index);
   }
 
   bearerTokenPattern.lastIndex = 0;

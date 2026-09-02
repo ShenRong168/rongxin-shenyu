@@ -84,6 +84,8 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     ["assigned-sensitive-key", `${accessTokenKey}=\`${token}\``],
     ["assigned-sensitive-key", `"${accessTokenKey}": "${token}"`],
     ["assigned-sensitive-key", `"${accessTokenKey}" = "${opaqueToken}"`],
+    ["assigned-sensitive-key", `| ${metaCapiTokenKey} | ${opaqueToken} |`],
+    ["assigned-sensitive-key", `| \`${accessTokenKey}\` | \`${opaqueToken}\` |`],
     ["bearer-token", `Authorization: Bearer ${token}`],
     ["meta-token", `value ${token}`],
     ["obsolete-pixel", `pixel ${priorPixelId}`]
@@ -111,7 +113,14 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     `${accessTokenKey}=...`,
     `GET \`/refresh?${accessTokenKey}=...\``,
     `${accessTokenKey}: "new_threads_token"`,
-    `Authorization: Bearer secret-token`
+    `Authorization: Bearer secret-token`,
+    `| Property | Value or handling |`,
+    `| --- | --- |`,
+    `| ${metaCapiTokenKey} | |`,
+    `| ${metaCapiTokenKey} | \${META_TOKEN} |`,
+    `| \`${accessTokenKey}\` | \`<YOUR_TOKEN>\` |`,
+    `| ${accessTokenKey} | REPLACE_ME |`,
+    `| ${metaCapiTokenKey} | Store the user-provided value in Script Properties. |`
   ]) {
     assert.deepEqual(findBookingSecrets(safe, "safe.md"), []);
   }
@@ -120,7 +129,8 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
 test("secret scanner findings and assertion failures never retain credential values", () => {
   const distinctiveToken = ["EAA", "DistinctiveDoNotExpose9876543210"].join("");
   const findings = findBookingSecrets(`${metaCapiTokenKey}=${distinctiveToken}`, "fixture.md");
-  const formatted = formatSecretFindings(findings);
+  const tableFindings = findBookingSecrets(`| ${accessTokenKey} | ${distinctiveToken} |`, "fixture.md");
+  const formatted = formatSecretFindings([...findings, ...tableFindings]);
   let scanFailure;
   try {
     assert.deepEqual(findings, []);
@@ -131,13 +141,15 @@ test("secret scanner findings and assertion failures never retain credential val
   assert.deepEqual(
     {
       detected: findings.length > 0,
-      findingsAreRedacted: !JSON.stringify(findings).includes(distinctiveToken),
+      tableDetected: tableFindings.length > 0,
+      findingsAreRedacted: !JSON.stringify([...findings, ...tableFindings]).includes(distinctiveToken),
       formattedIsRedacted: !formatted.includes(distinctiveToken),
       assertionIsRedacted:
         Boolean(scanFailure) && !String(scanFailure.stack || scanFailure).includes(distinctiveToken)
     },
     {
       detected: true,
+      tableDetected: true,
       findingsAreRedacted: true,
       formattedIsRedacted: true,
       assertionIsRedacted: true
