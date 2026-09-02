@@ -4,6 +4,19 @@ import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
+const cssToken = (styles, name) => styles.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
+
+function luminance(hex) {
+  const channels = hex.match(/[0-9a-f]{2}/gi).map((part) => Number.parseInt(part, 16) / 255);
+  const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+function contrast(left, right) {
+  const [lighter, darker] = [luminance(left), luminance(right)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 let thankYouImportId = 0;
 
 async function runThankYouModule(windowApi) {
@@ -87,7 +100,7 @@ test("booking and thank-you pages expose accessible structure", async () => {
     "availability", "adultConfirmed", "taiwanConfirmed", "consentConfirmed"
   ];
   for (const name of labelled) {
-    assert.match(booking, new RegExp(`(?:<label[^>]*>[\\s\\S]*?name="${name}"|<fieldset[^>]*aria-describedby="${name}-error")`));
+    assert.match(booking, new RegExp(`(?:<label[^>]*>[\\s\\S]*?name="${name}"|<label[^>]*for="${name}"|<fieldset[^>]*aria-describedby="${name}-error")`));
     assert.match(booking, new RegExp(`id="${name}-error" class="field-error"`));
     assert.match(booking, new RegExp(`aria-describedby="${name}-error"`));
   }
@@ -121,17 +134,33 @@ test("booking focus rings use the high-contrast moss token on light surfaces", a
     styles,
     /\.intake-form :focus-visible,[\s\S]*?\.thank-you-panel a:focus-visible\s*{[\s\S]*?outline:\s*3px solid var\(--moss\)/
   );
-  const token = (name) => styles.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
-  const luminance = (hex) => {
-    const channels = hex.match(/[0-9a-f]{2}/gi).map((part) => Number.parseInt(part, 16) / 255);
-    const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
-    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
-  };
-  const contrast = (left, right) => {
-    const [lighter, darker] = [luminance(left), luminance(right)].sort((a, b) => b - a);
-    return (lighter + 0.05) / (darker + 0.05);
-  };
-  for (const surface of [token("paper"), token("cream")]) {
-    assert.ok(contrast(token("moss"), surface) >= 3, "focus ring must contrast at least 3:1 with light surfaces");
+  for (const surface of [cssToken(styles, "paper"), cssToken(styles, "cream")]) {
+    assert.ok(contrast(cssToken(styles, "moss"), surface) >= 3, "focus ring must contrast at least 3:1 with light surfaces");
+  }
+});
+
+test("confirmation rows preserve native checkbox geometry", async () => {
+  const styles = await read("styles.css");
+  assert.match(styles, /\.intake-form \.check-row\s*{[^}]*display:\s*flex/);
+  assert.match(styles, /\.intake-form \.check-row > input\[type="checkbox"\]\s*{[^}]*width:\s*auto/);
+});
+
+test("consent copy uses an associated label without nesting interactive links", async () => {
+  const booking = await read("booking.html");
+  const styles = await read("styles.css");
+  const labelBlocks = [...booking.matchAll(/<label\b[^>]*>[\s\S]*?<\/label>/g)].map((match) => match[0]);
+  for (const label of labelBlocks) assert.doesNotMatch(label, /<a\b/);
+  assert.match(booking, /<input(?=[^>]*id="consentConfirmed")(?=[^>]*name="consentConfirmed")(?=[^>]*aria-describedby="consentConfirmed-error")[^>]*>/);
+  assert.match(booking, /<label[^>]*for="consentConfirmed"[^>]*>/);
+  assert.match(styles, /\.consent-copy a\s*{[^}]*text-decoration:\s*underline/);
+});
+
+test("form control boundaries and page kickers meet contrast floors", async () => {
+  const styles = await read("styles.css");
+  assert.match(styles, /\.intake-form input\[type="text"\],[^{]*\.intake-form textarea\s*{[^}]*border:\s*1px solid var\(--sage\)/);
+  assert.ok(contrast(cssToken(styles, "sage"), cssToken(styles, "cream")) >= 3, "control boundary must contrast at least 3:1");
+  assert.match(styles, /\.booking-page \.section-kicker,\s*\.thank-you-page \.section-kicker\s*{[^}]*color:\s*var\(--moss\)/);
+  for (const surface of [cssToken(styles, "paper"), cssToken(styles, "cream")]) {
+    assert.ok(contrast(cssToken(styles, "moss"), surface) >= 4.5, "booking kicker must contrast at least 4.5:1");
   }
 });

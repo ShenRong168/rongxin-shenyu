@@ -713,6 +713,11 @@ summary {
   background: var(--paper);
 }
 
+.booking-page .section-kicker,
+.thank-you-page .section-kicker {
+  color: var(--moss);
+}
+
 .booking-intro,
 .intake-card,
 .intake-form,
@@ -805,7 +810,7 @@ summary {
   padding: 13px 14px;
   color: var(--ink);
   background: #fffdf8;
-  border: 1px solid var(--line);
+  border: 1px solid var(--sage);
   border-radius: 8px;
   font: inherit;
 }
@@ -821,7 +826,7 @@ summary {
 }
 
 .choice-grid label,
-.check-row {
+.intake-form .check-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -836,6 +841,30 @@ summary {
 .check-row input {
   flex: 0 0 auto;
   margin-top: 4px;
+}
+
+.intake-form .check-row > input[type="checkbox"] {
+  width: auto;
+  height: auto;
+}
+
+.consent-copy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.35em;
+  align-items: baseline;
+}
+
+.intake-form .consent-copy label {
+  display: inline;
+  font-weight: 500;
+}
+
+.consent-copy a {
+  color: var(--moss);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .field-error {

@@ -105,7 +105,7 @@
     <fieldset><legend>聯絡與同意</legend>
       <label class="check-row"><input type="checkbox" name="adultConfirmed" value="true" aria-describedby="adultConfirmed-error">我確認已年滿 18 歲</label><p id="adultConfirmed-error" class="field-error"></p>
       <label class="check-row"><input type="checkbox" name="taiwanConfirmed" value="true" aria-describedby="taiwanConfirmed-error">我確認服務進行時位於台灣</label><p id="taiwanConfirmed-error" class="field-error"></p>
-      <label class="check-row"><input type="checkbox" name="consentConfirmed" value="true" aria-describedby="consentConfirmed-error">我已閱讀並同意<a href="/#privacy" target="_blank">個資告知</a>與<a href="/#boundaries" target="_blank">服務界線</a></label><p id="consentConfirmed-error" class="field-error"></p>
+      <div class="check-row"><input id="consentConfirmed" type="checkbox" name="consentConfirmed" value="true" aria-describedby="consentConfirmed-error"><div class="consent-copy"><label for="consentConfirmed">我已閱讀並同意</label><a href="/#privacy" target="_blank">個資告知</a><span>與</span><a href="/#boundaries" target="_blank">服務界線</a></div></div><p id="consentConfirmed-error" class="field-error"></p>
     </fieldset>
     <div id="submit-status" class="submit-status" aria-live="polite"></div>
     <button id="submit-booking" class="button primary" type="submit">送出第一階段盤點</button>
