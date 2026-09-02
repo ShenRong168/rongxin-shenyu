@@ -19,10 +19,14 @@ Create:
 - `scripts/thank-you-page.mjs` — one-shot browser `Lead` dispatch.
 - `scripts/configure-booking-endpoint.mjs` — validates the deployed Apps Script URL and generates the public endpoint module.
 - `scripts/booking-config.mjs` — generated, checked-in public Apps Script endpoint; contains no secret.
+- `scripts/audit-booking-secrets.mjs` — scans every tracked text file for obsolete Pixel IDs and assigned Meta credentials without printing values.
 - `booking.html` — first-stage intake and safety gate.
 - `thank-you.html` — submission confirmation and browser Pixel event surface.
 - `test/booking-core.test.mjs` — pure frontend tests.
+- `test/booking-configure-endpoint.test.mjs` — endpoint generator validation.
 - `test/booking-apps-script.test.mjs` — Apps Script validation, orchestration, safe bridge, and CAPI payload tests through `node:vm`.
+- `test/booking-deployment-assets.test.mjs` — manifest, deployment guide, and redacted tracked-secret audit tests.
+- `test/booking-page-runtime.test.mjs` — browser submission-state tests.
 - `test/booking-site.test.mjs` — static integration checks for pages, CTAs, sitemap, Pixel IDs, and secret leakage.
 - `apps-script/booking-intake/Code.gs` — spreadsheet-bound web app.
 - `apps-script/booking-intake/appsscript.json` — explicit Apps Script scopes/runtime.
@@ -89,9 +93,33 @@ test("rejects unknown choices and a short description", () => {
   assert.equal(errors.topic, "請選擇一個主要卡點。");
 });
 
+test("rejects any unknown goal or availability value", () => {
+  const errors = validateBooking({
+    ...valid,
+    goals: ["釐清方向", "代替我決定"],
+    availability: ["平日晚上", "凌晨三點"]
+  });
+  assert.equal(errors.goals, "請至少選擇一項希望帶走的結果。");
+  assert.equal(errors.availability, "請至少選擇一個方便時段。");
+});
+
+test("treats a null payload as missing required fields", () => {
+  assert.deepEqual(validateBooking(null), {
+    displayName: "請輸入 1–50 個字的稱呼。",
+    email: "請輸入可正常收信的 Email。",
+    stuckText: "請至少輸入 20 個字，讓我們能初步理解你的狀態。",
+    topic: "請選擇一個主要卡點。",
+    goals: "請至少選擇一項希望帶走的結果。",
+    availability: "請至少選擇一個方便時段。",
+    adultConfirmed: "本服務目前僅接受年滿 18 歲者。",
+    taiwanConfirmed: "服務進行時需位於台灣。",
+    consentConfirmed: "送出前請閱讀並同意個資告知與服務界線。"
+  });
+});
+
 test("reads fbp and builds fbc only from a valid fbclid", () => {
   assert.equal(getCookie("_fbp", "a=1; _fbp=fb.1.10.20"), "fb.1.10.20");
-  assert.equal(buildFbc("https://rongxinshenyu.com/booking.html?fbclid=abc_DEF-12", 1700000000000), "fb.1.1700000000.abc_DEF-12");
+  assert.equal(buildFbc("https://rongxinshenyu.com/booking.html?fbclid=abc_DEF-12", 1700000000000), "fb.1.1700000000000.abc_DEF-12");
   assert.equal(buildFbc("https://rongxinshenyu.com/booking.html?fbclid=%3Cbad%3E", 1700000000000), "");
 });
 
@@ -101,14 +129,21 @@ test("creates a namespaced UUID event id", () => {
 
 test("trusts only the active iframe, Apps Script origin, and pending event", () => {
   const frame = {};
+  const pending = { iframeWindow: frame, eventId: "lead_1" };
   const base = {
     source: frame,
     origin: "https://n-abcd.script.googleusercontent.com",
     data: { type: "rongxin-booking", eventId: "lead_1", ok: true }
   };
-  assert.equal(isTrustedReply(base, { iframeWindow: frame, eventId: "lead_1" }), true);
-  assert.equal(isTrustedReply({ ...base, source: {} }, { iframeWindow: frame, eventId: "lead_1" }), false);
-  assert.equal(isTrustedReply({ ...base, origin: "https://evil.example" }, { iframeWindow: frame, eventId: "lead_1" }), false);
+  assert.equal(isTrustedReply(base, pending), true);
+  assert.equal(isTrustedReply({ ...base, origin: "https://script.googleusercontent.com" }, pending), true);
+  assert.equal(isTrustedReply({ ...base, origin: "https://script.google.com" }, pending), true);
+  assert.equal(isTrustedReply({ ...base, source: {} }, pending), false);
+  assert.equal(isTrustedReply({ ...base, origin: "https://evil.example" }, pending), false);
+  assert.equal(isTrustedReply({ ...base, origin: "http://script.google.com" }, pending), false);
+  assert.equal(isTrustedReply({ ...base, origin: "https://script.google.com:8443" }, pending), false);
+  assert.equal(isTrustedReply({ ...base, data: { ...base.data, eventId: "lead_2" } }, pending), false);
+  assert.equal(isTrustedReply({ ...base, data: { ...base.data, ok: "true" } }, pending), false);
 });
 ```
 
@@ -131,6 +166,7 @@ export function normalizeEmail(value) {
 }
 
 export function validateBooking(input) {
+  input = input || {};
   const errors = {};
   const name = String(input.displayName || "").trim();
   const email = normalizeEmail(input.email);
@@ -156,7 +192,7 @@ export function getCookie(name, cookieString = "") {
 
 export function buildFbc(url, now = Date.now()) {
   const fbclid = new URL(url).searchParams.get("fbclid") || "";
-  return /^[A-Za-z0-9_-]{1,250}$/.test(fbclid) ? `fb.1.${Math.floor(now / 1000)}.${fbclid}` : "";
+  return /^[A-Za-z0-9_-]{1,250}$/.test(fbclid) ? `fb.1.${now}.${fbclid}` : "";
 }
 
 export function createEventId(cryptoApi = globalThis.crypto) {
@@ -164,10 +200,14 @@ export function createEventId(cryptoApi = globalThis.crypto) {
 }
 
 export function isTrustedReply(event, pending) {
-  let hostname = "";
-  try { hostname = new URL(event.origin).hostname; } catch { return false; }
+  let origin;
+  try { origin = new URL(event.origin); } catch { return false; }
   return event.source === pending.iframeWindow
-    && (hostname === "script.google.com" || hostname.endsWith(".script.googleusercontent.com"))
+    && origin.protocol === "https:"
+    && origin.port === ""
+    && (origin.hostname === "script.google.com"
+      || origin.hostname === "script.googleusercontent.com"
+      || origin.hostname.endsWith(".script.googleusercontent.com"))
     && event.data?.type === "rongxin-booking"
     && event.data?.eventId === pending.eventId
     && typeof event.data?.ok === "boolean";
@@ -178,7 +218,7 @@ export function isTrustedReply(event, pending) {
 
 Run: `node --test test/booking-core.test.mjs`
 
-Expected: 6 tests PASS, 0 FAIL.
+Expected: 8 tests PASS, 0 FAIL.
 
 - [ ] **Step 5: Commit the frontend contract**
 
@@ -232,21 +272,21 @@ const valid = {
   submittedAt: "1700000010000",
   website: "",
   fbp: "fb.1.10.20",
-  fbc: "fb.1.1700000000.abc"
+  fbc: "fb.1.1700000000000.abc"
 };
 
-test("validates and normalizes the approved server payload", () => {
+test("validateSubmission_ normalizes approved input", () => {
   const result = sandbox.validateSubmission_(valid);
   assert.equal(result.email, "user@example.com");
   assert.equal(result.topic, "行動");
 });
 
-test("rejects bots and invalid enumerations", () => {
+test("validateSubmission_ rejects spam, unknown choices, and malformed submissions", () => {
   assert.throws(() => sandbox.validateSubmission_({ ...valid, website: "spam" }), /invalid submission/i);
   assert.throws(() => sandbox.validateSubmission_({ ...valid, topic: "診斷" }), /主要卡點/);
 });
 
-test("builds a Lead event without form answers", () => {
+test("buildMetaPayload_ hashes email and excludes form answers", () => {
   const input = sandbox.validateSubmission_(valid);
   const payload = sandbox.buildMetaPayload_(input, { pixelId: "4400969670158242", testEventCode: "TEST123" }, 1700000020);
   const serialized = JSON.stringify(payload);
@@ -256,6 +296,47 @@ test("builds a Lead event without form answers", () => {
   assert.equal(serialized.includes(input.stuckText), false);
   assert.equal(serialized.includes(input.topic), false);
   assert.equal(payload.data[0].user_data.em[0], createHash("sha256").update("user@example.com").digest("hex"));
+});
+
+test("canonicalizes a privacy-sensitive submitted source URL before storage and Meta", () => {
+  const privateEmail = "private@example.com";
+  const privateNarrative = "private-story";
+  const privateFragment = "private-fragment";
+  const input = sandbox.validateSubmission_({
+    ...valid,
+    sourceUrl: `https://rongxinshenyu.com/booking.html?email=${privateEmail}&story=${privateNarrative}#${privateFragment}`
+  });
+  const payload = sandbox.buildMetaPayload_(input, { pixelId: "4400969670158242" }, 1700000020);
+  assert.equal(input.sourceUrl, "https://rongxinshenyu.com/booking.html");
+  assert.equal(payload.data[0].event_source_url, "https://rongxinshenyu.com/booking.html");
+  for (const privateValue of [privateEmail, privateNarrative, privateFragment]) {
+    assert.equal(JSON.stringify(payload).includes(privateValue), false);
+  }
+});
+
+test("buildMetaPayload_ allows only the approved exact object shape", () => {
+  const withOptional = sandbox.buildMetaPayload_(sandbox.validateSubmission_(valid), { testEventCode: "TEST123" }, 1700000020);
+  assert.deepEqual(Object.keys(withOptional), ["data", "test_event_code"]);
+  assert.deepEqual(Object.keys(withOptional.data[0]), ["event_name", "event_time", "event_id", "action_source", "event_source_url", "user_data"]);
+  assert.deepEqual(Object.keys(withOptional.data[0].user_data), ["em", "fbp", "fbc"]);
+  const withoutOptional = sandbox.buildMetaPayload_(sandbox.validateSubmission_({ ...valid, fbp: "", fbc: "" }), {}, 1700000020);
+  assert.deepEqual(Object.keys(withoutOptional), ["data"]);
+  assert.deepEqual(Object.keys(withoutOptional.data[0]), Object.keys(withOptional.data[0]));
+  assert.deepEqual(Object.keys(withoutOptional.data[0].user_data), ["em"]);
+});
+
+test("validateSubmission_ bounds email, tracking IDs, and choice arrays", () => {
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, email: `${"a".repeat(250)}@x.co` }), /Email/);
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, goals: ["釐清方向", "釐清方向"] }), /期待結果/);
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, goals: ["被理解", "釐清方向", "具體行動", "溝通策略", "資源盤點", "情緒安定", "被理解"] }), /期待結果/);
+  assert.throws(() => sandbox.validateSubmission_({ ...valid, availability: ["目前先不預約", "平日晚上"] }), /可聯絡／對談時段/);
+  const filtered = sandbox.validateSubmission_({
+    ...valid,
+    fbp: `fb.1.1.${"1".repeat(94)}`,
+    fbc: `fb.1.1.${"a".repeat(294)}`
+  });
+  assert.equal(filtered.fbp, "");
+  assert.equal(filtered.fbc, "");
 });
 ```
 
@@ -273,7 +354,8 @@ var TOPICS_ = ["心態", "關係", "行動", "資源", "不確定", "其他"];
 var GOALS_ = ["被理解", "釐清方向", "具體行動", "溝通策略", "資源盤點", "情緒安定"];
 var AVAILABILITY_ = ["平日上午", "平日下午", "平日晚上", "週末上午", "週末下午", "目前先不預約"];
 var SHEET_NAME_ = "官網初步盤點";
-var HEADERS_ = ["建立時間", "event_id", "來源頁面", "稱呼", "Email", "目前卡點", "主要分類", "期待結果", "可聯絡／對談時段", "成人確認", "台灣確認", "同意版本", "審核狀態", "Meta CAPI 狀態", "管理備註"];
+var BOOKING_SOURCE_URL_ = "https://rongxinshenyu.com/booking.html";
+var HEADERS_ = ["建立時間", "event_id", "來源頁面", "稱呼", "Email", "目前卡點", "主要分類", "期待結果", "可聯絡／對談時段", "成人確認", "台灣確認", "同意版本", "提交指紋", "審核狀態", "Meta CAPI 狀態", "通知狀態", "管理備註"];
 
 function normalizeEmail_(value) {
   return String(value || "").trim().toLowerCase();
@@ -291,37 +373,47 @@ function requireChoice_(value, allowed, label) {
 
 function requireChoices_(values, allowed, label) {
   var normalized = asArray_(values);
-  if (!normalized.length || normalized.some(function (value) { return allowed.indexOf(value) === -1; })) throw new Error(label + "不正確");
+  if (!normalized.length || normalized.length > allowed.length || normalized.some(function (value, index) {
+    return allowed.indexOf(value) === -1 || normalized.indexOf(value) !== index;
+  })) throw new Error(label + "不正確");
   return normalized;
 }
 
 function validateSubmission_(raw) {
   if (String(raw.website || "") !== "") throw new Error("Invalid submission");
-  var startedAt = Number(raw.startedAt);
-  var submittedAt = Number(raw.submittedAt);
-  if (!Number.isFinite(startedAt) || !Number.isFinite(submittedAt) || submittedAt - startedAt < 3000 || submittedAt - startedAt > 86400000) throw new Error("Invalid submission timing");
+  var startedAtText = String(raw.startedAt == null ? "" : raw.startedAt);
+  var submittedAtText = String(raw.submittedAt == null ? "" : raw.submittedAt);
+  var startedAt = Number(startedAtText);
+  var submittedAt = Number(submittedAtText);
+  if (!/^\d+$/.test(startedAtText) || !/^\d+$/.test(submittedAtText) || submittedAt - startedAt < 3000 || submittedAt - startedAt > 86400000) throw new Error("Invalid submission timing");
   var displayName = String(raw.displayName || "").trim();
   var email = normalizeEmail_(raw.email);
   var stuckText = String(raw.stuckText || "").trim();
   if (displayName.length < 1 || displayName.length > 50) throw new Error("稱呼長度不正確");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email 格式不正確");
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email 格式不正確");
   if (stuckText.length < 20 || stuckText.length > 1500) throw new Error("目前卡點長度不正確");
-  if (!/^lead_[0-9a-f-]{36}$/i.test(String(raw.eventId || ""))) throw new Error("event_id 不正確");
-  if (!/^https:\/\/rongxinshenyu\.com\/booking\.html(?:[?#]|$)/.test(String(raw.sourceUrl || ""))) throw new Error("來源頁面不正確");
+  if (!/^lead_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(raw.eventId || ""))) throw new Error("event_id 不正確");
+  var submittedSourceUrl = String(raw.sourceUrl || "");
+  if (submittedSourceUrl.length > 500 || !/^https:\/\/rongxinshenyu\.com\/booking\.html(?:[?#]|$)/.test(submittedSourceUrl)) throw new Error("來源頁面不正確");
   if (String(raw.consentVersion || "") !== "2026-09-01") throw new Error("同意版本不正確");
   if (raw.adultConfirmed !== "true" || raw.taiwanConfirmed !== "true" || raw.consentConfirmed !== "true") throw new Error("必要確認未完成");
+  var goals = requireChoices_(raw.goals, GOALS_, "期待結果");
+  var availability = requireChoices_(raw.availability, AVAILABILITY_, "可聯絡／對談時段");
+  if (availability.indexOf("目前先不預約") !== -1 && availability.length !== 1) throw new Error("可聯絡／對談時段不正確");
+  var fbp = String(raw.fbp || "");
+  var fbc = String(raw.fbc || "");
   return {
     eventId: String(raw.eventId),
-    sourceUrl: String(raw.sourceUrl || "").slice(0, 500),
+    sourceUrl: BOOKING_SOURCE_URL_,
     displayName: displayName,
     email: email,
     stuckText: stuckText,
     topic: requireChoice_(String(raw.topic || ""), TOPICS_, "主要卡點"),
-    goals: requireChoices_(raw.goals, GOALS_, "期待結果"),
-    availability: requireChoices_(raw.availability, AVAILABILITY_, "方便時段"),
+    goals: goals,
+    availability: availability,
     consentVersion: String(raw.consentVersion),
-    fbp: /^fb\.1\.\d+\.\d+$/.test(String(raw.fbp || "")) ? String(raw.fbp) : "",
-    fbc: /^fb\.1\.\d+\.[A-Za-z0-9_-]+$/.test(String(raw.fbc || "")) ? String(raw.fbc) : ""
+    fbp: fbp.length <= 100 && /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : "",
+    fbc: fbc.length <= 300 && /^fb\.1\.\d+\.[A-Za-z0-9_-]+$/.test(fbc) ? fbc : ""
   };
 }
 
@@ -353,7 +445,7 @@ function buildMetaPayload_(input, config, eventTime) {
 
 Run: `node --test test/booking-core.test.mjs test/booking-apps-script.test.mjs`
 
-Expected: 9 tests PASS, 0 FAIL.
+Expected: 14 tests PASS, 0 FAIL.
 
 - [ ] **Step 5: Commit the server contract**
 
@@ -369,55 +461,63 @@ git commit -m "Add booking intake server contract"
 - Modify: `apps-script/booking-intake/Code.gs`
 - Modify: `test/booking-apps-script.test.mjs`
 
+**Final hardening contract:** the sheet has 17 columns, including `提交指紋` plus separate `Meta CAPI 狀態` and `通知狀態` columns. Public strings are formula-escaped only at the row boundary. `CacheService` is explicitly a non-durable best-effort throttle. Sheet creation/header initialization and row deduplication/write use the script lock and flush before releasing after writes. Each external effect runs alone in its own lock-fenced section: read state, persist `processing`, call the service while retaining the lock, persist the final state, then release. This intentionally serializes low trial traffic. Meta retries reuse the same `event_id`; MailApp has no idempotency key, so an interruption after delivery but before status persistence can produce an at-least-once duplicate notification.
+
 - [ ] **Step 1: Add failing orchestration and bridge tests**
 
 Add tests that inject a fake dependency object and assert these exact outcomes:
 
+- formula-like `displayName`, `stuckText`, and valid formula-like Email values are escaped in the sheet row but remain original for Meta hashing and notification;
+- a failed row write does not increment the best-effort throttle, while a sixth cached accepted submission is rejected;
+- `store` returns `rowNumber`, `duplicate`, `capiStatus`, and `notificationStatus`, repeated identical `event_id` values leave one row only, and changed payloads with the same ID fail their persisted fingerprint comparison before effects;
+- completed duplicates send no effects, interrupted `processing` resumes after the abandoned Apps Script lock is automatically released, and a busy/timeout condition returns minimal retryable `ok:false`;
+- sheet lookup/creation happens while the script lock is held, and every header, row, processing, or final-state write is flushed before lock release;
+- once the row is durable, CAPI/notification errors still return accepted success.
+
 ```js
-test("stores one row, notifies once, and records CAPI success", () => {
+test("executes Meta and notification as separate lock-fenced effects", () => {
   const calls = [];
   const deps = {
-    store: (input) => { calls.push(["store", input.eventId]); return { duplicate: false, rowNumber: 2 }; },
+    store: () => ({ duplicate: false, rowNumber: 2, capiStatus: "pending", notificationStatus: "pending" }),
+    runEffect: (row, effect, operation) => {
+      calls.push(["lock-start", row, effect]);
+      const status = operation();
+      calls.push(["lock-end", row, effect, status]);
+      return { retryable: false, status };
+    },
     sendLead: () => ({ status: "sent", responseCode: 200 }),
-    updateCapiStatus: (row, status) => calls.push(["status", row, status]),
-    notify: (input) => calls.push(["notify", input.eventId])
-  };
-  const result = sandbox.processSubmission_(sandbox.validateSubmission_(valid), deps);
-  assert.equal(result.ok, true);
-  assert.equal(result.duplicate, false);
-  assert.equal(calls.filter(([name]) => name === "store").length, 1);
-  assert.deepEqual(calls.at(-1), ["notify", valid.eventId]);
-});
-
-test("returns success for a duplicate without writing or sending", () => {
-  let touched = false;
-  const deps = {
-    store: () => ({ duplicate: true, rowNumber: 2 }),
-    sendLead: () => { touched = true; },
-    updateCapiStatus: () => { touched = true; },
-    notify: () => { touched = true; }
-  };
-  const result = sandbox.processSubmission_(sandbox.validateSubmission_(valid), deps);
-  assert.deepEqual(JSON.parse(JSON.stringify(result)), { ok: true, duplicate: true, eventId: valid.eventId });
-  assert.equal(touched, false);
-});
-
-test("CAPI failure does not erase a stored lead", () => {
-  const statuses = [];
-  const deps = {
-    store: () => ({ duplicate: false, rowNumber: 3 }),
-    sendLead: () => { throw new Error("Meta unavailable"); },
-    updateCapiStatus: (_row, status) => statuses.push(status),
     notify: () => undefined
   };
   const result = sandbox.processSubmission_(sandbox.validateSubmission_(valid), deps);
   assert.equal(result.ok, true);
-  assert.equal(statuses[0], "failed: Meta unavailable");
+  assert.deepEqual(calls, [
+    ["lock-start", 2, "capi"],
+    ["lock-end", 2, "capi", "sent: 200"],
+    ["lock-start", 2, "notification"],
+    ["lock-end", 2, "notification", "sent"]
+  ]);
 });
+
+test("fully completed duplicate claims no effects", () => {
+  let touched = false;
+  const deps = {
+    store: () => ({ duplicate: true, rowNumber: 2, capiStatus: "sent: 200", notificationStatus: "sent" }),
+    runEffect: () => ({ retryable: false, skipped: true, status: "sent" }),
+    sendLead: () => { touched = true; },
+    notify: () => { touched = true; }
+  };
+  const result = sandbox.processSubmission_(sandbox.validateSubmission_(valid), deps);
+  assert.equal(result.duplicate, true);
+  assert.equal(touched, false);
+});
+
+// Additional tests cover fingerprint mismatch rejection, one-row-only deduplication,
+// interrupted-processing resume, lock timeout retry responses, and downstream failures.
 
 test("bridge contains no submitted email or narrative", () => {
   const html = sandbox.renderBridge_({ ok: true, eventId: valid.eventId }, "https://rongxinshenyu.com");
   assert.match(html, /rongxin-booking/);
+  assert.match(html, /postMessage\([\s\S]*https:\/\/rongxinshenyu\.com/);
   assert.equal(html.includes(valid.email), false);
   assert.equal(html.includes(valid.stuckText), false);
 });
@@ -427,34 +527,58 @@ test("bridge contains no submitted email or narrative", () => {
 
 Run: `node --test test/booking-apps-script.test.mjs`
 
-Expected: FAIL because `processSubmission_` and `renderBridge_` are not defined.
+Expected: FAIL because the lock-fenced effect interface, submission fingerprint, and formula-safe 17-column row are not implemented.
 
 - [ ] **Step 3: Add the orchestration boundary**
 
 ```js
-function rowFor_(input, capiStatus) {
-  return [new Date(), input.eventId, input.sourceUrl, input.displayName, input.email, input.stuckText, input.topic, input.goals.join("、"), input.availability.join("、"), "是", "是", input.consentVersion, "待審核", capiStatus, ""];
+function escapeSheetFormula_(value) {
+  var text = String(value);
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
+}
+
+function inputFingerprint_(input) {
+  return sha256Hex_(JSON.stringify([
+    String(input.eventId), String(input.sourceUrl), String(input.displayName),
+    String(input.email), String(input.stuckText), String(input.topic),
+    input.goals.map(String), input.availability.map(String),
+    String(input.adultConfirmed), String(input.taiwanConfirmed),
+    String(input.consentConfirmed), String(input.consentVersion),
+    Number(input.startedAt), Number(input.submittedAt), String(input.website),
+    String(input.fbp), String(input.fbc)
+  ]));
+}
+
+function rowFor_(input) {
+  return [
+    new Date(), input.eventId, BOOKING_SOURCE_URL_, input.displayName,
+    input.email, input.stuckText, input.topic, input.goals.join("、"),
+    input.availability.join("、"), "是", "是", input.consentVersion,
+    inputFingerprint_(input), "待審核", "pending", "pending", ""
+  ].map(function (value) {
+    return typeof value === "string" ? escapeSheetFormula_(value) : value;
+  });
 }
 
 function processSubmission_(input, deps) {
   var stored = deps.store(input);
-  if (stored.duplicate) return { ok: true, duplicate: true, eventId: input.eventId };
-  var rowNumber = stored.rowNumber;
-  var capiStatus;
-  try {
-    var meta = deps.sendLead(input);
-    capiStatus = meta.status + ": " + meta.responseCode;
-  } catch (error) {
-    capiStatus = "failed: " + error.message;
-  }
-  try { deps.updateCapiStatus(rowNumber, capiStatus); } catch (error) { console.error("Booking status update failed", error); }
-  try { deps.notify(input); } catch (error) { console.error("Booking notification failed", error); }
-  return { ok: true, duplicate: false, eventId: input.eventId };
+  var capi = deps.runEffect(stored.rowNumber, "capi", function () {
+    var sent = deps.sendLead(input);
+    return String(sent.status) + ": " + String(sent.responseCode);
+  });
+  if (capi.retryable) return { ok: false, duplicate: stored.duplicate, eventId: input.eventId, message: "目前忙碌中，請稍後重試。" };
+  var notification = deps.runEffect(stored.rowNumber, "notification", function () {
+    deps.notify(input);
+    return "sent";
+  });
+  if (notification.retryable) return { ok: false, duplicate: stored.duplicate, eventId: input.eventId, message: "目前忙碌中，請稍後重試。" };
+  return { ok: true, duplicate: stored.duplicate, eventId: input.eventId };
 }
 
 function renderBridge_(result, origin) {
-  var safe = JSON.stringify({ type: "rongxin-booking", ok: Boolean(result.ok), eventId: String(result.eventId || ""), message: String(result.message || "") }).replace(/</g, "\\u003c");
-  return "<!doctype html><meta charset=\"utf-8\"><script>window.parent.postMessage(" + safe + "," + JSON.stringify(origin) + ");<\/script>";
+  var safe = JSON.stringify({ type: "rongxin-booking", ok: Boolean(result && result.ok === true), eventId: String(result && result.eventId || ""), message: String(result && result.message || "") }).replace(/</g, "\\u003c");
+  var target = JSON.stringify(String(origin)).replace(/</g, "\\u003c");
+  return "<!doctype html><meta charset=\"utf-8\"><script>parent.postMessage(" + safe + "," + target + ");<\/script>";
 }
 ```
 
@@ -464,52 +588,48 @@ Add these adapters and `doPost(e)` to `Code.gs`:
 
 ```js
 function doPost(e) {
-  var config = loadConfig_();
-  var eventId = String(e && e.parameter && e.parameter.eventId || "");
+  var parsed = parseRequest_(e);
+  var eventId = String(parsed.eventId || "");
+  var result;
   try {
-    var input = validateSubmission_(parseRequest_(e));
-    var result = processSubmission_(input, createDependencies_(config));
-    return HtmlService.createHtmlOutput(renderBridge_(result, config.allowedOrigin)).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    var input = validateSubmission_(parsed);
+    var config = loadConfig_();
+    result = processSubmission_(input, createDependencies_(config));
   } catch (error) {
-    console.error("Booking submission failed", error);
-    var failure = { ok: false, eventId: eventId, message: "目前無法送出，請稍後重試。" };
-    return HtmlService.createHtmlOutput(renderBridge_(failure, config.allowedOrigin)).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    Logger.log("Booking submission failed");
+    result = { ok: false, eventId: eventId, message: "目前無法送出，請稍後重試。" };
   }
+  return HtmlService.createHtmlOutput(renderBridge_(result, ALLOWED_ORIGIN_)).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function parseRequest_(e) {
-  var p = e.parameter || {};
-  var ps = e.parameters || {};
-  return {
-    eventId: p.eventId,
-    sourceUrl: p.sourceUrl,
-    displayName: p.displayName,
-    email: p.email,
-    stuckText: p.stuckText,
-    topic: p.topic,
-    goals: ps.goals || [],
-    availability: ps.availability || [],
-    adultConfirmed: p.adultConfirmed,
-    taiwanConfirmed: p.taiwanConfirmed,
-    consentConfirmed: p.consentConfirmed,
-    consentVersion: p.consentVersion,
-    startedAt: p.startedAt,
-    submittedAt: p.submittedAt,
-    website: p.website,
-    fbp: p.fbp,
-    fbc: p.fbc
-  };
+  var parameter = e && e.parameter || {};
+  var parameters = e && e.parameters || {};
+  var fields = [
+    "eventId", "sourceUrl", "displayName", "email", "stuckText", "topic",
+    "goals", "availability", "adultConfirmed", "taiwanConfirmed",
+    "consentConfirmed", "consentVersion", "startedAt", "submittedAt",
+    "website", "fbp", "fbc"
+  ];
+  var parsed = {};
+  fields.forEach(function (name) {
+    if ((name === "goals" || name === "availability") && parameters[name] != null) parsed[name] = parameters[name];
+    else if (parameter[name] != null) parsed[name] = parameter[name];
+    else if (parameters[name] != null) parsed[name] = parameters[name][0];
+    else parsed[name] = undefined;
+  });
+  return parsed;
 }
 
 function requiredProperty_(properties, name) {
-  var value = String(properties.getProperty(name) || "").trim();
-  if (!value) throw new Error("Missing Script Property: " + name);
-  return value;
+  var value = properties.getProperty(name);
+  if (value == null || String(value).trim() === "") throw new Error("Missing required property: " + name);
+  return String(value).trim();
 }
 
 function loadConfig_() {
   var properties = PropertiesService.getScriptProperties();
-  return {
+  var config = {
     spreadsheetId: requiredProperty_(properties, "SPREADSHEET_ID"),
     adminEmail: requiredProperty_(properties, "ADMIN_EMAIL"),
     allowedOrigin: requiredProperty_(properties, "ALLOWED_ORIGIN"),
@@ -518,47 +638,89 @@ function loadConfig_() {
     capiToken: String(properties.getProperty("META_CAPI_TOKEN") || "").trim(),
     testEventCode: String(properties.getProperty("META_TEST_EVENT_CODE") || "").trim()
   };
+  if (config.allowedOrigin !== ALLOWED_ORIGIN_) throw new Error("ALLOWED_ORIGIN is not allowed");
+  if (config.pixelId !== META_PIXEL_ID_) throw new Error("META_PIXEL_ID is not allowed");
+  if (!/^v\d+\.\d+$/.test(config.graphVersion)) throw new Error("META_GRAPH_VERSION is invalid");
+  return config;
 }
 
-function getSheet_(spreadsheetId) {
-  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+function getSheet_(config) {
+  var spreadsheet = SpreadsheetApp.openById(config.spreadsheetId);
   var sheet = spreadsheet.getSheetByName(SHEET_NAME_);
   if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAME_);
-  if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, HEADERS_.length).setValues([HEADERS_]);
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, HEADERS_.length).setValues([HEADERS_]);
+    SpreadsheetApp.flush();
+  }
   return sheet;
 }
 
 function findEventRow_(sheet, eventId) {
-  if (sheet.getLastRow() < 2) return 0;
-  var match = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).createTextFinder(eventId).matchEntireCell(true).findNext();
-  return match ? match.getRow() : 0;
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  var found = sheet.getRange(2, 2, lastRow - 1, 1).createTextFinder(String(eventId)).matchEntireCell(true).findNext();
+  return found ? found.getRow() : 0;
 }
 
-function storeInput_(sheet, input) {
+function readStoredSubmission_(sheet, rowNumber) {
+  var values = sheet.getRange(rowNumber, 13, 1, 4).getValues()[0];
+  return {
+    fingerprint: String(values[0] || ""),
+    capiStatus: String(values[2] || "pending"),
+    notificationStatus: String(values[3] || "pending")
+  };
+}
+
+function storeInput_(config, input) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
+    var sheet = getSheet_(config); // creation and header init happen under this lock
     var existing = findEventRow_(sheet, input.eventId);
-    if (existing) return { duplicate: true, rowNumber: existing };
-    rateLimit_(input.email);
+    if (existing) {
+      var stored = readStoredSubmission_(sheet, existing);
+      if (stored.fingerprint !== inputFingerprint_(input)) {
+        throw new Error("Invalid duplicate submission");
+      }
+      return {
+        duplicate: true,
+        rowNumber: existing,
+        capiStatus: stored.capiStatus,
+        notificationStatus: stored.notificationStatus
+      };
+    }
+    var throttle = checkBestEffortThrottle_(input.email);
     var rowNumber = sheet.getLastRow() + 1;
-    sheet.getRange(rowNumber, 1, 1, HEADERS_.length).setValues([rowFor_(input, "pending")]);
-    return { duplicate: false, rowNumber: rowNumber };
+    sheet.getRange(rowNumber, 1, 1, HEADERS_.length).setValues([rowFor_(input)]);
+    SpreadsheetApp.flush();
+    recordBestEffortAccepted_(throttle);
+    return {
+      duplicate: false,
+      rowNumber: rowNumber,
+      capiStatus: "pending",
+      notificationStatus: "pending"
+    };
   } finally {
     lock.releaseLock();
   }
 }
 
-function updateCapiStatus_(sheet, rowNumber, status) {
-  sheet.getRange(rowNumber, 14).setValue(status);
+function checkBestEffortThrottle_(email) {
+  // CacheService is non-durable and may evict early. The key contains only a
+  // SHA-256 email digest; cache failure allows submission rather than becoming
+  // a security or availability boundary.
 }
 
-function rateLimit_(email) {
-  var cache = CacheService.getScriptCache();
-  var key = "booking-rate-" + sha256Hex_(email);
-  var count = Number(cache.get(key) || "0");
-  if (count >= 5) throw new Error("Submission rate limit exceeded");
-  cache.put(key, String(count + 1), 3600);
+function recordBestEffortAccepted_(checkedThrottle) {
+  // Called only after row setValues + SpreadsheetApp.flush succeeds.
+}
+
+function runEffect_(config, rowNumber, effect, operation) {
+  // Wait up to 120 seconds for the script lock. Once held, read only this
+  // effect's column (15 for CAPI, 16 for notification). Skip sent...; otherwise
+  // persist processing + flush, call operation while still holding the lock,
+  // persist sent/not_configured/failed + flush, and only then release.
+  // Any lock timeout or unconfirmed state persistence returns {retryable:true}.
 }
 
 function sendLead_(input, config) {
@@ -574,13 +736,12 @@ function sendLead_(input, config) {
   var code = response.getResponseCode();
   if (code < 200 || code >= 300) throw new Error("Meta CAPI HTTP " + code);
   var body;
-  try { body = JSON.parse(response.getContentText() || "{}"); } catch (error) { throw new Error("Meta CAPI invalid response"); }
-  if (Number(body.events_received) !== 1) throw new Error("Meta CAPI did not accept event");
+  try { body = JSON.parse(response.getContentText()); } catch (error) { throw new Error("Meta CAPI invalid response"); }
+  if (body.events_received !== 1) throw new Error("Meta CAPI did not accept event");
   return { status: "sent", responseCode: code };
 }
 
-function notify_(input, config) {
-  var spreadsheetUrl = "https://docs.google.com/spreadsheets/d/" + config.spreadsheetId + "/edit";
+function notify_(input, config, spreadsheetUrl) {
   MailApp.sendEmail({
     to: config.adminEmail,
     subject: "榮心紳語｜新的官網初步盤點",
@@ -595,23 +756,27 @@ function notify_(input, config) {
 }
 
 function createDependencies_(config) {
-  var sheet = getSheet_(config.spreadsheetId);
   return {
-    store: function (input) { return storeInput_(sheet, input); },
+    store: function (input) { return storeInput_(config, input); },
+    runEffect: function (row, effect, operation) {
+      return runEffect_(config, row, effect, operation);
+    },
     sendLead: function (input) { return sendLead_(input, config); },
-    updateCapiStatus: function (row, status) { updateCapiStatus_(sheet, row, status); },
-    notify: function (input) { notify_(input, config); }
+    notify: function (input) {
+      var spreadsheetUrl = SpreadsheetApp.openById(config.spreadsheetId).getUrl();
+      notify_(input, config, spreadsheetUrl);
+    }
   };
 }
 ```
 
-The `sendLead_` adapter posts only `buildMetaPayload_` output. It never passes `stuckText`, `topic`, `goals`, or `availability` to Meta.
+The `sendLead_` adapter posts only `buildMetaPayload_` output. It never passes `stuckText`, `topic`, `goals`, `availability`, or the submission fingerprint to Meta. Formula escaping exists only in `rowFor_`; `sendLead_` and `notify_` receive the original normalized input. CAPI retries keep the original `event_id`. Notification retries are at-least-once because MailApp has no idempotency key; the persisted notification state makes that limitation visible. Holding the script lock across each external call is an intentional low-throughput tradeoff for the initial trial.
 
 - [ ] **Step 5: Run the Apps Script tests**
 
 Run: `node --test test/booking-apps-script.test.mjs`
 
-Expected: 7 tests PASS, 0 FAIL.
+Expected: 25 Apps Script tests PASS, 0 FAIL (33 total with `booking-core.test.mjs`).
 
 - [ ] **Step 6: Commit the Apps Script behavior**
 
@@ -678,7 +843,7 @@ Create `apps-script/booking-intake/README.md` with this exact content:
 
 1. 先設定 `META_TEST_EVENT_CODE`。
 2. 用稱呼 `測試－官網Lead驗收` 送出一筆非敏感測試資料。
-3. 確認「官網初步盤點」只有一列、通知信沒有卡點敘述、CAPI 狀態為 `sent: 200`。
+3. 確認「官網初步盤點」只有一列、共有 17 欄且含「提交指紋」、通知信沒有卡點敘述或指紋、CAPI 狀態為 `sent: 200`、通知狀態為 `sent`。
 4. 在 Meta 測試事件確認 browser/server `Lead` 的 `event_id` 相同且已去重。
 5. 刪除該測試列與 `META_TEST_EVENT_CODE`，保留正式 deployment 與 `META_CAPI_TOKEN`。
 
@@ -687,14 +852,14 @@ Create `apps-script/booking-intake/README.md` with this exact content:
 - Apps Script 暫時失效時，先使用 booking page 顯示的完整 Google 表單備援；原 Google 表單與回覆表不得刪除。
 - 要取消網站切換時，只 revert booking release commit 並重新部署 GitHub Pages。
 - Apps Script 需要回復時，把既有 deployment 改回前一個已驗證版本。
-- 不得自行重新啟用舊 Pixel `853091474317806` 的觸發器；若要恢復舊追蹤，必須另做追蹤決策與驗證。
+- 不得自行重新啟用 obsolete prior-trigger Pixel 的觸發器；若要恢復舊追蹤，必須另做追蹤決策與驗證。
 ```
 
 - [ ] **Step 3: Verify documentation contains no token value**
 
-Run: `rg -n "META_CAPI_TOKEN=.+|access_token=[A-Za-z0-9]" apps-script/booking-intake`
+Run: `node --test test/booking-deployment-assets.test.mjs`
 
-Expected: no output.
+Expected: the deployment package and its credential-safety checks pass without exposing a value.
 
 - [ ] **Step 4: Commit the deployment package**
 
@@ -723,13 +888,13 @@ Expected: `Apps Script URL accepted`.
 **Files:**
 
 - Create: `scripts/configure-booking-endpoint.mjs`
-- Create: `test/configure-booking-endpoint.test.mjs`
+- Create: `test/booking-configure-endpoint.test.mjs`
 - Create: `scripts/booking-config.mjs` through the generator
 
 - [ ] **Step 1: Write a failing generator test**
 
 ```js
-// test/configure-booking-endpoint.test.mjs
+// test/booking-configure-endpoint.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile } from "node:fs/promises";
@@ -749,7 +914,7 @@ test("writes an importable config only for a deployed Apps Script exec URL", asy
 
 - [ ] **Step 2: Run the generator test and verify it fails**
 
-Run: `node --test test/configure-booking-endpoint.test.mjs`
+Run: `node --test test/booking-configure-endpoint.test.mjs`
 
 Expected: FAIL with `ERR_MODULE_NOT_FOUND`.
 
@@ -778,12 +943,12 @@ Expected: `scripts/booking-config.mjs` contains one exported HTTPS `/exec` URL a
 
 - [ ] **Step 5: Run and commit the generator test and generated config**
 
-Run: `node --test test/configure-booking-endpoint.test.mjs`
+Run: `node --test test/booking-configure-endpoint.test.mjs`
 
 Expected: 1 test PASS, 0 FAIL.
 
 ```bash
-git add scripts/configure-booking-endpoint.mjs scripts/booking-config.mjs test/configure-booking-endpoint.test.mjs
+git add scripts/configure-booking-endpoint.mjs scripts/booking-config.mjs test/booking-configure-endpoint.test.mjs
 git commit -m "Configure booking form endpoint"
 ```
 
@@ -1509,10 +1674,12 @@ Keep the external Google Form URL only as the hidden failure fallback inside `bo
 Replace the existing「網站流量分析」paragraph with this exact disclosure while keeping the existing retention, contact, rights, and service-boundary language:
 
 ```html
-<p>本網站使用 Meta Pixel 與 Conversions API 進行流量及轉換成效分析。使用者成功送出第一階段盤點時，Meta 只會收到事件名稱與時間、來源網址、可用的瀏覽器識別資料，以及經單向雜湊處理的 Email；不會收到你填寫的卡點敘述、主要分類、期待結果、方便時段或安全分流內容。第一階段回答會儲存在 Google 試算表供榮心紳語進行人工評估。若你使用瀏覽器追蹤保護或廣告攔截工具，可能阻擋瀏覽器端統計，但不影響表單送出。</p>
+<p>本網站使用 Meta Pixel 與 Conversions API 進行流量及轉換成效分析。使用者成功送出第一階段盤點時，Meta 只會收到事件名稱與時間、隨機事件識別碼（用於瀏覽器與伺服器事件去重）、來源網址、可用的瀏覽器識別資料，以及經單向雜湊處理的 Email；不會收到你填寫的卡點敘述、主要分類、期待結果、方便時段或安全分流內容。第一階段回答會儲存在 Google 試算表供榮心紳語進行人工評估。若你使用瀏覽器追蹤保護或廣告攔截工具，可能阻擋瀏覽器端統計，但不影響表單送出。</p>
 ```
 
 - [ ] **Step 5: Update sitemap and README**
+
+Update the homepage `lastmod` to `2026-09-02`, the date the homepage CTA and privacy copy changed.
 
 Insert this exact entry immediately after the homepage entry in `sitemap.xml`:
 
@@ -1536,21 +1703,44 @@ Append this exact section to the root `README.md`:
 
 ### Booking Verification
 
+The configuration check requires either an ignored `social-publisher/.env` file or the current shell to safely provide the variables listed in `social-publisher/.env.example`. If neither source is ready, report this check as **SKIPPED — environment is not prepared**, prepare the local environment first, and do not claim that a clean checkout passes configuration validation. Never commit or print secret values.
+
+Run each command separately and stop if any command exits non-zero.
+
 ```bash
-node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+node --test test/booking-*.test.mjs
+```
+
+```bash
 npm --prefix social-publisher test
+```
+
+```bash
 npm --prefix social-publisher run check
-git diff --check
+```
+
+```bash
+node scripts/audit-booking-secrets.mjs
+```
+
+```bash
+git diff --check main...HEAD
+```
+
+```bash
+git status --short
 ```
 ````
 
-Run all four commands exactly as documented:
+Run all six commands exactly as documented. The configuration command is conditional on its documented local environment prerequisite:
 
 ```bash
-node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+node --test test/booking-*.test.mjs
 npm --prefix social-publisher test
 npm --prefix social-publisher run check
-git diff --check
+node scripts/audit-booking-secrets.mjs
+git diff --check main...HEAD
+git status --short
 ```
 
 - [ ] **Step 6: Run integration tests and commit**
@@ -1568,13 +1758,19 @@ git commit -m "Route booking traffic through owned intake"
 
 **Files:**
 
-- Test only; modify files only when a failing check identifies a defect.
+- Create: `scripts/audit-booking-secrets.mjs`
+- Rename: `test/configure-booking-endpoint.test.mjs` to `test/booking-configure-endpoint.test.mjs`
+- Modify: `test/booking-deployment-assets.test.mjs`
+- Modify: `test/booking-site.test.mjs`
+- Modify: `README.md`
+- Modify: `apps-script/booking-intake/README.md`
+- Modify: this implementation plan and the matching design spec only as needed to remove obsolete credential-like literals.
 
 - [ ] **Step 1: Run all booking tests**
 
-Run: `node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs`
+Run: `node --test test/booking-*.test.mjs`
 
-Expected: all tests PASS, 0 FAIL.
+Expected: all 73 booking tests PASS, 0 FAIL. The naming convention keeps future booking tests inside the same command.
 
 - [ ] **Step 2: Re-run the unrelated publisher suite to catch regressions**
 
@@ -1582,25 +1778,27 @@ Run: `npm --prefix social-publisher test`
 
 Expected: the existing suite passes with no new failures.
 
-Run: `npm --prefix social-publisher run check`
+The configuration check requires either an ignored `social-publisher/.env` file or the current shell to safely provide every value listed in `social-publisher/.env.example`. If neither source is ready, report **SKIPPED — environment is not prepared** and prepare it before release; a clean checkout is not an unconditional pass. Never copy, commit, or print secret values.
 
-Expected: configuration check succeeds using the existing local environment; do not print secret values.
+Run, only after that prerequisite is satisfied: `npm --prefix social-publisher run check`
 
-- [ ] **Step 3: Audit public files and git diff**
+Expected: configuration check succeeds using the prepared local environment; do not print secret values.
 
-Run: `rg -n "853091474317806|META_CAPI_TOKEN=.+|access_token=[A-Za-z0-9]" --glob '*.html' --glob '*.js' --glob '*.mjs' --glob '*.gs' --glob '*.json' --glob '*.xml' --glob '!social-publisher/data/**' .`
+- [ ] **Step 3: Audit tracked text files and branch diff**
 
-Expected: no old Pixel in public/runtime files and no token value anywhere tracked.
+Run: `node scripts/audit-booking-secrets.mjs`
 
-Run: `git diff --check && git status --short`
+Expected: every path returned by `git ls-files` that contains text is scanned; no obsolete prior-trigger Pixel, assigned CAPI/access credential, Bearer credential, or plausible Meta token is found. Findings contain only file, line, and rule kind—never the matched value.
 
-Expected: no whitespace errors. Compare the status with the execution-start snapshot: task files are the only new differences, while every pre-existing unrelated modification remains unstaged and unchanged.
+Run: `git diff --check main...HEAD && git status --short`
+
+Expected: no whitespace errors anywhere on the feature branch relative to `main`. Compare status with the execution-start snapshot: task files are the only new differences, while every pre-existing unrelated modification remains unchanged.
 
 - [ ] **Step 4: Commit any verification fixes as one focused commit**
 
 ```bash
-git add booking.html thank-you.html scripts/booking-core.mjs scripts/booking-page.mjs scripts/thank-you-page.mjs apps-script/booking-intake test styles.css index.html articles sitemap.xml README.md
-git commit -m "Harden booking intake verification"
+git add README.md apps-script/booking-intake/README.md docs/superpowers/plans/2026-09-01-owned-booking-form-and-meta-lead-tracking.md docs/superpowers/specs/2026-08-31-owned-booking-form-and-meta-lead-tracking-design.md scripts/audit-booking-secrets.mjs test/configure-booking-endpoint.test.mjs test/booking-configure-endpoint.test.mjs test/booking-deployment-assets.test.mjs test/booking-site.test.mjs
+git commit -m "Harden booking verification workflow"
 ```
 
 Skip this commit when Step 1–3 require no fixes.
@@ -1617,7 +1815,7 @@ In Meta Events Manager, select Pixel `4400969670158242`, generate a Conversions 
 
 - [ ] **Step 2: User disables the obsolete trigger**
 
-In the old Google Form Apps Script project, disable the installed form-submit trigger that sends `CompleteRegistration` to Pixel `853091474317806`. Do not delete the Google Form or its response sheet.
+In the old Google Form Apps Script project, disable the installed form-submit trigger that sends `CompleteRegistration` to the obsolete prior-trigger Pixel. Do not delete the Google Form or its response sheet.
 
 - [ ] **Step 3: Update the versioned Apps Script deployment**
 

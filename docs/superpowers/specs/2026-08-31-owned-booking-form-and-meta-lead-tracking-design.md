@@ -11,7 +11,7 @@
 - 網站是 GitHub Pages 靜態站，使用自訂網域 `rongxinshenyu.com`。
 - 官網已安裝現行 Pixel `4400969670158242`，首頁兩個 Google 表單 CTA 目前只在點擊時送出 `Schedule`。
 - 使用者完成外部 Google 表單後不會回到官網，因此瀏覽器 Pixel 無法可靠判斷實際送出。
-- 舊 Google Apps Script 曾把 `CompleteRegistration` 送往已停用的 Pixel `853091474317806`；2026-08-30 的查核確認現行 dataset 仍沒有 CAPI 事件。
+- 舊 Google Apps Script 曾把 `CompleteRegistration` 送往已停用的 prior-trigger Pixel；2026-08-30 的查核確認現行 dataset 仍沒有 CAPI 事件。
 - 現有 Google 表單有二十多個欄位，混合初步篩選、完整聯絡、安全資料、緊急聯絡人與錄音選擇，不適合作為低摩擦的廣告落地流程。
 
 ## 選定方案
@@ -106,9 +106,12 @@ Apps Script 綁定現有 Google 試算表，原始碼另存於 repo 的 `apps-sc
 - 只接受已知欄位，忽略多餘欄位。
 - 在伺服器端重做必填、列舉、Email 與字數驗證。
 - honeypot 必須為空，且送出時間不得不合理地短於最小填寫時間。
-- 以雜湊 Email 配合 `CacheService` 做溫和的短期頻率限制。
-- 使用 `LockService` 避免同時寫入造成列資料交錯。
-- 為同一 `event_id` 做冪等檢查；重送不新增第二列，也不再寄第二封通知或送第二次 CAPI。
+- 以雜湊 Email 配合 `CacheService` 做溫和的短期 **best-effort throttle**。Cache 可能被提早淘汰，這不是持久或安全邊界；先檢查、待列資料成功寫入且 `SpreadsheetApp.flush()` 後才記錄接受次數，寫入失敗不耗用次數。
+- 工作表取得／建立、標題初始化、冪等查找與列寫入都在同一把 script lock 內完成；所有持久寫入都先 `SpreadsheetApp.flush()` 再釋放鎖，避免首次建立與同時送出競態。
+- 為同一 `event_id` 做列級冪等檢查；重送永遠不新增第二列。另以固定欄位順序計算正規化提交內容的 SHA-256「提交指紋」；相同 `event_id` 若帶入不同內容，視為無效冪等重送，在任何外部副作用前拒絕，原列不被覆寫。
+- CAPI 與管理通知分成兩個獨立的 lock-fenced 副作用。每次只處理一項：取得 script lock 後讀取該項狀態，`sent...` 即略過；其餘狀態先寫成 `processing` 並 flush，在同一把鎖仍持有時呼叫外部服務，再寫入 `sent...`、`not_configured...` 或 `failed...` 並 flush，最後才釋放鎖。
+- 試辦流量低，接受外部呼叫期間序列化的吞吐量代價。並行重送會等待鎖後看到 `sent...`，或在前一 worker 終止、Apps Script 自動釋放鎖後看到 `processing` 並恢復。若在 bounded wait 內拿不到鎖或無法確認狀態落盤，回傳最小 `ok:false` 可重試結果，讓瀏覽器保留輸入而不是靜默視為完整成功。
+- 所有準備寫入試算表、且可能來自使用者的字串，只要以 `=`、`+`、`-`、`@` 開頭就加上前置 apostrophe，避免公式注入。正規化原值仍保留給 Email 與 Meta hashing，不傳送轉義後的顯示字串。
 - 回應頁以 `HtmlService` 產生，僅為讓背景 iframe 將成功／失敗狀態送回官網；設定允許 iframe 載入時，回傳訊息的目標 origin 仍固定為 `https://rongxinshenyu.com`。
 
 ### 試算表
@@ -127,15 +130,17 @@ Apps Script 綁定現有 Google 試算表，原始碼另存於 repo 的 `apps-sc
 - 成人確認
 - 台灣確認
 - 同意版本
+- 提交指紋（正規化已知欄位的 SHA-256，不傳往 Meta／Email）
 - 審核狀態（預設「待審核」）
 - Meta CAPI 狀態
+- 通知狀態
 - 管理備註
 
 不儲存 `_fbp`、`_fbc`、原始安全分流選項或 CAPI 權杖。
 
 ### 通知信
 
-成功新增資料後寄到 Script Properties 設定的管理信箱。通知只含建立時間、稱呼、Email、event_id 與試算表連結；完整敘述留在試算表，避免敏感內容散落於 Email。
+成功新增資料後寄到 Script Properties 設定的管理信箱。通知只含建立時間、稱呼、Email、event_id 與試算表連結；完整敘述與提交指紋留在試算表，避免敏感內容散落於 Email。通知狀態獨立持久化並在自己的 lock-fenced 區段執行。`MailApp` 沒有 idempotency key，因此若信件已送出、但 `sent` 狀態在落盤前中斷，worker 終止後的重試可能再寄一次；這是可見、可查核的 at-least-once 限制。
 
 ### Meta CAPI
 
@@ -149,7 +154,7 @@ Apps Script 綁定現有 Google 試算表，原始碼另存於 repo 的 `apps-sc
 - `user_data.em`: 正規化 Email 的 SHA-256
 - `user_data.fbp`／`fbc`: 有效時才送出
 
-不傳送卡點文字、分類、期待、安全狀態、時段或其他表單回答。CAPI 失敗不阻擋預約寫入與感謝頁；結果寫進「Meta CAPI 狀態」供後續重送或查核。
+不傳送卡點文字、分類、期待、安全狀態、時段或其他表單回答。CAPI 失敗不阻擋預約寫入與感謝頁；結果寫進「Meta CAPI 狀態」供後續重送或查核。恢復送出沿用原本 `event_id`，由 Meta 做事件去重。
 
 Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Script Properties；其中權杖不進 repo、網站 HTML、試算表或執行紀錄。
 
@@ -157,9 +162,9 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 
 - 前端驗證失敗：聚焦第一個錯誤欄位並顯示欄位級說明。
 - Apps Script 驗證失敗：背景回報一般化錯誤，不回傳提交內容。
-- 網路逾時：解鎖按鈕、保留 DOM 輸入並允許重試；同一 `event_id` 的冪等設計避免逾時後重送產生重複資料。
-- 寫入或寄信失敗：Apps Script 記錄錯誤；只有試算表寫入成功才可回報整體提交成功。寄信失敗記錄狀態，但不刪除已寫入資料。
-- CAPI 失敗：不影響使用者流程，記錄狀態供管理者查核。
+- 網路逾時：解鎖按鈕、保留 DOM 輸入並允許重試；同一 `event_id` 的冪等設計避免逾時後重送產生重複列，副作用依持久狀態續跑。
+- 寫入或寄信失敗：只有試算表列寫入並 flush 成功才可回報整體提交成功；其後寄信失敗只更新「通知狀態」，不刪除資料也不把使用者回應改成失敗。
+- CAPI 失敗：不影響使用者流程，記錄狀態；重送可用相同 `event_id` 安全恢復。
 - Apps Script 長時間故障：頁面顯示現有 Google 表單備援連結。該表單仍保留為第二階段入口，但備援文案要明確說明會填較完整資料。
 
 ## 既有網站改動範圍
@@ -170,16 +175,16 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 - 更新文章 CTA、導覽、footer、`sitemap.xml`、隱私說明及必要文件。
 - 現有 `PageView` 與 `Contact` 保持不變。
 - 現有 Google 表單保留，但從主要公開入口移除。
-- 停用舊 Pixel `853091474317806` 的 Apps Script `CompleteRegistration` 觸發器；不把舊 token 複製到新流程。
+- 停用舊 Apps Script 的 `CompleteRegistration` prior-trigger Pixel 觸發器；不把舊 token 複製到新流程。
 
 ## 測試與驗收
 
 ### 自動檢查
 
 - 純函式測試：欄位驗證、列舉白名單、Email 正規化、`event_id`／一次性標記、Payload shaping。
-- Apps Script 可測部分：伺服器驗證、列資料建立、冪等、CAPI payload 與敏感欄位排除；Google 服務以替身注入。
+- Apps Script 可測部分：伺服器驗證、17 欄列資料、提交指紋與變造重送拒絕、公式注入防護、best-effort throttle、鎖與 flush 順序、單列冪等、逐副作用 lock fencing／中斷恢復／busy 可重試回應、CAPI／通知獨立狀態、CAPI payload 與敏感欄位排除；Google 服務以替身注入。
 - 靜態檢查：主要 CTA 不再直連 Google 表單、所有頁面使用現行 Pixel、repo 無 CAPI 權杖、`sitemap.xml` 包含新頁面。
-- `git diff --check` 與既有 social-publisher 測試保持通過。
+- `git diff --check main...HEAD` 與既有 social-publisher 測試保持通過。
 
 ### 瀏覽器驗收
 
@@ -193,7 +198,7 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 
 1. 使用者在 Meta Events Manager 為 Pixel `4400969670158242` 產生新的 CAPI 權杖，親自存進 Script Properties。
 2. 使用者部署 Apps Script versioned web app，執行身分為部署者，存取層級允許匿名提交。
-3. 停用舊 Google Form 上送往 Pixel `853091474317806` 的觸發器。
+3. 停用舊 Google Form 上送往 prior-trigger Pixel 的觸發器。
 4. 送出一筆稱呼清楚標為「測試」的表單。
 5. 確認試算表新增一列、管理信到達、感謝頁顯示成功。
 6. 在 Meta「測試事件」確認 browser 與 server `Lead` 使用同一 `event_id` 並成功去重。
