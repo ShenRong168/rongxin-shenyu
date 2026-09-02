@@ -61,9 +61,54 @@ function isCredentialCandidate(value, quoted) {
   return /^[A-Za-z0-9._~+/=-]{12,}$/.test(candidate);
 }
 
+function assignedExpressionEnd(text, offset) {
+  const limit = Math.min(text.length, offset + 4096);
+  let lineStart = offset;
+  let depth = 0;
+  let quote = null;
+
+  for (let lines = 0; lines < 8 && lineStart < limit; lines += 1) {
+    const newline = text.indexOf("\n", lineStart);
+    const lineEnd = newline === -1 || newline > limit ? limit : newline;
+    let visible = "";
+    let escaped = false;
+
+    for (let index = lineStart; index < lineEnd; index += 1) {
+      const character = text[index];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (quote) {
+        if (character === "\\") {
+          escaped = true;
+        } else if (character === quote) {
+          quote = null;
+        }
+        continue;
+      }
+      if (character === '"' || character === "'" || character === "`") {
+        quote = character;
+        continue;
+      }
+      if (character === "/" && text[index + 1] === "/") break;
+      if (character === "#") break;
+      if (character === "(" || character === "[") depth += 1;
+      if ((character === ")" || character === "]") && depth > 0) depth -= 1;
+      visible += character;
+    }
+
+    const continues = depth > 0
+      || /(?:\|\||\?\?|&&|\+)\s*$/.test(visible);
+    if (!continues || newline === -1 || lineEnd >= limit) return lineEnd;
+    lineStart = newline + 1;
+  }
+
+  return Math.min(limit, lineStart);
+}
+
 function assignedExpressionCandidates(text, offset) {
-  const lineEnd = text.indexOf("\n", offset);
-  const end = lineEnd === -1 ? text.length : lineEnd;
+  const end = assignedExpressionEnd(text, offset);
   const candidates = [];
   let index = offset;
 

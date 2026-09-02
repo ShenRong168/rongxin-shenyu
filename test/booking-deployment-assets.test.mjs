@@ -86,6 +86,8 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     ["assigned-sensitive-key", `"${accessTokenKey}": "${token}"`],
     ["assigned-sensitive-key", `"${accessTokenKey}" = "${opaqueToken}"`],
     ["assigned-sensitive-key", `${accessTokenKey}: process.env.ACCESS_TOKEN || "${opaqueToken}"`],
+    ["assigned-sensitive-key", `${accessTokenKey}: process.env.ACCESS_TOKEN ||\n  "${opaqueToken}"`],
+    ["assigned-sensitive-key", `${metaCapiTokenKey}: process.env.META_TOKEN +\n  "${opaqueToken}"`],
     ["assigned-sensitive-key", `${metaCapiTokenKey}="\${PREFIX}${staticSuffix}"`],
     ["assigned-sensitive-key", `| ${metaCapiTokenKey} | ${opaqueToken} |`],
     ["assigned-sensitive-key", `| \`${accessTokenKey}\` | \`${opaqueToken}\` |`],
@@ -117,12 +119,16 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     `${accessTokenKey}: process.env.ACCESS_TOKEN`,
     `${accessTokenKey}: process.env.ACCESS_TOKEN || \${FALLBACK_TOKEN}`,
     `${accessTokenKey}: process.env.ACCESS_TOKEN || "\${FALLBACK_TOKEN}"`,
+    `${accessTokenKey}: process.env.ACCESS_TOKEN ||\n  process.env.FALLBACK_TOKEN`,
+    `${metaCapiTokenKey}: process.env.META_TOKEN +\n  process.env.TOKEN_SUFFIX`,
+    `${accessTokenKey}: process.env.ACCESS_TOKEN\nconst unrelated = "${opaqueToken}";`,
     `${metaCapiTokenKey}="\${META_TOKEN}"`,
     `${metaCapiTokenKey}=\`\${META_TOKEN}\``,
     `${accessTokenKey}: \`\${config.appId}|\${config.appSecret}\``,
     `${accessTokenKey}=...`,
     `GET \`/refresh?${accessTokenKey}=...\``,
     `GET \`/refresh?${accessTokenKey}=...\` exchanges a long-lived token.`,
+    `GET \`/refresh?${accessTokenKey}=...\` exchanges a long-lived token.\nRun \`command\`.\nconst unrelated = "${opaqueToken}";`,
     `${accessTokenKey}: "new_threads_token"`,
     `Authorization: Bearer secret-token`,
     `| Property | Value or handling |`,
@@ -146,8 +152,18 @@ test("secret scanner findings and assertion failures never retain credential val
   const findings = findBookingSecrets(`${metaCapiTokenKey}=${distinctiveToken}`, "fixture.md");
   const tableFindings = findBookingSecrets(`| ${accessTokenKey} | ${distinctiveToken} |`, "fixture.md");
   const fallbackFindings = findBookingSecrets(`${accessTokenKey}: process.env.ACCESS_TOKEN || "${distinctiveToken}"`, "fixture.md");
+  const multilineFindings = findBookingSecrets(
+    `${accessTokenKey}: process.env.ACCESS_TOKEN ||\n  "${distinctiveToken}"`,
+    "fixture.md"
+  );
   const interpolationFindings = findBookingSecrets(`${metaCapiTokenKey}="\${PREFIX}${distinctiveToken}"`, "fixture.md");
-  const allFindings = [...findings, ...tableFindings, ...fallbackFindings, ...interpolationFindings];
+  const allFindings = [
+    ...findings,
+    ...tableFindings,
+    ...fallbackFindings,
+    ...multilineFindings,
+    ...interpolationFindings
+  ];
   const formatted = formatSecretFindings(allFindings);
   let scanFailure;
   try {
@@ -161,6 +177,7 @@ test("secret scanner findings and assertion failures never retain credential val
       detected: findings.length > 0,
       tableDetected: tableFindings.length > 0,
       fallbackDetected: fallbackFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
+      multilineDetected: multilineFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
       interpolationDetected: interpolationFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
       findingsAreRedacted: !JSON.stringify(allFindings).includes(distinctiveToken),
       formattedIsRedacted: !formatted.includes(distinctiveToken),
@@ -171,6 +188,7 @@ test("secret scanner findings and assertion failures never retain credential val
       detected: true,
       tableDetected: true,
       fallbackDetected: true,
+      multilineDetected: true,
       interpolationDetected: true,
       findingsAreRedacted: true,
       formattedIsRedacted: true,
