@@ -78,14 +78,19 @@ test("deployment guide documents every Script Property without embedding a CAPI 
 test("secret scanner rejects assigned credentials in supported file formats", () => {
   const token = ["EAA", "FixtureToken1234567890"].join("");
   const opaqueToken = ["aB3dE5fG7hJ9kL2mN4pQ6rS8", "uV0xYz"].join("");
+  const staticSuffix = ["opaque", "static", "suffix", "12345"].join("-");
   const fixtures = [
     ["assigned-sensitive-key", `${metaCapiTokenKey} = "${token}"`],
     ["assigned-sensitive-key", `"${metaCapiTokenKey}" : '${token}'`],
     ["assigned-sensitive-key", `${accessTokenKey}=\`${token}\``],
     ["assigned-sensitive-key", `"${accessTokenKey}": "${token}"`],
     ["assigned-sensitive-key", `"${accessTokenKey}" = "${opaqueToken}"`],
+    ["assigned-sensitive-key", `${accessTokenKey}: process.env.ACCESS_TOKEN || "${opaqueToken}"`],
+    ["assigned-sensitive-key", `${metaCapiTokenKey}="\${PREFIX}${staticSuffix}"`],
     ["assigned-sensitive-key", `| ${metaCapiTokenKey} | ${opaqueToken} |`],
     ["assigned-sensitive-key", `| \`${accessTokenKey}\` | \`${opaqueToken}\` |`],
+    ["assigned-sensitive-key", `| production | ${metaCapiTokenKey} | ${opaqueToken} |`],
+    ["assigned-sensitive-key", `| ${accessTokenKey} | **${opaqueToken}** |`],
     ["bearer-token", `Authorization: Bearer ${token}`],
     ["meta-token", `value ${token}`],
     ["obsolete-pixel", `pixel ${priorPixelId}`]
@@ -109,9 +114,15 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     `META_PAGE_ACCESS_TOKEN: \${{ secrets.META_PAGE_ACCESS_TOKEN }}`,
     `${accessTokenKey}: pageAccessToken`,
     `${accessTokenKey}: args.pageAccessToken`,
+    `${accessTokenKey}: process.env.ACCESS_TOKEN`,
+    `${accessTokenKey}: process.env.ACCESS_TOKEN || \${FALLBACK_TOKEN}`,
+    `${accessTokenKey}: process.env.ACCESS_TOKEN || "\${FALLBACK_TOKEN}"`,
+    `${metaCapiTokenKey}="\${META_TOKEN}"`,
+    `${metaCapiTokenKey}=\`\${META_TOKEN}\``,
     `${accessTokenKey}: \`\${config.appId}|\${config.appSecret}\``,
     `${accessTokenKey}=...`,
     `GET \`/refresh?${accessTokenKey}=...\``,
+    `GET \`/refresh?${accessTokenKey}=...\` exchanges a long-lived token.`,
     `${accessTokenKey}: "new_threads_token"`,
     `Authorization: Bearer secret-token`,
     `| Property | Value or handling |`,
@@ -120,6 +131,10 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     `| ${metaCapiTokenKey} | \${META_TOKEN} |`,
     `| \`${accessTokenKey}\` | \`<YOUR_TOKEN>\` |`,
     `| ${accessTokenKey} | REPLACE_ME |`,
+    `| production | ${metaCapiTokenKey} | \${META_TOKEN} |`,
+    `| production | \`${accessTokenKey}\` | **<YOUR_TOKEN>** |`,
+    `| Environment | Property | Value |`,
+    `| --- | --- | --- |`,
     `| ${metaCapiTokenKey} | Store the user-provided value in Script Properties. |`
   ]) {
     assert.deepEqual(findBookingSecrets(safe, "safe.md"), []);
@@ -130,7 +145,10 @@ test("secret scanner findings and assertion failures never retain credential val
   const distinctiveToken = ["EAA", "DistinctiveDoNotExpose9876543210"].join("");
   const findings = findBookingSecrets(`${metaCapiTokenKey}=${distinctiveToken}`, "fixture.md");
   const tableFindings = findBookingSecrets(`| ${accessTokenKey} | ${distinctiveToken} |`, "fixture.md");
-  const formatted = formatSecretFindings([...findings, ...tableFindings]);
+  const fallbackFindings = findBookingSecrets(`${accessTokenKey}: process.env.ACCESS_TOKEN || "${distinctiveToken}"`, "fixture.md");
+  const interpolationFindings = findBookingSecrets(`${metaCapiTokenKey}="\${PREFIX}${distinctiveToken}"`, "fixture.md");
+  const allFindings = [...findings, ...tableFindings, ...fallbackFindings, ...interpolationFindings];
+  const formatted = formatSecretFindings(allFindings);
   let scanFailure;
   try {
     assert.deepEqual(findings, []);
@@ -142,7 +160,9 @@ test("secret scanner findings and assertion failures never retain credential val
     {
       detected: findings.length > 0,
       tableDetected: tableFindings.length > 0,
-      findingsAreRedacted: !JSON.stringify([...findings, ...tableFindings]).includes(distinctiveToken),
+      fallbackDetected: fallbackFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
+      interpolationDetected: interpolationFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
+      findingsAreRedacted: !JSON.stringify(allFindings).includes(distinctiveToken),
       formattedIsRedacted: !formatted.includes(distinctiveToken),
       assertionIsRedacted:
         Boolean(scanFailure) && !String(scanFailure.stack || scanFailure).includes(distinctiveToken)
@@ -150,6 +170,8 @@ test("secret scanner findings and assertion failures never retain credential val
     {
       detected: true,
       tableDetected: true,
+      fallbackDetected: true,
+      interpolationDetected: true,
       findingsAreRedacted: true,
       formattedIsRedacted: true,
       assertionIsRedacted: true

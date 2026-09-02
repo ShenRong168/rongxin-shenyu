@@ -6,8 +6,7 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 const obsoletePixelId = ["853091", "474317806"].join("");
-const assignedSecretPattern = /(?<![A-Za-z0-9_])(?:["'`]\s*)?(META_CAPI_TOKEN|access_token)(?:\s*["'`])?\s*[:=]\s*(?:"([^"\r\n]*)"|'([^'\r\n]*)'|`([^`\r\n]*)`|([^"'`\s,;#\]\r\n]+))/gi;
-const markdownTableSecretPattern = /^\s*\|\s*(?:["'`]\s*)?(META_CAPI_TOKEN|access_token)(?:\s*["'`])?\s*\|\s*([^|\r\n]*)\|/gim;
+const assignedSecretStartPattern = /(?<![A-Za-z0-9_])(?:["'`]\s*)?(META_CAPI_TOKEN|access_token)(?:\s*["'`])?\s*[:=]\s*/gi;
 const bearerTokenPattern = /\bBearer\s+["'`]?([A-Za-z0-9._~+/=-]{12,})/gi;
 const metaTokenPattern = /\bEAA[A-Za-z0-9_-]{12,}\b/g;
 
@@ -36,9 +35,92 @@ function isPlaceholder(value) {
     || /^(?:replace(?:me)?|placeholder|example|sample|redacted|masked|changeme|todo|tbd|null|undefined|none)$/.test(compact);
 }
 
+function stripMarkdownWrapping(value) {
+  let candidate = unwrapScalar(value);
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const match = candidate.match(/^(\*\*|__|~~|`)([\s\S]*)\1$/);
+    if (!match) break;
+    candidate = unwrapScalar(match[2]);
+  }
+  return candidate;
+}
+
 function isOpaqueSecret(value) {
-  const candidate = unwrapScalar(value);
+  const candidate = stripMarkdownWrapping(value);
   return !isPlaceholder(candidate) && /^[A-Za-z0-9._~+/=-]{20,}$/.test(candidate);
+}
+
+function isCredentialCandidate(value, quoted) {
+  const candidate = unwrapScalar(value);
+  if (candidate.includes("${")) {
+    const staticText = candidate.replace(/\$\{[^}]*\}/g, "");
+    return staticText.replace(/[^A-Za-z0-9_-]+/g, "").length >= 4;
+  }
+  if (isPlaceholder(candidate)) return false;
+  if (quoted) return /[A-Za-z0-9]/.test(candidate);
+  return /^[A-Za-z0-9._~+/=-]{12,}$/.test(candidate);
+}
+
+function assignedExpressionCandidates(text, offset) {
+  const lineEnd = text.indexOf("\n", offset);
+  const end = lineEnd === -1 ? text.length : lineEnd;
+  const candidates = [];
+  let index = offset;
+
+  while (index < end) {
+    const character = text[index];
+    if (/\s/.test(character) || character === "|" || character === "?" || character === "(" || character === ")") {
+      index += 1;
+      continue;
+    }
+    if (character === "," || character === ";" || character === "}" || character === "]" || character === "&" || character === "#") break;
+    if (character === "/" && text[index + 1] === "/") break;
+
+    if (character === '"' || character === "'" || character === "`") {
+      const quote = character;
+      const start = index + 1;
+      let closed = false;
+      index = start;
+      while (index < end) {
+        if (text[index] === "\\") {
+          index += 2;
+          continue;
+        }
+        if (text[index] === quote) {
+          closed = true;
+          break;
+        }
+        index += 1;
+      }
+      if (!closed) break;
+      candidates.push({ value: text.slice(start, index), quoted: true });
+      if (index < end) index += 1;
+      continue;
+    }
+
+    if (text.startsWith("${", index)) {
+      const closing = text.indexOf("}", index + 2);
+      const candidateEnd = closing === -1 || closing >= end ? end : closing + 1;
+      candidates.push({ value: text.slice(index, candidateEnd), quoted: false });
+      index = candidateEnd;
+      continue;
+    }
+
+    const start = index;
+    while (index < end && !/[\s|?(),;}&\]#"'`]/.test(text[index])) index += 1;
+    if (index > start) {
+      candidates.push({ value: text.slice(start, index), quoted: false });
+    } else {
+      index += 1;
+    }
+  }
+
+  return candidates;
+}
+
+function markdownTableCells(line) {
+  if (!line.includes("|")) return [];
+  return line.split("|").map((cell) => stripMarkdownWrapping(cell));
 }
 
 function lineNumberAt(source, offset) {
@@ -62,15 +144,22 @@ export function findBookingSecrets(source, path = "<memory>") {
     findings.push({ path, line, kind });
   };
 
-  assignedSecretPattern.lastIndex = 0;
-  for (const match of text.matchAll(assignedSecretPattern)) {
-    const value = match.slice(2).find((candidate) => candidate !== undefined) || "";
-    if (!isPlaceholder(value)) addFinding("assigned-sensitive-key", match.index);
+  assignedSecretStartPattern.lastIndex = 0;
+  for (const match of text.matchAll(assignedSecretStartPattern)) {
+    const candidates = assignedExpressionCandidates(text, match.index + match[0].length);
+    if (candidates.some(({ value, quoted }) => isCredentialCandidate(value, quoted))) {
+      addFinding("assigned-sensitive-key", match.index);
+    }
   }
 
-  markdownTableSecretPattern.lastIndex = 0;
-  for (const match of text.matchAll(markdownTableSecretPattern)) {
-    if (isOpaqueSecret(match[2])) addFinding("assigned-sensitive-key", match.index);
+  const linePattern = /^.*$/gm;
+  for (const match of text.matchAll(linePattern)) {
+    const cells = markdownTableCells(match[0]);
+    for (let index = 0; index < cells.length - 1; index += 1) {
+      if (/^(?:META_CAPI_TOKEN|access_token)$/i.test(cells[index]) && isOpaqueSecret(cells[index + 1])) {
+        addFinding("assigned-sensitive-key", match.index);
+      }
+    }
   }
 
   bearerTokenPattern.lastIndex = 0;

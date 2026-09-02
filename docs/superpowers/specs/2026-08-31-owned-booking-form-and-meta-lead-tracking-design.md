@@ -184,7 +184,7 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 - 純函式測試：欄位驗證、列舉白名單、Email 正規化、`event_id`／一次性標記、Payload shaping。
 - Apps Script 可測部分：伺服器驗證、17 欄列資料、提交指紋與變造重送拒絕、公式注入防護、best-effort throttle、鎖與 flush 順序、單列冪等、逐副作用 lock fencing／中斷恢復／busy 可重試回應、CAPI／通知獨立狀態、CAPI payload 與敏感欄位排除；Google 服務以替身注入。
 - 靜態檢查：主要 CTA 不再直連 Google 表單、所有頁面使用現行 Pixel、repo 無 CAPI 權杖、`sitemap.xml` 包含新頁面。
-- `git diff --check` 與既有 social-publisher 測試保持通過。
+- `git diff --check main...HEAD` 與既有 social-publisher 測試保持通過。
 
 ### 瀏覽器驗收
 
