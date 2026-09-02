@@ -31,10 +31,16 @@ For every **update**, save the code and manifest, then choose **Deploy → Manag
 
 ## Verification before release
 
-Run the complete local booking suite, including `test/booking-deployment-assets.test.mjs`:
+Run the complete local booking suite. The glob includes deployment assets, endpoint generation, browser runtime, and site integration tests:
 
 ```bash
-node --test test/*.test.mjs
+node --test test/booking-*.test.mjs
+```
+
+Audit every tracked text file without printing matched values:
+
+```bash
+node scripts/audit-booking-secrets.mjs
 ```
 
 Require every discovered test to pass with zero failures. The suite covers the current **17-column** response model, formula safety for sheet-bound public strings, separate **Meta CAPI** and **notification** statuses, the deterministic **submission fingerprint**, **lock-fenced** effects that hold the lock across each external action and its durable status transition, and the deployment assets in this directory.
@@ -50,7 +56,7 @@ Also confirm all of the following against a non-production test submission befor
 - Meta receives only the approved `Lead` payload and the admin email contains the minimal notification fields.
 - Record the synthetic submission's `event_id`, then delete only the exact synthetic test row identified by that value; do not delete or alter any other response row.
 - After confirming the test event and row, delete the temporary `META_TEST_EVENT_CODE` Script Property.
-- The production iframe receives its response from the official `/exec` URL and no credential appears in browser, Apps Script, or repository logs. Run the repository's credential audit before release; a clean result produces no matches.
+- The production iframe receives its response from the official `/exec` URL and no credential appears in browser, Apps Script, or repository logs. Run the repository's credential audit before release; a clean result exits zero and reports the tracked text file count without findings.
 
 ## Rollback
 
@@ -58,6 +64,6 @@ Also confirm all of the following against a non-production test submission befor
 - Keep the Google Form URL available as the **fallback form**.
 - If the owned flow fails, revert the **booking release** to the last known-good site version and point the call to action back to the fallback form.
 - In Apps Script, switch the Web app deployment back to its **prior version** instead of editing or deleting response data.
-- Never reenable the old Pixel `853091474317806` trigger without a **separate decision**. It belongs to a different Meta asset and is not part of this rollback.
+- Never reenable the **obsolete prior-trigger Pixel** without a **separate decision**. It belongs to a different Meta asset and is not part of this rollback.
 
 Deployment, authorization, test events, trigger changes, and rollback activation are manual production operations. They are not performed by the repository tests.

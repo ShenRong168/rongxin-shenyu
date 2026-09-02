@@ -11,7 +11,7 @@
 - 網站是 GitHub Pages 靜態站，使用自訂網域 `rongxinshenyu.com`。
 - 官網已安裝現行 Pixel `4400969670158242`，首頁兩個 Google 表單 CTA 目前只在點擊時送出 `Schedule`。
 - 使用者完成外部 Google 表單後不會回到官網，因此瀏覽器 Pixel 無法可靠判斷實際送出。
-- 舊 Google Apps Script 曾把 `CompleteRegistration` 送往已停用的 Pixel `853091474317806`；2026-08-30 的查核確認現行 dataset 仍沒有 CAPI 事件。
+- 舊 Google Apps Script 曾把 `CompleteRegistration` 送往已停用的 prior-trigger Pixel；2026-08-30 的查核確認現行 dataset 仍沒有 CAPI 事件。
 - 現有 Google 表單有二十多個欄位，混合初步篩選、完整聯絡、安全資料、緊急聯絡人與錄音選擇，不適合作為低摩擦的廣告落地流程。
 
 ## 選定方案
@@ -175,7 +175,7 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 - 更新文章 CTA、導覽、footer、`sitemap.xml`、隱私說明及必要文件。
 - 現有 `PageView` 與 `Contact` 保持不變。
 - 現有 Google 表單保留，但從主要公開入口移除。
-- 停用舊 Pixel `853091474317806` 的 Apps Script `CompleteRegistration` 觸發器；不把舊 token 複製到新流程。
+- 停用舊 Apps Script 的 `CompleteRegistration` prior-trigger Pixel 觸發器；不把舊 token 複製到新流程。
 
 ## 測試與驗收
 
@@ -198,7 +198,7 @@ Pixel ID、管理信箱、成功／失敗回傳來源與 CAPI 權杖放在 Scrip
 
 1. 使用者在 Meta Events Manager 為 Pixel `4400969670158242` 產生新的 CAPI 權杖，親自存進 Script Properties。
 2. 使用者部署 Apps Script versioned web app，執行身分為部署者，存取層級允許匿名提交。
-3. 停用舊 Google Form 上送往 Pixel `853091474317806` 的觸發器。
+3. 停用舊 Google Form 上送往 prior-trigger Pixel 的觸發器。
 4. 送出一筆稱呼清楚標為「測試」的表單。
 5. 確認試算表新增一列、管理信到達、感謝頁顯示成功。
 6. 在 Meta「測試事件」確認 browser 與 server `Lead` 使用同一 `event_id` 並成功去重。

@@ -561,14 +561,18 @@ test("README documents the custom-domain flow and safe verification prerequisite
   const readme = await read("README.md");
   assert.match(readme, /Public URL:\s*\n\s*`https:\/\/rongxinshenyu\.com\/`/);
   assert.match(readme, /Google Form fallback link is retained only in `booking\.html`/);
-  assert.match(readme, /Before running the configuration check[^\n]*`social-publisher\/\.env\.example`[^\n]*`social-publisher\/\.env`/i);
+  assert.match(readme, /configuration check requires either[^\n]*`social-publisher\/\.env`[^\n]*current shell[^\n]*`social-publisher\/\.env\.example`/i);
+  assert.match(readme, /If neither[^\n]*SKIP[^\n]*environment is not prepared/i);
+  assert.match(readme, /never[^\n]*(?:commit|print)[^\n]*secret/i);
   assert.match(readme, /Run each command separately and stop if any command exits non-zero\./);
   const verification = readme.slice(readme.indexOf("### Booking Verification"));
   const commands = [...verification.matchAll(/```bash\s*\n([\s\S]*?)```/g)].map((match) => match[1].trim());
   assert.deepEqual(commands, [
-    "node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs",
+    "node --test test/booking-*.test.mjs",
     "npm --prefix social-publisher test",
     "npm --prefix social-publisher run check",
-    "git diff --check"
+    "node scripts/audit-booking-secrets.mjs",
+    "git diff --check main...HEAD",
+    "git status --short"
   ]);
 });

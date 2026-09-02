@@ -29,12 +29,12 @@ Public URL:
 
 ### Booking Verification
 
-Before running the configuration check, copy `social-publisher/.env.example` to `social-publisher/.env`, add the required values locally, and never commit that file or print its secret values.
+The configuration check requires either an ignored `social-publisher/.env` file or the current shell to safely provide the variables listed in `social-publisher/.env.example`. If neither source is ready, report this check as **SKIPPED — environment is not prepared**, prepare the local environment first, and do not claim that a clean checkout passes configuration validation. Never commit or print secret values.
 
 Run each command separately and stop if any command exits non-zero.
 
 ```bash
-node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+node --test test/booking-*.test.mjs
 ```
 
 ```bash
@@ -46,5 +46,13 @@ npm --prefix social-publisher run check
 ```
 
 ```bash
-git diff --check
+node scripts/audit-booking-secrets.mjs
+```
+
+```bash
+git diff --check main...HEAD
+```
+
+```bash
+git status --short
 ```

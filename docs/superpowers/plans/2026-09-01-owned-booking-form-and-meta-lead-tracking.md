@@ -19,10 +19,14 @@ Create:
 - `scripts/thank-you-page.mjs` — one-shot browser `Lead` dispatch.
 - `scripts/configure-booking-endpoint.mjs` — validates the deployed Apps Script URL and generates the public endpoint module.
 - `scripts/booking-config.mjs` — generated, checked-in public Apps Script endpoint; contains no secret.
+- `scripts/audit-booking-secrets.mjs` — scans every tracked text file for obsolete Pixel IDs and assigned Meta credentials without printing values.
 - `booking.html` — first-stage intake and safety gate.
 - `thank-you.html` — submission confirmation and browser Pixel event surface.
 - `test/booking-core.test.mjs` — pure frontend tests.
+- `test/booking-configure-endpoint.test.mjs` — endpoint generator validation.
 - `test/booking-apps-script.test.mjs` — Apps Script validation, orchestration, safe bridge, and CAPI payload tests through `node:vm`.
+- `test/booking-deployment-assets.test.mjs` — manifest, deployment guide, and redacted tracked-secret audit tests.
+- `test/booking-page-runtime.test.mjs` — browser submission-state tests.
 - `test/booking-site.test.mjs` — static integration checks for pages, CTAs, sitemap, Pixel IDs, and secret leakage.
 - `apps-script/booking-intake/Code.gs` — spreadsheet-bound web app.
 - `apps-script/booking-intake/appsscript.json` — explicit Apps Script scopes/runtime.
@@ -848,14 +852,14 @@ Create `apps-script/booking-intake/README.md` with this exact content:
 - Apps Script 暫時失效時，先使用 booking page 顯示的完整 Google 表單備援；原 Google 表單與回覆表不得刪除。
 - 要取消網站切換時，只 revert booking release commit 並重新部署 GitHub Pages。
 - Apps Script 需要回復時，把既有 deployment 改回前一個已驗證版本。
-- 不得自行重新啟用舊 Pixel `853091474317806` 的觸發器；若要恢復舊追蹤，必須另做追蹤決策與驗證。
+- 不得自行重新啟用 obsolete prior-trigger Pixel 的觸發器；若要恢復舊追蹤，必須另做追蹤決策與驗證。
 ```
 
 - [ ] **Step 3: Verify documentation contains no token value**
 
-Run: `rg -n "META_CAPI_TOKEN=.+|access_token=[A-Za-z0-9]" apps-script/booking-intake`
+Run: `node --test test/booking-deployment-assets.test.mjs`
 
-Expected: no output.
+Expected: the deployment package and its credential-safety checks pass without exposing a value.
 
 - [ ] **Step 4: Commit the deployment package**
 
@@ -884,13 +888,13 @@ Expected: `Apps Script URL accepted`.
 **Files:**
 
 - Create: `scripts/configure-booking-endpoint.mjs`
-- Create: `test/configure-booking-endpoint.test.mjs`
+- Create: `test/booking-configure-endpoint.test.mjs`
 - Create: `scripts/booking-config.mjs` through the generator
 
 - [ ] **Step 1: Write a failing generator test**
 
 ```js
-// test/configure-booking-endpoint.test.mjs
+// test/booking-configure-endpoint.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile } from "node:fs/promises";
@@ -910,7 +914,7 @@ test("writes an importable config only for a deployed Apps Script exec URL", asy
 
 - [ ] **Step 2: Run the generator test and verify it fails**
 
-Run: `node --test test/configure-booking-endpoint.test.mjs`
+Run: `node --test test/booking-configure-endpoint.test.mjs`
 
 Expected: FAIL with `ERR_MODULE_NOT_FOUND`.
 
@@ -939,12 +943,12 @@ Expected: `scripts/booking-config.mjs` contains one exported HTTPS `/exec` URL a
 
 - [ ] **Step 5: Run and commit the generator test and generated config**
 
-Run: `node --test test/configure-booking-endpoint.test.mjs`
+Run: `node --test test/booking-configure-endpoint.test.mjs`
 
 Expected: 1 test PASS, 0 FAIL.
 
 ```bash
-git add scripts/configure-booking-endpoint.mjs scripts/booking-config.mjs test/configure-booking-endpoint.test.mjs
+git add scripts/configure-booking-endpoint.mjs scripts/booking-config.mjs test/booking-configure-endpoint.test.mjs
 git commit -m "Configure booking form endpoint"
 ```
 
@@ -1699,12 +1703,12 @@ Append this exact section to the root `README.md`:
 
 ### Booking Verification
 
-Before running the configuration check, copy `social-publisher/.env.example` to `social-publisher/.env`, add the required values locally, and never commit that file or print its secret values.
+The configuration check requires either an ignored `social-publisher/.env` file or the current shell to safely provide the variables listed in `social-publisher/.env.example`. If neither source is ready, report this check as **SKIPPED — environment is not prepared**, prepare the local environment first, and do not claim that a clean checkout passes configuration validation. Never commit or print secret values.
 
 Run each command separately and stop if any command exits non-zero.
 
 ```bash
-node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+node --test test/booking-*.test.mjs
 ```
 
 ```bash
@@ -1716,17 +1720,27 @@ npm --prefix social-publisher run check
 ```
 
 ```bash
-git diff --check
+node scripts/audit-booking-secrets.mjs
+```
+
+```bash
+git diff --check main...HEAD
+```
+
+```bash
+git status --short
 ```
 ````
 
-Run all four commands exactly as documented:
+Run all six commands exactly as documented. The configuration command is conditional on its documented local environment prerequisite:
 
 ```bash
-node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs
+node --test test/booking-*.test.mjs
 npm --prefix social-publisher test
 npm --prefix social-publisher run check
-git diff --check
+node scripts/audit-booking-secrets.mjs
+git diff --check main...HEAD
+git status --short
 ```
 
 - [ ] **Step 6: Run integration tests and commit**
@@ -1744,13 +1758,19 @@ git commit -m "Route booking traffic through owned intake"
 
 **Files:**
 
-- Test only; modify files only when a failing check identifies a defect.
+- Create: `scripts/audit-booking-secrets.mjs`
+- Rename: `test/configure-booking-endpoint.test.mjs` to `test/booking-configure-endpoint.test.mjs`
+- Modify: `test/booking-deployment-assets.test.mjs`
+- Modify: `test/booking-site.test.mjs`
+- Modify: `README.md`
+- Modify: `apps-script/booking-intake/README.md`
+- Modify: this implementation plan and the matching design spec only as needed to remove obsolete credential-like literals.
 
 - [ ] **Step 1: Run all booking tests**
 
-Run: `node --test test/booking-core.test.mjs test/configure-booking-endpoint.test.mjs test/booking-apps-script.test.mjs test/booking-site.test.mjs`
+Run: `node --test test/booking-*.test.mjs`
 
-Expected: all tests PASS, 0 FAIL.
+Expected: all 73 booking tests PASS, 0 FAIL. The naming convention keeps future booking tests inside the same command.
 
 - [ ] **Step 2: Re-run the unrelated publisher suite to catch regressions**
 
@@ -1758,25 +1778,27 @@ Run: `npm --prefix social-publisher test`
 
 Expected: the existing suite passes with no new failures.
 
-Run: `npm --prefix social-publisher run check`
+The configuration check requires either an ignored `social-publisher/.env` file or the current shell to safely provide every value listed in `social-publisher/.env.example`. If neither source is ready, report **SKIPPED — environment is not prepared** and prepare it before release; a clean checkout is not an unconditional pass. Never copy, commit, or print secret values.
 
-Expected: configuration check succeeds using the existing local environment; do not print secret values.
+Run, only after that prerequisite is satisfied: `npm --prefix social-publisher run check`
 
-- [ ] **Step 3: Audit public files and git diff**
+Expected: configuration check succeeds using the prepared local environment; do not print secret values.
 
-Run: `rg -n "853091474317806|META_CAPI_TOKEN=.+|access_token=[A-Za-z0-9]" --glob '*.html' --glob '*.js' --glob '*.mjs' --glob '*.gs' --glob '*.json' --glob '*.xml' --glob '!social-publisher/data/**' .`
+- [ ] **Step 3: Audit tracked text files and branch diff**
 
-Expected: no old Pixel in public/runtime files and no token value anywhere tracked.
+Run: `node scripts/audit-booking-secrets.mjs`
 
-Run: `git diff --check && git status --short`
+Expected: every path returned by `git ls-files` that contains text is scanned; no obsolete prior-trigger Pixel, assigned CAPI/access credential, Bearer credential, or plausible Meta token is found. Findings contain only file, line, and rule kind—never the matched value.
 
-Expected: no whitespace errors. Compare the status with the execution-start snapshot: task files are the only new differences, while every pre-existing unrelated modification remains unstaged and unchanged.
+Run: `git diff --check main...HEAD && git status --short`
+
+Expected: no whitespace errors anywhere on the feature branch relative to `main`. Compare status with the execution-start snapshot: task files are the only new differences, while every pre-existing unrelated modification remains unchanged.
 
 - [ ] **Step 4: Commit any verification fixes as one focused commit**
 
 ```bash
-git add booking.html thank-you.html scripts/booking-core.mjs scripts/booking-page.mjs scripts/thank-you-page.mjs apps-script/booking-intake test styles.css index.html articles sitemap.xml README.md
-git commit -m "Harden booking intake verification"
+git add README.md apps-script/booking-intake/README.md docs/superpowers/plans/2026-09-01-owned-booking-form-and-meta-lead-tracking.md docs/superpowers/specs/2026-08-31-owned-booking-form-and-meta-lead-tracking-design.md scripts/audit-booking-secrets.mjs test/configure-booking-endpoint.test.mjs test/booking-configure-endpoint.test.mjs test/booking-deployment-assets.test.mjs test/booking-site.test.mjs
+git commit -m "Harden booking verification workflow"
 ```
 
 Skip this commit when Step 1–3 require no fixes.
@@ -1793,7 +1815,7 @@ In Meta Events Manager, select Pixel `4400969670158242`, generate a Conversions 
 
 - [ ] **Step 2: User disables the obsolete trigger**
 
-In the old Google Form Apps Script project, disable the installed form-submit trigger that sends `CompleteRegistration` to Pixel `853091474317806`. Do not delete the Google Form or its response sheet.
+In the old Google Form Apps Script project, disable the installed form-submit trigger that sends `CompleteRegistration` to the obsolete prior-trigger Pixel. Do not delete the Google Form or its response sheet.
 
 - [ ] **Step 3: Update the versioned Apps Script deployment**
 
