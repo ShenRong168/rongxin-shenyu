@@ -20,17 +20,14 @@ function contrast(left, right) {
 function readTag(source, start) {
   if (source[start] !== "<" || source.startsWith("<!--", start)) return null;
   let index = start + 1;
-  while (index < source.length && /\s/.test(source[index])) index += 1;
   const closing = source[index] === "/";
-  if (closing) {
-    index += 1;
-    while (index < source.length && /\s/.test(source[index])) index += 1;
-  }
+  if (closing) index += 1;
   if (!/[a-z]/i.test(source[index] || "")) return null;
 
   const nameStart = index;
   while (index < source.length && /[a-z0-9:-]/i.test(source[index])) index += 1;
   const nameEnd = index;
+  if (!/[\s/>]/.test(source[index] || "")) return null;
   let quote = null;
   while (index < source.length) {
     const character = source[index];
@@ -72,29 +69,58 @@ function skipRawTextElement(source, openingTag) {
   return source.length;
 }
 
+const NON_RENDERED_CONTAINERS = new Set(["script", "style", "textarea", "title", "template", "noscript"]);
+const VOID_ELEMENTS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+
+function tagHidesContent(tag) {
+  const attributes = tokenizeAttributes(tag.attributes);
+  return attributes.has("hidden")
+    || attributes.has("inert")
+    || String(attributes.get("aria-hidden") || "").trim().toLowerCase() === "true";
+}
+
+function popElement(stack, name) {
+  for (let index = stack.length - 1; index >= 0; index -= 1) {
+    if (stack[index].name === name) return stack.splice(index);
+  }
+  return [];
+}
+
 function visibleText(fragment) {
   let result = "";
   let index = 0;
+  let hiddenDepth = 0;
+  const elementStack = [];
   while (index < fragment.length) {
     const tagStart = fragment.indexOf("<", index);
     if (tagStart === -1) {
-      result += fragment.slice(index);
+      if (hiddenDepth === 0) result += fragment.slice(index);
       break;
     }
-    result += fragment.slice(index, tagStart);
+    if (hiddenDepth === 0) result += fragment.slice(index, tagStart);
     if (fragment.startsWith("<!--", tagStart)) {
       index = skipComment(fragment, tagStart);
       continue;
     }
     const tag = readTag(fragment, tagStart);
     if (!tag) {
-      result += "<";
+      if (hiddenDepth === 0) result += "<";
       index = tagStart + 1;
       continue;
     }
-    index = !tag.closing && !tag.selfClosing && ["script", "style"].includes(tag.name)
-      ? skipRawTextElement(fragment, tag)
-      : tag.end;
+    if (!tag.closing && !tag.selfClosing && NON_RENDERED_CONTAINERS.has(tag.name)) {
+      index = skipRawTextElement(fragment, tag);
+      continue;
+    }
+    if (tag.closing) {
+      const removed = popElement(elementStack, tag.name);
+      hiddenDepth -= removed.filter(({ hidden }) => hidden).length;
+    } else if (!tag.selfClosing && !VOID_ELEMENTS.has(tag.name)) {
+      const hidden = tagHidesContent(tag);
+      elementStack.push({ hidden, name: tag.name });
+      if (hidden) hiddenDepth += 1;
+    }
+    index = tag.end;
   }
   return result.replace(/\s+/g, " ").trim();
 }
@@ -102,6 +128,8 @@ function visibleText(fragment) {
 function anchors(html) {
   const found = [];
   const openAnchors = [];
+  const elementStack = [];
+  let hiddenDepth = 0;
   let index = 0;
   while (index < html.length) {
     const tagStart = html.indexOf("<", index);
@@ -115,22 +143,29 @@ function anchors(html) {
       index = tagStart + 1;
       continue;
     }
-    if (!tag.closing && !tag.selfClosing && ["script", "style"].includes(tag.name)) {
+    if (!tag.closing && !tag.selfClosing && NON_RENDERED_CONTAINERS.has(tag.name)) {
       index = skipRawTextElement(html, tag);
       continue;
     }
-    if (tag.name === "a") {
-      if (tag.closing) {
+    if (tag.closing) {
+      if (tag.name === "a") {
         const openingTag = openAnchors.pop();
         if (openingTag) {
           found.push({
             attributes: openingTag.attributes,
             start: openingTag.start,
-            text: visibleText(html.slice(openingTag.end, tag.start))
+            text: openingTag.hidden ? "" : visibleText(html.slice(openingTag.end, tag.start))
           });
         }
-      } else if (!tag.selfClosing) {
-        openAnchors.push(tag);
+      }
+      const removed = popElement(elementStack, tag.name);
+      hiddenDepth -= removed.filter(({ hidden }) => hidden).length;
+    } else if (!tag.selfClosing) {
+      const hidden = tagHidesContent(tag);
+      if (tag.name === "a") openAnchors.push({ ...tag, hidden: hidden || hiddenDepth > 0 });
+      if (!VOID_ELEMENTS.has(tag.name)) {
+        elementStack.push({ hidden, name: tag.name });
+        if (hidden) hiddenDepth += 1;
       }
     }
     index = tag.end;
@@ -417,6 +452,29 @@ test("anchor scanner ignores comments and raw text while honoring quoted greater
   assert.equal(parsed.length, 1);
   assert.equal(attribute(parsed[0].attributes, "href"), "/booking.html");
   assert.equal(parsed[0].text, "人生除錯盤點");
+});
+
+test("anchor scanner follows browser tag boundaries, inert containers, and visible text", () => {
+  const fixture = `
+    <textarea><a href="/textarea-decoy">人生除錯盤點</a></textarea>
+    <title><a href="/title-decoy">人生除錯盤點</a></title>
+    <template><a href="/template-decoy">人生除錯盤點</a></template>
+    <noscript><a href="/noscript-decoy">人生除錯盤點</a></noscript>
+    < a href="/spaced-tag-decoy">人生除錯盤點</a>
+    <a.foo href="/bad-boundary-decoy">人生除錯盤點</a>
+    <div hidden><a href="/hidden-ancestor">人生除錯盤點</a></div>
+    <a href="/hidden-descendant"><span hidden>人生除錯盤點</span></a>
+    <a href="/aria-hidden-descendant"><span aria-hidden="true">人生除錯盤點</span></a>
+    <a href="/inert-descendant"><span inert>人生除錯盤點</span></a>
+    <a href="/nested"><span>人生除錯</span><strong>盤點</strong></a>
+  `;
+  const parsed = anchors(fixture);
+  const intakeAnchors = parsed.filter(({ text }) => /人生除錯(?:前置)?盤點/.test(text));
+  assert.deepEqual(intakeAnchors.map(({ attributes }) => attribute(attributes, "href")), ["/nested"]);
+  assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/hidden-ancestor")?.text, "");
+  assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/hidden-descendant")?.text, "");
+  assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/aria-hidden-descendant")?.text, "");
+  assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/inert-descendant")?.text, "");
 });
 
 test("Google Forms fallback audit rejects prefixed href and hidden lookalikes", () => {
