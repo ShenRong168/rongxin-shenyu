@@ -35,6 +35,20 @@ function trackedPixelIds(html) {
   return [...scriptIds, ...imageIds];
 }
 
+function assertSingleGoogleFormsFallback(html) {
+  assert.equal(
+    [...html.matchAll(/docs\.google\.com\/forms/gi)].length,
+    1,
+    "booking.html must contain exactly one Google Forms occurrence"
+  );
+  const bookingFallbacks = anchors(html).filter(({ attributes }) =>
+    /^https:\/\/docs\.google\.com\/forms\//i.test(attribute(attributes, "href") || "")
+  );
+  assert.equal(bookingFallbacks.length, 1);
+  assert.equal(attribute(bookingFallbacks[0].attributes, "id"), "booking-fallback");
+  assert.match(bookingFallbacks[0].attributes, /\bhidden(?:\s|$)/i);
+}
+
 let thankYouImportId = 0;
 
 async function runThankYouModule(windowApi) {
@@ -205,13 +219,16 @@ test("all public intake CTAs route through the owned booking page", async () => 
     assert.doesNotMatch(html, /fbq\s*\(\s*(["'])track\1\s*,\s*(["'])Schedule\2/i);
   }
   const booking = await read("booking.html");
-  const bookingFallbacks = anchors(booking).filter(({ attributes }) =>
-    /^https:\/\/docs\.google\.com\/forms\//.test(attribute(attributes, "href") || "")
-  );
-  assert.equal(bookingFallbacks.length, 1);
-  assert.equal(attribute(bookingFallbacks[0].attributes, "id"), "booking-fallback");
-  assert.match(bookingFallbacks[0].attributes, /\bhidden(?:\s|$)/i);
+  assertSingleGoogleFormsFallback(booking);
   assert.doesNotMatch(await read("thank-you.html"), /docs\.google\.com\/forms/);
+});
+
+test("Google Forms fallback audit rejects leftovers outside the fallback anchor", () => {
+  const fixture = `
+    <a id="booking-fallback" href="https://docs.google.com/forms/d/example/fallback" hidden>Fallback</a>
+    <script>const staleForm = "https://docs.google.com/forms/d/e/stale";</script>
+  `;
+  assert.throws(() => assertSingleGoogleFormsFallback(fixture), /exactly one Google Forms occurrence/);
 });
 
 test("sitemap publishes booking but not thank-you", async () => {
