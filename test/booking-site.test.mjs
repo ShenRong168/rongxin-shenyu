@@ -164,3 +164,33 @@ test("form control boundaries and page kickers meet contrast floors", async () =
     assert.ok(contrast(cssToken(styles, "moss"), surface) >= 4.5, "booking kicker must contrast at least 4.5:1");
   }
 });
+
+test("all public intake CTAs route through the owned booking page", async () => {
+  const home = await read("index.html");
+  const career = await read("articles/career-transition.html");
+  const workplace = await read("articles/workplace-confusion.html");
+  assert.equal([...home.matchAll(/href="\/booking\.html"/g)].length, 5);
+  assert.equal([...career.matchAll(/href="\.\.\/booking\.html"/g)].length, 2);
+  assert.equal([...workplace.matchAll(/href="\.\.\/booking\.html"/g)].length, 2);
+  for (const html of [home, career, workplace]) {
+    assert.doesNotMatch(html, /docs\.google\.com\/forms/);
+    assert.doesNotMatch(html, /fbq\('track','Schedule'\)/);
+  }
+  const booking = await read("booking.html");
+  assert.equal([...booking.matchAll(/docs\.google\.com\/forms/g)].length, 1);
+});
+
+test("sitemap publishes booking but not thank-you", async () => {
+  const sitemap = await read("sitemap.xml");
+  assert.match(sitemap, /https:\/\/rongxinshenyu\.com\/booking\.html/);
+  assert.doesNotMatch(sitemap, /thank-you\.html/);
+});
+
+test("all tracked public pages use only the current Pixel", async () => {
+  for (const path of ["index.html", "booking.html", "thank-you.html", "articles/career-transition.html", "articles/workplace-confusion.html"]) {
+    const html = await read(path);
+    const pixelIds = [...html.matchAll(/(?:fbq\('init', '|tr\?id=)(\d{10,})/g)].map((match) => match[1]);
+    assert.ok(pixelIds.length >= 2, `${path} must contain script and noscript Pixel IDs`);
+    assert.deepEqual([...new Set(pixelIds)], ["4400969670158242"]);
+  }
+});
