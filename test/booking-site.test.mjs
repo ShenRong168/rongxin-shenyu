@@ -77,3 +77,40 @@ test("thank-you module still cleans the URL when session storage is blocked", as
   await assert.doesNotReject(runThankYouModule(windowApi));
   assert.deepEqual(replacements, [[{}, "", "/thank-you.html"]]);
 });
+
+test("booking and thank-you pages expose accessible structure", async () => {
+  const booking = await read("booking.html");
+  const thankYou = await read("thank-you.html");
+  const styles = await read("styles.css");
+  const labelled = [
+    "displayName", "email", "stuckText", "topic", "goals",
+    "availability", "adultConfirmed", "taiwanConfirmed", "consentConfirmed"
+  ];
+  for (const name of labelled) {
+    assert.match(booking, new RegExp(`(?:<label[^>]*>[\\s\\S]*?name="${name}"|<fieldset[^>]*aria-describedby="${name}-error")`));
+    assert.match(booking, new RegExp(`id="${name}-error" class="field-error"`));
+    assert.match(booking, new RegExp(`aria-describedby="${name}-error"`));
+  }
+  assert.match(booking, /id="submit-status"[^>]*aria-live="polite"/);
+  assert.equal([...booking.matchAll(/<h1(?:\s|>)/g)].length, 1);
+  assert.equal([...thankYou.matchAll(/<h1(?:\s|>)/g)].length, 1);
+  for (const selector of [".choice-grid", ".field-error", ".crisis-panel", ":focus-visible", "@media (max-width: 540px)"]) {
+    assert.ok(styles.includes(selector), `styles.css must include ${selector}`);
+  }
+});
+
+test("booking safety states remain visually exclusive", async () => {
+  const styles = await read("styles.css");
+  assert.match(styles, /\.intake-form\[hidden\],\s*\.crisis-panel\[hidden\]\s*{[\s\S]*?display:\s*none/);
+});
+
+test("safety choices use the booking page visual language", async () => {
+  const styles = await read("styles.css");
+  assert.ok(styles.includes(".intake-card [data-safety]"));
+});
+
+test("crisis action remains readable and keyboard-visible on its light panel", async () => {
+  const styles = await read("styles.css");
+  assert.ok(styles.includes(".crisis-panel .button"));
+  assert.ok(styles.includes(".crisis-panel a:focus-visible"));
+});
