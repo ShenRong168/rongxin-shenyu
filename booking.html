@@ -75,7 +75,7 @@
     <div class="honeypot" aria-hidden="true"><label>網站<input name="website" tabindex="-1" autocomplete="off"></label></div>
     <fieldset><legend>目前狀態</legend>
       <label>姓名或希望被稱呼的名字<input name="displayName" maxlength="50" autocomplete="name" aria-describedby="displayName-error" required></label><p id="displayName-error" class="field-error"></p>
-      <label>正式聯絡 Email<input name="email" type="email" autocomplete="email" aria-describedby="email-error" required></label><p id="email-error" class="field-error"></p>
+      <label>正式聯絡 Email<input name="email" type="email" maxlength="254" autocomplete="email" aria-describedby="email-error" required></label><p id="email-error" class="field-error"></p>
       <label>目前最卡住的事情<textarea name="stuckText" minlength="20" maxlength="1500" rows="7" aria-describedby="stuckText-error" required></textarea></label><p id="stuckText-error" class="field-error"></p>
       <fieldset aria-describedby="topic-error"><legend>主要卡點</legend><div class="choice-grid">
         <label><input type="radio" name="topic" value="心態">心態</label>

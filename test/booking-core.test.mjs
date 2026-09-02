@@ -25,6 +25,14 @@ test("normalizes email before storage and hashing", () => {
   assert.equal(normalizeEmail(" USER@Example.com "), "user@example.com");
 });
 
+test("accepts a 254-character email and rejects a longer one", () => {
+  const atLimit = `${"a".repeat(242)}@example.com`;
+  const overLimit = `${"a".repeat(243)}@example.com`;
+  assert.equal(atLimit.length, 254);
+  assert.equal(validateBooking({ ...valid, email: atLimit }).email, undefined);
+  assert.equal(validateBooking({ ...valid, email: overLimit }).email, "Email 請控制在 254 個字以內。");
+});
+
 test("accepts the approved first-stage payload", () => {
   assert.deepEqual(validateBooking(valid), {});
 });

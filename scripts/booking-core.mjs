@@ -33,7 +33,9 @@ export function validateBooking(payload = {}) {
     errors.displayName = "請輸入 1–50 個字的稱呼。";
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (email.length > 254) {
+    errors.email = "Email 請控制在 254 個字以內。";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.email = "請輸入可正常收信的 Email。";
   }
 

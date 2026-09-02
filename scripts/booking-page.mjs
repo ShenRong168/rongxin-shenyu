@@ -9,16 +9,21 @@ const fallback = document.querySelector("#booking-fallback");
 const crisis = document.querySelector("#crisis-resources");
 const safetyButtons = [...document.querySelectorAll("[data-safety]")];
 const availabilityInputs = [...form.querySelectorAll('[name="availability"]')];
+const editableControls = [...form.querySelectorAll('input:not([type="hidden"]), textarea, select, button')];
+const lockableControls = [...editableControls, ...safetyButtons];
+const originalDisabled = new Map();
 let safetyState = "";
 let snapshot = null;
 let pending = null;
 let timeoutId = 0;
+let controlsLocked = false;
 
 form.action = BOOKING_ENDPOINT;
 
 for (const button of safetyButtons) {
   button.setAttribute("aria-pressed", "false");
   button.addEventListener("click", () => {
+    if (pending) return;
     const clear = button.dataset.safety === "clear";
     for (const option of safetyButtons) option.setAttribute("aria-pressed", String(option === button));
     form.hidden = !clear;
@@ -30,7 +35,6 @@ for (const button of safetyButtons) {
       return;
     }
     safetyState = "urgent";
-    clearPending();
     snapshot = null;
     form.elements.eventId.value = "";
     submit.disabled = false;
@@ -118,14 +122,30 @@ function showErrors(errors) {
   else if (typeof control?.[0]?.focus === "function") control[0].focus();
 }
 
-function clearPending() {
+function stopWaitingForReply() {
   if (timeoutId) clearTimeout(timeoutId);
   timeoutId = 0;
   pending = null;
 }
 
+function setControlsLocked(locked) {
+  if (locked === controlsLocked) return;
+  controlsLocked = locked;
+  if (locked) {
+    originalDisabled.clear();
+    for (const control of lockableControls) {
+      originalDisabled.set(control, control.disabled);
+      control.disabled = true;
+    }
+    return;
+  }
+  for (const control of lockableControls) control.disabled = originalDisabled.get(control) || false;
+  originalDisabled.clear();
+}
+
 function unlock(message) {
-  clearPending();
+  stopWaitingForReply();
+  setControlsLocked(false);
   submit.disabled = false;
   submit.textContent = "重新送出第一階段盤點";
   status.textContent = message;
@@ -133,8 +153,8 @@ function unlock(message) {
 }
 
 function invalidateChangedSnapshot() {
+  if (pending) return;
   if (!snapshot || sameInput(currentInput(), snapshot.input)) return;
-  clearPending();
   snapshot = null;
   form.elements.eventId.value = "";
   submit.disabled = false;
@@ -147,29 +167,30 @@ form.addEventListener("change", invalidateChangedSnapshot);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (pending) return;
   const input = currentInput();
   const errors = validateBooking(input);
   showErrors(errors);
   if (Object.keys(errors).length) return;
   if (!snapshot || !sameInput(input, snapshot.input)) snapshot = createSnapshot(input);
   applySnapshot(snapshot);
-  submit.disabled = true;
   submit.textContent = "送出中…";
   status.textContent = "正在安全送出，請不要關閉頁面。";
   fallback.hidden = true;
   pending = { iframeWindow: frame.contentWindow, eventId: snapshot.eventId };
   timeoutId = window.setTimeout(() => unlock("連線逾時，內容仍保留在畫面中，請重試或使用備援表單。"), 15000);
   HTMLFormElement.prototype.submit.call(form);
+  setControlsLocked(true);
 });
 
 window.addEventListener("message", (event) => {
   if (!pending || !isTrustedReply(event, pending)) return;
   const confirmedEventId = pending.eventId;
-  clearPending();
   if (!event.data.ok) {
     unlock(event.data.message || "目前無法送出，請稍後重試。");
     return;
   }
+  stopWaitingForReply();
   try {
     window.sessionStorage.setItem(`rongxin:lead:${confirmedEventId}`, "confirmed");
   } catch {

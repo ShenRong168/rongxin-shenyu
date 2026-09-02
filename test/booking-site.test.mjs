@@ -13,4 +13,5 @@ test("booking page exposes only approved first-stage fields", async () => {
   assert.match(html, /110/);
   assert.match(html, /1925/);
   assert.match(html, /target="booking-response"/);
+  assert.match(html, /<input(?=[^>]*name="email")(?=[^>]*maxlength="254")[^>]*>/);
 });

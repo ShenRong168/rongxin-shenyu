@@ -59,6 +59,8 @@ async function loadController({ sessionStorageThrows = false } = {}) {
 
   class FakeHtmlFormElement extends FakeElement {
     submit() {
+      const value = (control) => control.disabled ? undefined : control.value;
+      const checked = (control) => !control.disabled && control.checked;
       submissions.push({
         eventId: this.elements.eventId.value,
         sourceUrl: this.elements.sourceUrl.value,
@@ -67,15 +69,15 @@ async function loadController({ sessionStorageThrows = false } = {}) {
         submittedAt: this.elements.submittedAt.value,
         fbp: this.elements.fbp.value,
         fbc: this.elements.fbc.value,
-        displayName: this.elements.displayName.value,
-        email: this.elements.email.value,
-        stuckText: this.elements.stuckText.value,
-        topic: this.elements.topic.value,
-        goals: goals.filter((input) => input.checked).map((input) => input.value),
-        availability: availability.filter((input) => input.checked).map((input) => input.value),
-        adultConfirmed: this.elements.adultConfirmed.checked,
-        taiwanConfirmed: this.elements.taiwanConfirmed.checked,
-        consentConfirmed: this.elements.consentConfirmed.checked
+        displayName: value(this.elements.displayName),
+        email: value(this.elements.email),
+        stuckText: value(this.elements.stuckText),
+        topic: topics.find(checked)?.value,
+        goals: goals.filter(checked).map((input) => input.value),
+        availability: availability.filter(checked).map((input) => input.value),
+        adultConfirmed: checked(this.elements.adultConfirmed),
+        taiwanConfirmed: checked(this.elements.taiwanConfirmed),
+        consentConfirmed: checked(this.elements.consentConfirmed)
       });
     }
   }
@@ -121,6 +123,9 @@ async function loadController({ sessionStorageThrows = false } = {}) {
   const groups = { topic: topics, goals, availability };
   form.querySelectorAll = (selector) => {
     if (selector === ".field-error") return Object.values(errors);
+    if (selector === 'input:not([type="hidden"]), textarea, select, button') {
+      return [displayName, email, stuckText, ...topics, ...goals, ...availability, adultConfirmed, taiwanConfirmed, consentConfirmed, submit];
+    }
     const allMatch = selector.match(/^\[name="([^"]+)"\]$/);
     if (allMatch) return groups[allMatch[1]] || [];
     const match = selector.match(/^\[name="([^"]+)"\]:checked$/);
@@ -212,6 +217,7 @@ async function loadController({ sessionStorageThrows = false } = {}) {
   }
 
   function edit(target, value) {
+    if (target.disabled) return;
     target.value = value;
     target.dispatch("input");
     form.dispatch("input", { target });
@@ -252,6 +258,7 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     submit,
     status,
     fallback,
+    editableControls: form.querySelectorAll('input:not([type="hidden"]), textarea, select, button'),
     errors,
     clearedTimeouts
   };
@@ -300,14 +307,12 @@ test("keeps no-booking availability mutually exclusive in the UI", async (t) => 
   assert.equal(noBooking.checked, false);
 });
 
-test("urgent safety choice cancels an in-flight reply and moves focus", async (t) => {
+test("safety choices move focus while idle and cannot replace an in-flight choice", async (t) => {
   const page = await loadController();
   t.after(page.cleanup);
   page.clearSafety.dispatch("click");
   assert.equal(page.clearSafety.getAttribute("aria-pressed"), "true");
   assert.equal(page.displayName.focused, true);
-  page.submitForm();
-  const eventId = page.submissions[0].eventId;
   page.urgentSafety.dispatch("click");
   assert.equal(page.urgentSafety.getAttribute("aria-pressed"), "true");
   assert.equal(page.crisis.focused, true);
@@ -315,12 +320,13 @@ test("urgent safety choice cancels an in-flight reply and moves focus", async (t
   assert.equal(page.crisis.hidden, false);
   page.clearSafety.dispatch("click");
   page.submitForm();
-  const replacementEventId = page.submissions[1].eventId;
-  assert.notEqual(replacementEventId, eventId);
-  page.reply(eventId);
-  assert.deepEqual(page.assigned, []);
+  const eventId = page.submissions[0].eventId;
+  page.urgentSafety.dispatch("click");
+  assert.equal(page.clearSafety.getAttribute("aria-pressed"), "true");
   assert.equal(page.form.hidden, false);
   assert.equal(page.crisis.hidden, true);
+  page.reply(eventId);
+  assert.deepEqual(page.assigned, [`/thank-you.html?event_id=${encodeURIComponent(eventId)}`]);
 });
 
 test("redirects after success even when session storage is unavailable", async (t) => {
@@ -331,4 +337,34 @@ test("redirects after success even when session storage is unavailable", async (
   const eventId = page.submissions[0].eventId;
   assert.doesNotThrow(() => page.reply(eventId));
   assert.deepEqual(page.assigned, [`/thank-you.html?event_id=${encodeURIComponent(eventId)}`]);
+});
+
+test("locks every control while one iframe submission is pending and unlocks the same retry", async (t) => {
+  const page = await loadController();
+  t.after(page.cleanup);
+  page.clearSafety.dispatch("click");
+  page.submitForm();
+  const first = structuredClone(page.submissions[0]);
+  assert.equal(first.displayName, "小榮");
+  assert.equal(first.topic, "行動");
+  assert.deepEqual(first.goals, ["釐清方向"]);
+  assert.equal(page.editableControls.every((control) => control.disabled), true);
+  assert.equal(page.clearSafety.disabled, true);
+  assert.equal(page.urgentSafety.disabled, true);
+
+  page.edit(page.displayName, "送出期間不可改");
+  page.submitForm();
+  page.urgentSafety.dispatch("click");
+  assert.equal(page.displayName.value, "小榮");
+  assert.equal(page.submissions.length, 1);
+  assert.equal(page.form.hidden, false);
+  assert.equal(page.crisis.hidden, true);
+
+  page.runLatestTimeout();
+  assert.equal(page.editableControls.every((control) => !control.disabled), true);
+  assert.equal(page.clearSafety.disabled, false);
+  assert.equal(page.urgentSafety.disabled, false);
+  page.submitForm();
+  assert.equal(page.submissions.length, 2);
+  assert.deepEqual(page.submissions[1], first);
 });
