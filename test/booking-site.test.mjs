@@ -114,3 +114,24 @@ test("crisis action remains readable and keyboard-visible on its light panel", a
   assert.ok(styles.includes(".crisis-panel .button"));
   assert.ok(styles.includes(".crisis-panel a:focus-visible"));
 });
+
+test("booking focus rings use the high-contrast moss token on light surfaces", async () => {
+  const styles = await read("styles.css");
+  assert.match(
+    styles,
+    /\.intake-form :focus-visible,[\s\S]*?\.thank-you-panel a:focus-visible\s*{[\s\S]*?outline:\s*3px solid var\(--moss\)/
+  );
+  const token = (name) => styles.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
+  const luminance = (hex) => {
+    const channels = hex.match(/[0-9a-f]{2}/gi).map((part) => Number.parseInt(part, 16) / 255);
+    const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+  const contrast = (left, right) => {
+    const [lighter, darker] = [luminance(left), luminance(right)].sort((a, b) => b - a);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+  for (const surface of [token("paper"), token("cream")]) {
+    assert.ok(contrast(token("moss"), surface) >= 3, "focus ring must contrast at least 3:1 with light surfaces");
+  }
+});

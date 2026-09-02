@@ -878,7 +878,7 @@ summary {
 .intake-card button:focus-visible,
 .crisis-panel a:focus-visible,
 .thank-you-panel a:focus-visible {
-  outline: 3px solid var(--gold);
+  outline: 3px solid var(--moss);
   outline-offset: 3px;
 }
 
