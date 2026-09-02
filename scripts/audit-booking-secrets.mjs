@@ -118,6 +118,10 @@ function assignedExpressionCandidates(text, offset) {
       index += 1;
       continue;
     }
+    if (character === "&" && text[index + 1] === "&") {
+      index += 2;
+      continue;
+    }
     if (character === "," || character === ";" || character === "}" || character === "]" || character === "&" || character === "#") break;
     if (character === "/" && text[index + 1] === "/") break;
 

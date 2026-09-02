@@ -87,6 +87,8 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     ["assigned-sensitive-key", `"${accessTokenKey}" = "${opaqueToken}"`],
     ["assigned-sensitive-key", `${accessTokenKey}: process.env.ACCESS_TOKEN || "${opaqueToken}"`],
     ["assigned-sensitive-key", `${accessTokenKey}: process.env.ACCESS_TOKEN ||\n  "${opaqueToken}"`],
+    ["assigned-sensitive-key", `${accessTokenKey}: process.env.ACCESS_TOKEN ??\n  "${opaqueToken}"`],
+    ["assigned-sensitive-key", `${metaCapiTokenKey}: process.env.META_TOKEN &&\n  "${opaqueToken}"`],
     ["assigned-sensitive-key", `${metaCapiTokenKey}: process.env.META_TOKEN +\n  "${opaqueToken}"`],
     ["assigned-sensitive-key", `${metaCapiTokenKey}="\${PREFIX}${staticSuffix}"`],
     ["assigned-sensitive-key", `| ${metaCapiTokenKey} | ${opaqueToken} |`],
@@ -120,6 +122,9 @@ test("secret scanner rejects assigned credentials in supported file formats", ()
     `${accessTokenKey}: process.env.ACCESS_TOKEN || \${FALLBACK_TOKEN}`,
     `${accessTokenKey}: process.env.ACCESS_TOKEN || "\${FALLBACK_TOKEN}"`,
     `${accessTokenKey}: process.env.ACCESS_TOKEN ||\n  process.env.FALLBACK_TOKEN`,
+    `${accessTokenKey}: process.env.ACCESS_TOKEN ??\n  process.env.FALLBACK_TOKEN`,
+    `${metaCapiTokenKey}: process.env.META_TOKEN &&\n  process.env.FALLBACK_TOKEN`,
+    `${metaCapiTokenKey}: process.env.META_TOKEN &\n  "${opaqueToken}"`,
     `${metaCapiTokenKey}: process.env.META_TOKEN +\n  process.env.TOKEN_SUFFIX`,
     `${accessTokenKey}: process.env.ACCESS_TOKEN\nconst unrelated = "${opaqueToken}";`,
     `${metaCapiTokenKey}="\${META_TOKEN}"`,
@@ -156,12 +161,17 @@ test("secret scanner findings and assertion failures never retain credential val
     `${accessTokenKey}: process.env.ACCESS_TOKEN ||\n  "${distinctiveToken}"`,
     "fixture.md"
   );
+  const andFindings = findBookingSecrets(
+    `${metaCapiTokenKey}: process.env.META_TOKEN &&\n  "${distinctiveToken}"`,
+    "fixture.md"
+  );
   const interpolationFindings = findBookingSecrets(`${metaCapiTokenKey}="\${PREFIX}${distinctiveToken}"`, "fixture.md");
   const allFindings = [
     ...findings,
     ...tableFindings,
     ...fallbackFindings,
     ...multilineFindings,
+    ...andFindings,
     ...interpolationFindings
   ];
   const formatted = formatSecretFindings(allFindings);
@@ -178,6 +188,7 @@ test("secret scanner findings and assertion failures never retain credential val
       tableDetected: tableFindings.length > 0,
       fallbackDetected: fallbackFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
       multilineDetected: multilineFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
+      andDetected: andFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
       interpolationDetected: interpolationFindings.some(({ kind }) => kind === "assigned-sensitive-key"),
       findingsAreRedacted: !JSON.stringify(allFindings).includes(distinctiveToken),
       formattedIsRedacted: !formatted.includes(distinctiveToken),
@@ -189,6 +200,7 @@ test("secret scanner findings and assertion failures never retain credential val
       tableDetected: true,
       fallbackDetected: true,
       multilineDetected: true,
+      andDetected: true,
       interpolationDetected: true,
       findingsAreRedacted: true,
       formattedIsRedacted: true,
