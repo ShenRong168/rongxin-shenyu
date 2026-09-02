@@ -69,8 +69,37 @@ function skipRawTextElement(source, openingTag) {
   return source.length;
 }
 
-const NON_RENDERED_CONTAINERS = new Set(["script", "style", "textarea", "title", "template", "noscript"]);
+const RAW_OR_RCDATA_CONTAINERS = new Set(["script", "style", "textarea", "title", "noscript"]);
 const VOID_ELEMENTS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+
+function skipTemplateSubtree(source, openingTag) {
+  let depth = 1;
+  let index = openingTag.end;
+  while (index < source.length) {
+    const tagStart = source.indexOf("<", index);
+    if (tagStart === -1) return source.length;
+    if (source.startsWith("<!--", tagStart)) {
+      index = skipComment(source, tagStart);
+      continue;
+    }
+    const tag = readTag(source, tagStart);
+    if (!tag) {
+      index = tagStart + 1;
+      continue;
+    }
+    if (!tag.closing && !tag.selfClosing && RAW_OR_RCDATA_CONTAINERS.has(tag.name)) {
+      index = skipRawTextElement(source, tag);
+      continue;
+    }
+    if (tag.name === "template") {
+      if (tag.closing) depth -= 1;
+      else if (!tag.selfClosing) depth += 1;
+      if (depth === 0) return tag.end;
+    }
+    index = tag.end;
+  }
+  return source.length;
+}
 
 function tagHidesContent(tag) {
   const attributes = tokenizeAttributes(tag.attributes);
@@ -108,7 +137,11 @@ function visibleText(fragment) {
       index = tagStart + 1;
       continue;
     }
-    if (!tag.closing && !tag.selfClosing && NON_RENDERED_CONTAINERS.has(tag.name)) {
+    if (!tag.closing && !tag.selfClosing && tag.name === "template") {
+      index = skipTemplateSubtree(fragment, tag);
+      continue;
+    }
+    if (!tag.closing && !tag.selfClosing && RAW_OR_RCDATA_CONTAINERS.has(tag.name)) {
       index = skipRawTextElement(fragment, tag);
       continue;
     }
@@ -143,7 +176,11 @@ function anchors(html) {
       index = tagStart + 1;
       continue;
     }
-    if (!tag.closing && !tag.selfClosing && NON_RENDERED_CONTAINERS.has(tag.name)) {
+    if (!tag.closing && !tag.selfClosing && tag.name === "template") {
+      index = skipTemplateSubtree(html, tag);
+      continue;
+    }
+    if (!tag.closing && !tag.selfClosing && RAW_OR_RCDATA_CONTAINERS.has(tag.name)) {
       index = skipRawTextElement(html, tag);
       continue;
     }
@@ -475,6 +512,15 @@ test("anchor scanner follows browser tag boundaries, inert containers, and visib
   assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/hidden-descendant")?.text, "");
   assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/aria-hidden-descendant")?.text, "");
   assert.equal(parsed.find(({ attributes }) => attribute(attributes, "href") === "/inert-descendant")?.text, "");
+});
+
+test("anchor scanner skips balanced nested and unclosed template subtrees", () => {
+  const nested = `<template><template></template><a href="/template-decoy">人生除錯盤點</a></template><a href="/real">人生除錯盤點</a>`;
+  const nestedIntake = anchors(nested).filter(({ text }) => /人生除錯(?:前置)?盤點/.test(text));
+  assert.deepEqual(nestedIntake.map(({ attributes }) => attribute(attributes, "href")), ["/real"]);
+
+  const unclosed = `<template><template><a href="/unclosed-template-decoy">人生除錯盤點</a>`;
+  assert.deepEqual(anchors(unclosed), []);
 });
 
 test("Google Forms fallback audit rejects prefixed href and hidden lookalikes", () => {
