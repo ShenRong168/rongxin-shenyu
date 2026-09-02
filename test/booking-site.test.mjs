@@ -24,17 +24,52 @@ function anchors(html) {
   }));
 }
 
+function tokenizeAttributes(source) {
+  const tokens = new Map();
+  let index = 0;
+  const isWhitespace = (character) => /\s/.test(character);
+
+  while (index < source.length) {
+    while (index < source.length && isWhitespace(source[index])) index += 1;
+    if (index >= source.length || source[index] === "/") break;
+
+    const nameStart = index;
+    while (index < source.length && !/[\s=/>]/.test(source[index])) index += 1;
+    if (index === nameStart) {
+      index += 1;
+      continue;
+    }
+    const name = source.slice(nameStart, index).toLowerCase();
+    while (index < source.length && isWhitespace(source[index])) index += 1;
+
+    let value = null;
+    if (source[index] === "=") {
+      index += 1;
+      while (index < source.length && isWhitespace(source[index])) index += 1;
+      const quote = source[index] === '"' || source[index] === "'" ? source[index++] : null;
+      const valueStart = index;
+      if (quote) {
+        while (index < source.length && source[index] !== quote) index += 1;
+        value = source.slice(valueStart, index);
+        if (source[index] === quote) index += 1;
+      } else {
+        while (index < source.length && !/[\s>]/.test(source[index])) index += 1;
+        value = source.slice(valueStart, index);
+      }
+    }
+    if (!tokens.has(name)) tokens.set(name, value);
+  }
+
+  return tokens;
+}
+
 function attribute(attributes, name) {
-  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = attributes.match(
-    new RegExp(`(?:^|\\s)${escapedName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>]+))`, "i")
-  );
-  return match ? (match[1] ?? match[2] ?? match[3]) : undefined;
+  const value = tokenizeAttributes(attributes).get(name.toLowerCase());
+  return value === null ? "" : value;
 }
 
 function hasBooleanAttribute(attributes, name) {
-  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(?:^|\\s)${escapedName}(?:\\s|$)`, "i").test(attributes);
+  return tokenizeAttributes(attributes).has(name.toLowerCase());
 }
 
 function trackedPixelIds(html) {
@@ -219,7 +254,9 @@ test("all public intake CTAs route through the owned booking page", async () => 
     assert.equal(intakeAnchors.length, expectedCount);
     for (const { attributes } of intakeAnchors) {
       assert.equal(attribute(attributes, "href"), expectedHref);
-      assert.doesNotMatch(attributes, /(?:^|\s)(?:target|rel|onclick)\s*=/i);
+      for (const forbidden of ["target", "rel", "onclick"]) {
+        assert.equal(tokenizeAttributes(attributes).has(forbidden), false);
+      }
     }
   }
   for (const html of [home, career, workplace]) {
@@ -245,16 +282,23 @@ test("HTML attribute parsing accepts real forms and rejects prefixed lookalikes"
   assert.equal(attribute(` href=/unquoted`, "href"), "/unquoted");
   assert.equal(attribute(` data-href="/decoy"`, "href"), undefined);
   assert.equal(attribute(` aria-href="/decoy"`, "href"), undefined);
+  assert.equal(attribute(` data-note=" href=https://decoy.example/form"`, "href"), undefined);
   assert.equal(hasBooleanAttribute(` hidden`, "hidden"), true);
   assert.equal(hasBooleanAttribute(`\n hidden `, "hidden"), true);
+  assert.equal(hasBooleanAttribute(` hidden=""`, "hidden"), true);
+  assert.equal(hasBooleanAttribute(` hidden='hidden'`, "hidden"), true);
+  assert.equal(hasBooleanAttribute(` hidden=hidden`, "hidden"), true);
   assert.equal(hasBooleanAttribute(` data-hidden`, "hidden"), false);
+  assert.equal(hasBooleanAttribute(` aria-label="visually hidden fallback"`, "hidden"), false);
 });
 
 test("Google Forms fallback audit rejects prefixed href and hidden lookalikes", () => {
   for (const fixture of [
     `<a id="booking-fallback" data-href="https://docs.google.com/forms/d/example/fallback" hidden>Fallback</a>`,
     `<a id="booking-fallback" aria-href="https://docs.google.com/forms/d/example/fallback" hidden>Fallback</a>`,
-    `<a id="booking-fallback" href="https://docs.google.com/forms/d/example/fallback" data-hidden>Fallback</a>`
+    `<a id="booking-fallback" href="https://docs.google.com/forms/d/example/fallback" data-hidden>Fallback</a>`,
+    `<a id="booking-fallback" data-note=" href=https://docs.google.com/forms/d/example/fallback" hidden>Fallback</a>`,
+    `<a id="booking-fallback" href="https://docs.google.com/forms/d/example/fallback" aria-label="visually hidden fallback">Fallback</a>`
   ]) {
     assert.throws(() => assertSingleGoogleFormsFallback(fixture));
   }
