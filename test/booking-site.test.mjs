@@ -17,11 +17,125 @@ function contrast(left, right) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+function readTag(source, start) {
+  if (source[start] !== "<" || source.startsWith("<!--", start)) return null;
+  let index = start + 1;
+  while (index < source.length && /\s/.test(source[index])) index += 1;
+  const closing = source[index] === "/";
+  if (closing) {
+    index += 1;
+    while (index < source.length && /\s/.test(source[index])) index += 1;
+  }
+  if (!/[a-z]/i.test(source[index] || "")) return null;
+
+  const nameStart = index;
+  while (index < source.length && /[a-z0-9:-]/i.test(source[index])) index += 1;
+  const nameEnd = index;
+  let quote = null;
+  while (index < source.length) {
+    const character = source[index];
+    if (quote) {
+      if (character === quote) quote = null;
+    } else if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === ">") {
+      const attributes = source.slice(nameEnd, index);
+      return {
+        attributes,
+        closing,
+        end: index + 1,
+        name: source.slice(nameStart, nameEnd).toLowerCase(),
+        selfClosing: attributes.trimEnd().endsWith("/"),
+        start
+      };
+    }
+    index += 1;
+  }
+  return null;
+}
+
+function skipComment(source, start) {
+  const end = source.indexOf("-->", start + 4);
+  return end === -1 ? source.length : end + 3;
+}
+
+function skipRawTextElement(source, openingTag) {
+  const lowerSource = source.toLowerCase();
+  const needle = `</${openingTag.name}`;
+  let candidate = lowerSource.indexOf(needle, openingTag.end);
+  while (candidate !== -1) {
+    const boundary = lowerSource[candidate + needle.length] || "";
+    const closingTag = /[\s/>]/.test(boundary) ? readTag(source, candidate) : null;
+    if (closingTag?.closing && closingTag.name === openingTag.name) return closingTag.end;
+    candidate = lowerSource.indexOf(needle, candidate + needle.length);
+  }
+  return source.length;
+}
+
+function visibleText(fragment) {
+  let result = "";
+  let index = 0;
+  while (index < fragment.length) {
+    const tagStart = fragment.indexOf("<", index);
+    if (tagStart === -1) {
+      result += fragment.slice(index);
+      break;
+    }
+    result += fragment.slice(index, tagStart);
+    if (fragment.startsWith("<!--", tagStart)) {
+      index = skipComment(fragment, tagStart);
+      continue;
+    }
+    const tag = readTag(fragment, tagStart);
+    if (!tag) {
+      result += "<";
+      index = tagStart + 1;
+      continue;
+    }
+    index = !tag.closing && !tag.selfClosing && ["script", "style"].includes(tag.name)
+      ? skipRawTextElement(fragment, tag)
+      : tag.end;
+  }
+  return result.replace(/\s+/g, " ").trim();
+}
+
 function anchors(html) {
-  return [...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map((match) => ({
-    attributes: match[1],
-    text: match[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
-  }));
+  const found = [];
+  const openAnchors = [];
+  let index = 0;
+  while (index < html.length) {
+    const tagStart = html.indexOf("<", index);
+    if (tagStart === -1) break;
+    if (html.startsWith("<!--", tagStart)) {
+      index = skipComment(html, tagStart);
+      continue;
+    }
+    const tag = readTag(html, tagStart);
+    if (!tag) {
+      index = tagStart + 1;
+      continue;
+    }
+    if (!tag.closing && !tag.selfClosing && ["script", "style"].includes(tag.name)) {
+      index = skipRawTextElement(html, tag);
+      continue;
+    }
+    if (tag.name === "a") {
+      if (tag.closing) {
+        const openingTag = openAnchors.pop();
+        if (openingTag) {
+          found.push({
+            attributes: openingTag.attributes,
+            start: openingTag.start,
+            text: visibleText(html.slice(openingTag.end, tag.start))
+          });
+        }
+      } else if (!tag.selfClosing) {
+        openAnchors.push(tag);
+      }
+    }
+    index = tag.end;
+  }
+  return found.sort((left, right) => left.start - right.start);
 }
 
 function tokenizeAttributes(source) {
@@ -290,6 +404,19 @@ test("HTML attribute parsing accepts real forms and rejects prefixed lookalikes"
   assert.equal(hasBooleanAttribute(` hidden=hidden`, "hidden"), true);
   assert.equal(hasBooleanAttribute(` data-hidden`, "hidden"), false);
   assert.equal(hasBooleanAttribute(` aria-label="visually hidden fallback"`, "hidden"), false);
+});
+
+test("anchor scanner ignores comments and raw text while honoring quoted greater-than signs", () => {
+  const fixture = `
+    <!-- <a href="/comment-decoy">人生除錯盤點</a> -->
+    <script>const fake = '<a href="/script-decoy">人生除錯盤點</a>';</script>
+    <style>.fake::after { content: '<a href="/style-decoy">人生除錯盤點</a>'; }</style>
+    <a title="第一階段 > 第二階段" href="/booking.html">人生除錯盤點</a>
+  `;
+  const parsed = anchors(fixture);
+  assert.equal(parsed.length, 1);
+  assert.equal(attribute(parsed[0].attributes, "href"), "/booking.html");
+  assert.equal(parsed[0].text, "人生除錯盤點");
 });
 
 test("Google Forms fallback audit rejects prefixed href and hidden lookalikes", () => {
