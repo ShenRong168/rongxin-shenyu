@@ -25,8 +25,16 @@ function anchors(html) {
 }
 
 function attribute(attributes, name) {
-  const match = attributes.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, "i"));
-  return match?.[2];
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = attributes.match(
+    new RegExp(`(?:^|\\s)${escapedName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>]+))`, "i")
+  );
+  return match ? (match[1] ?? match[2] ?? match[3]) : undefined;
+}
+
+function hasBooleanAttribute(attributes, name) {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:^|\\s)${escapedName}(?:\\s|$)`, "i").test(attributes);
 }
 
 function trackedPixelIds(html) {
@@ -46,7 +54,7 @@ function assertSingleGoogleFormsFallback(html) {
   );
   assert.equal(bookingFallbacks.length, 1);
   assert.equal(attribute(bookingFallbacks[0].attributes, "id"), "booking-fallback");
-  assert.match(bookingFallbacks[0].attributes, /\bhidden(?:\s|$)/i);
+  assert.equal(hasBooleanAttribute(bookingFallbacks[0].attributes, "hidden"), true);
 }
 
 let thankYouImportId = 0;
@@ -211,7 +219,7 @@ test("all public intake CTAs route through the owned booking page", async () => 
     assert.equal(intakeAnchors.length, expectedCount);
     for (const { attributes } of intakeAnchors) {
       assert.equal(attribute(attributes, "href"), expectedHref);
-      assert.doesNotMatch(attributes, /\b(?:target|rel|onclick)\s*=/i);
+      assert.doesNotMatch(attributes, /(?:^|\s)(?:target|rel|onclick)\s*=/i);
     }
   }
   for (const html of [home, career, workplace]) {
@@ -229,6 +237,27 @@ test("Google Forms fallback audit rejects leftovers outside the fallback anchor"
     <script>const staleForm = "https://docs.google.com/forms/d/e/stale";</script>
   `;
   assert.throws(() => assertSingleGoogleFormsFallback(fixture), /exactly one Google Forms occurrence/);
+});
+
+test("HTML attribute parsing accepts real forms and rejects prefixed lookalikes", () => {
+  assert.equal(attribute(` href="/quoted"`, "href"), "/quoted");
+  assert.equal(attribute(`\n href = '/spaced'`, "href"), "/spaced");
+  assert.equal(attribute(` href=/unquoted`, "href"), "/unquoted");
+  assert.equal(attribute(` data-href="/decoy"`, "href"), undefined);
+  assert.equal(attribute(` aria-href="/decoy"`, "href"), undefined);
+  assert.equal(hasBooleanAttribute(` hidden`, "hidden"), true);
+  assert.equal(hasBooleanAttribute(`\n hidden `, "hidden"), true);
+  assert.equal(hasBooleanAttribute(` data-hidden`, "hidden"), false);
+});
+
+test("Google Forms fallback audit rejects prefixed href and hidden lookalikes", () => {
+  for (const fixture of [
+    `<a id="booking-fallback" data-href="https://docs.google.com/forms/d/example/fallback" hidden>Fallback</a>`,
+    `<a id="booking-fallback" aria-href="https://docs.google.com/forms/d/example/fallback" hidden>Fallback</a>`,
+    `<a id="booking-fallback" href="https://docs.google.com/forms/d/example/fallback" data-hidden>Fallback</a>`
+  ]) {
+    assert.throws(() => assertSingleGoogleFormsFallback(fixture));
+  }
 });
 
 test("sitemap publishes booking but not thank-you", async () => {
