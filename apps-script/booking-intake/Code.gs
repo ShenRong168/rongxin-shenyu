@@ -275,9 +275,9 @@ function renderBridge_(result, origin) {
   };
   var serializedMessage = JSON.stringify(message).replace(/</g, "\\u003c");
   var serializedOrigin = JSON.stringify(String(origin)).replace(/</g, "\\u003c");
-  return "<!doctype html><meta charset=\"utf-8\"><script>" +
-    "parent.postMessage(" + serializedMessage + "," + serializedOrigin + ");" +
-    "</script>";
+  return "<!doctype html><html><head><meta charset=\"utf-8\"></head><body><script>" +
+    "window.top.postMessage(" + serializedMessage + "," + serializedOrigin + ");" +
+    "</script></body></html>";
 }
 
 function requiredProperty_(properties, name) {

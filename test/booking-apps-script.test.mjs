@@ -401,6 +401,18 @@ test("renderBridge_ posts only the minimal result to the fixed origin", () => {
   assert.equal(html.includes(valid.stuckText), false);
 });
 
+test("renderBridge_ reaches the outer site through the HtmlService iframe sandbox", () => {
+  const html = sandbox.renderBridge_(
+    { ok: true, eventId: valid.eventId },
+    "https://rongxinshenyu.com"
+  );
+
+  assert.match(html, /^<!doctype html><html><head><meta charset="utf-8"><\/head><body>/);
+  assert.match(html, /window\.top\.postMessage\(/);
+  assert.doesNotMatch(html, /(?:^|[^.])parent\.postMessage\(/);
+  assert.match(html, /<\/body><\/html>$/);
+});
+
 test("rowFor_ creates the approved 17-column row with fingerprint and separate states", () => {
   const input = sandbox.validateSubmission_(valid);
   const row = sandbox.rowFor_(input);

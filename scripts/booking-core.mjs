@@ -122,7 +122,7 @@ export function createEventId(cryptoApi = globalThis.crypto) {
 }
 
 export function isTrustedReply(event, pending) {
-  if (!event || !pending || event.source !== pending.iframeWindow) {
+  if (!event || !pending || !event.source) {
     return false;
   }
 

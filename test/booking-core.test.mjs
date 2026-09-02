@@ -86,7 +86,7 @@ test("creates a namespaced UUID event id", () => {
   assert.equal(createEventId({ randomUUID: () => "00000000-0000-4000-8000-000000000000" }), "lead_00000000-0000-4000-8000-000000000000");
 });
 
-test("trusts only the active iframe, Apps Script origin, and pending event", () => {
+test("trusts the nested Apps Script sandbox only for the pending event", () => {
   const frame = {};
   const pending = { iframeWindow: frame, eventId: "lead_1" };
   const base = {
@@ -97,7 +97,8 @@ test("trusts only the active iframe, Apps Script origin, and pending event", () 
   assert.equal(isTrustedReply(base, pending), true);
   assert.equal(isTrustedReply({ ...base, origin: "https://script.googleusercontent.com" }, pending), true);
   assert.equal(isTrustedReply({ ...base, origin: "https://script.google.com" }, pending), true);
-  assert.equal(isTrustedReply({ ...base, source: {} }, pending), false);
+  assert.equal(isTrustedReply({ ...base, source: {} }, pending), true);
+  assert.equal(isTrustedReply({ ...base, source: null }, pending), false);
   assert.equal(isTrustedReply({ ...base, origin: "https://evil.example" }, pending), false);
   assert.equal(isTrustedReply({ ...base, origin: "http://script.google.com" }, pending), false);
   assert.equal(isTrustedReply({ ...base, origin: "https://script.google.com:8443" }, pending), false);
