@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildFbc,
+  consumeLeadMarker,
   createEventId,
   getCookie,
   isTrustedReply,
@@ -102,4 +103,15 @@ test("trusts only the active iframe, Apps Script origin, and pending event", () 
   assert.equal(isTrustedReply({ ...base, origin: "https://script.google.com:8443" }, pending), false);
   assert.equal(isTrustedReply({ ...base, data: { ...base.data, eventId: "lead_2" } }, pending), false);
   assert.equal(isTrustedReply({ ...base, data: { ...base.data, ok: "true" } }, pending), false);
+});
+
+test("consumes a confirmed lead marker exactly once", () => {
+  const values = new Map([["rongxin:lead:lead_1", "confirmed"]]);
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    removeItem: (key) => values.delete(key)
+  };
+  assert.equal(consumeLeadMarker(storage, "lead_1"), true);
+  assert.equal(values.has("rongxin:lead:lead_1"), false);
+  assert.equal(consumeLeadMarker(storage, "lead_1"), false);
 });

@@ -152,3 +152,9 @@ export function isTrustedReply(event, pending) {
     typeof data.ok === "boolean"
   );
 }
+
+export function consumeLeadMarker(storage, eventId) {
+  if (!eventId || storage.getItem(`rongxin:lead:${eventId}`) !== "confirmed") return false;
+  storage.removeItem(`rongxin:lead:${eventId}`);
+  return true;
+}
