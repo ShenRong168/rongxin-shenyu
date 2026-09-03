@@ -48,12 +48,15 @@ async function loadController({ sessionStorageThrows = false } = {}) {
   const originalWindow = globalThis.window;
   const originalFormElement = globalThis.HTMLFormElement;
   const originalClearTimeout = globalThis.clearTimeout;
+  const originalClearInterval = globalThis.clearInterval;
   const originalDateNow = Date.now;
   const submissions = [];
   const assigned = [];
   const timeouts = new Map();
   const clearedTimeouts = [];
   const messageListeners = [];
+  const probeScripts = [];
+  const intervals = new Map();
   let nextTimeoutId = 1;
   let now = 10_000;
 
@@ -149,6 +152,17 @@ async function loadController({ sessionStorageThrows = false } = {}) {
   ]);
   const document = {
     cookie: "_fbp=fb.1.10.20",
+    head: {
+      appendChild(node) {
+        probeScripts.push(node);
+      }
+    },
+    createElement(tagName) {
+      assert.equal(tagName, "script");
+      const node = new FakeElement({ async: false, referrerPolicy: "", src: "" });
+      node.remove = () => { node.removed = true; };
+      return node;
+    },
     querySelector(selector) {
       if (bySelector.has(selector)) return bySelector.get(selector);
       const match = selector.match(/^#(.+)-error$/);
@@ -175,6 +189,11 @@ async function loadController({ sessionStorageThrows = false } = {}) {
       timeouts.set(id, callback);
       return id;
     },
+    setInterval(callback) {
+      const id = nextTimeoutId++;
+      intervals.set(id, callback);
+      return id;
+    },
     addEventListener(type, listener) {
       if (type === "message") messageListeners.push(listener);
     }
@@ -187,6 +206,7 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     clearedTimeouts.push(id);
     timeouts.delete(id);
   };
+  globalThis.clearInterval = (id) => intervals.delete(id);
   Date.now = () => {
     now += 10_000;
     return now;
@@ -204,6 +224,7 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     globalThis.window = originalWindow;
     globalThis.HTMLFormElement = originalFormElement;
     globalThis.clearTimeout = originalClearTimeout;
+    globalThis.clearInterval = originalClearInterval;
     Date.now = originalDateNow;
   }
 
@@ -232,6 +253,10 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     for (const listener of messageListeners) listener(event);
   }
 
+  function statusReply(eventId, ok = true) {
+    window.rongxinBookingStatus?.({ type: "rongxin-booking-status", eventId, ok });
+  }
+
   function runLatestTimeout() {
     const entry = [...timeouts.entries()].at(-1);
     assert.ok(entry, "expected an active timeout");
@@ -246,6 +271,7 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     change,
     edit,
     reply,
+    statusReply,
     runLatestTimeout,
     submissions,
     assigned,
@@ -260,7 +286,8 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     fallback,
     editableControls: form.querySelectorAll('input:not([type="hidden"]), textarea, select, button'),
     errors,
-    clearedTimeouts
+    clearedTimeouts,
+    probeScripts
   };
 }
 
@@ -336,6 +363,28 @@ test("redirects after success even when session storage is unavailable", async (
   page.submitForm();
   const eventId = page.submissions[0].eventId;
   assert.doesNotThrow(() => page.reply(eventId));
+  assert.deepEqual(page.assigned, [`/thank-you.html?event_id=${encodeURIComponent(eventId)}`]);
+});
+
+test("polls by event id only and redirects only after the matching event is settled", async (t) => {
+  const page = await loadController();
+  t.after(page.cleanup);
+  page.clearSafety.dispatch("click");
+  page.submitForm();
+  const eventId = page.submissions[0].eventId;
+
+  assert.equal(page.probeScripts.length, 1);
+  const probeUrl = new URL(page.probeScripts[0].src);
+  assert.equal(probeUrl.origin, "https://script.google.com");
+  assert.equal(probeUrl.searchParams.get("event_id"), eventId);
+  assert.equal(probeUrl.searchParams.has("_"), true);
+  assert.deepEqual([...probeUrl.searchParams.keys()].sort(), ["_", "event_id"]);
+  assert.equal(probeUrl.href.includes("user%40example.com"), false);
+
+  page.statusReply(eventId, false);
+  page.statusReply("lead_other", true);
+  assert.deepEqual(page.assigned, []);
+  page.statusReply(eventId, true);
   assert.deepEqual(page.assigned, [`/thank-you.html?event_id=${encodeURIComponent(eventId)}`]);
 });
 
