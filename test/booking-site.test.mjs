@@ -303,7 +303,7 @@ test("booking page exposes only approved first-stage fields", async () => {
   assert.match(html, /1925/);
   assert.match(html, /target="booking-response"/);
   assert.match(html, /<input(?=[^>]*name="email")(?=[^>]*maxlength="254")[^>]*>/);
-  assert.match(html, /<script type="module" src="scripts\/booking-page\.mjs\?v=20260903"><\/script>/);
+  assert.match(html, /<script type="module" src="scripts\/booking-page\.mjs\?v=20260903-2"><\/script>/);
 });
 
 test("thank-you page is noindex and owns the one-shot Lead module", async () => {

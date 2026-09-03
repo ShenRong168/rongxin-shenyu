@@ -441,14 +441,17 @@ test("statusForEvent_ confirms only a settled exact event and renders no intake 
   statuses[0] = "sent: 200";
   assert.equal(sandbox.statusForEvent_(sheet, "lead_11111111-1111-4111-8111-111111111111"), false);
 
-  const script = sandbox.renderStatusCallback_({ ok: true, eventId: valid.eventId });
-  assert.match(script, /^window\.rongxinBookingStatus&&window\.rongxinBookingStatus\(/);
-  assert.match(script, /"type":"rongxin-booking-status"/);
-  assert.equal(script.includes(valid.email), false);
-  assert.equal(script.includes(valid.stuckText), false);
+  const response = sandbox.renderStatusResponse_({ ok: true, eventId: valid.eventId });
+  assert.deepEqual(JSON.parse(response), {
+    type: "rongxin-booking-status",
+    ok: true,
+    eventId: valid.eventId
+  });
+  assert.equal(response.includes(valid.email), false);
+  assert.equal(response.includes(valid.stuckText), false);
 });
 
-test("doGet serves a JavaScript status callback only for a valid event id", () => {
+test("doGet serves a JSON status response only for a valid event id", () => {
   const originalLoadConfig = sandbox.loadConfig_;
   const originalGetSheet = sandbox.getSheet_;
   const originalStatusForEvent = sandbox.statusForEvent_;
@@ -461,7 +464,7 @@ test("doGet serves a JavaScript status callback only for a valid event id", () =
     return eventId === valid.eventId;
   };
   sandbox.ContentService = {
-    MimeType: { JAVASCRIPT: "JAVASCRIPT" },
+    MimeType: { JSON: "JSON" },
     createTextOutput(content) {
       return {
         content,
@@ -471,7 +474,7 @@ test("doGet serves a JavaScript status callback only for a valid event id", () =
   };
 
   const output = sandbox.doGet({ parameter: { event_id: valid.eventId } });
-  assert.equal(mimeType, "JAVASCRIPT");
+  assert.equal(mimeType, "JSON");
   assert.match(output.content, /"ok":true/);
   assert.match(output.content, new RegExp(valid.eventId));
   assert.equal(statusChecks, 1);

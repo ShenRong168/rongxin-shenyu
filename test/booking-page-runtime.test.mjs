@@ -55,7 +55,8 @@ async function loadController({ sessionStorageThrows = false } = {}) {
   const timeouts = new Map();
   const clearedTimeouts = [];
   const messageListeners = [];
-  const probeScripts = [];
+  const fetchRequests = [];
+  const fetchReplies = [];
   const intervals = new Map();
   let nextTimeoutId = 1;
   let now = 10_000;
@@ -152,17 +153,6 @@ async function loadController({ sessionStorageThrows = false } = {}) {
   ]);
   const document = {
     cookie: "_fbp=fb.1.10.20",
-    head: {
-      appendChild(node) {
-        probeScripts.push(node);
-      }
-    },
-    createElement(tagName) {
-      assert.equal(tagName, "script");
-      const node = new FakeElement({ async: false, referrerPolicy: "", src: "" });
-      node.remove = () => { node.removed = true; };
-      return node;
-    },
     querySelector(selector) {
       if (bySelector.has(selector)) return bySelector.get(selector);
       const match = selector.match(/^#(.+)-error$/);
@@ -193,6 +183,15 @@ async function loadController({ sessionStorageThrows = false } = {}) {
       const id = nextTimeoutId++;
       intervals.set(id, callback);
       return id;
+    },
+    fetch(url, options) {
+      fetchRequests.push({ url, options });
+      return new Promise((resolve) => {
+        fetchReplies.push((data, ok = true) => resolve({
+          ok,
+          json: async () => data
+        }));
+      });
     },
     addEventListener(type, listener) {
       if (type === "message") messageListeners.push(listener);
@@ -253,8 +252,18 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     for (const listener of messageListeners) listener(event);
   }
 
-  function statusReply(eventId, ok = true) {
-    window.rongxinBookingStatus?.({ type: "rongxin-booking-status", eventId, ok });
+  async function resolveStatus(eventId, ok = true) {
+    const reply = fetchReplies.shift();
+    assert.ok(reply, "expected a pending status request");
+    reply({ type: "rongxin-booking-status", eventId, ok });
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
+  function runStatusInterval() {
+    const callback = [...intervals.values()].at(-1);
+    assert.ok(callback, "expected an active status interval");
+    callback();
   }
 
   function runLatestTimeout() {
@@ -271,7 +280,8 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     change,
     edit,
     reply,
-    statusReply,
+    resolveStatus,
+    runStatusInterval,
     runLatestTimeout,
     submissions,
     assigned,
@@ -287,7 +297,7 @@ async function loadController({ sessionStorageThrows = false } = {}) {
     editableControls: form.querySelectorAll('input:not([type="hidden"]), textarea, select, button'),
     errors,
     clearedTimeouts,
-    probeScripts
+    fetchRequests
   };
 }
 
@@ -373,18 +383,27 @@ test("polls by event id only and redirects only after the matching event is sett
   page.submitForm();
   const eventId = page.submissions[0].eventId;
 
-  assert.equal(page.probeScripts.length, 1);
-  const probeUrl = new URL(page.probeScripts[0].src);
+  assert.equal(page.fetchRequests.length, 1);
+  const probeUrl = new URL(page.fetchRequests[0].url);
   assert.equal(probeUrl.origin, "https://script.google.com");
   assert.equal(probeUrl.searchParams.get("event_id"), eventId);
   assert.equal(probeUrl.searchParams.has("_"), true);
   assert.deepEqual([...probeUrl.searchParams.keys()].sort(), ["_", "event_id"]);
   assert.equal(probeUrl.href.includes("user%40example.com"), false);
+  assert.deepEqual(page.fetchRequests[0].options, {
+    method: "GET",
+    mode: "cors",
+    credentials: "omit",
+    cache: "no-store",
+    referrerPolicy: "no-referrer"
+  });
 
-  page.statusReply(eventId, false);
-  page.statusReply("lead_other", true);
+  await page.resolveStatus(eventId, false);
+  page.runStatusInterval();
+  await page.resolveStatus("lead_other", true);
   assert.deepEqual(page.assigned, []);
-  page.statusReply(eventId, true);
+  page.runStatusInterval();
+  await page.resolveStatus(eventId, true);
   assert.deepEqual(page.assigned, [`/thank-you.html?event_id=${encodeURIComponent(eventId)}`]);
 });
 

@@ -292,14 +292,13 @@ function statusForEvent_(sheet, eventId) {
   });
 }
 
-function renderStatusCallback_(result) {
+function renderStatusResponse_(result) {
   var message = {
     type: "rongxin-booking-status",
     ok: Boolean(result && result.ok === true),
     eventId: String(result && result.eventId || "")
   };
-  var serializedMessage = JSON.stringify(message).replace(/</g, "\\u003c");
-  return "window.rongxinBookingStatus&&window.rongxinBookingStatus(" + serializedMessage + ");";
+  return JSON.stringify(message).replace(/</g, "\\u003c");
 }
 
 function requiredProperty_(properties, name) {
@@ -596,8 +595,8 @@ function doGet(e) {
     }
   }
   return ContentService
-    .createTextOutput(renderStatusCallback_({ ok: ok, eventId: validEventId ? eventId : "" }))
-    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    .createTextOutput(renderStatusResponse_({ ok: ok, eventId: validEventId ? eventId : "" }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {

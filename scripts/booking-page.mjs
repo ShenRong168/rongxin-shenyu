@@ -141,18 +141,27 @@ function confirmSubmission(eventId) {
   window.location.assign(`/thank-you.html?event_id=${encodeURIComponent(eventId)}`);
 }
 
-function probeSubmissionStatus() {
+async function probeSubmissionStatus() {
   if (!pending) return;
+  const expectedEventId = pending.eventId;
   const endpoint = new URL(BOOKING_ENDPOINT);
-  endpoint.searchParams.set("event_id", pending.eventId);
+  endpoint.searchParams.set("event_id", expectedEventId);
   endpoint.searchParams.set("_", String(Date.now()));
-  const probe = document.createElement("script");
-  probe.async = true;
-  probe.referrerPolicy = "no-referrer";
-  probe.src = endpoint.href;
-  probe.addEventListener("load", () => probe.remove());
-  probe.addEventListener("error", () => probe.remove());
-  document.head.appendChild(probe);
+  try {
+    const response = await window.fetch(endpoint.href, {
+      method: "GET",
+      mode: "cors",
+      credentials: "omit",
+      cache: "no-store",
+      referrerPolicy: "no-referrer"
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!pending || pending.eventId !== expectedEventId || !isConfirmedStatus(data, pending)) return;
+    confirmSubmission(expectedEventId);
+  } catch {
+    // The interval retries until the normal timeout unlocks the form.
+  }
 }
 
 function startStatusPolling() {
@@ -225,8 +234,3 @@ window.addEventListener("message", (event) => {
   }
   confirmSubmission(confirmedEventId);
 });
-
-window.rongxinBookingStatus = (data) => {
-  if (!pending || !isConfirmedStatus(data, pending)) return;
-  confirmSubmission(pending.eventId);
-};
