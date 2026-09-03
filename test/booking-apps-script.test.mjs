@@ -413,6 +413,78 @@ test("renderBridge_ reaches the outer site through the HtmlService iframe sandbo
   assert.match(html, /<\/body><\/html>$/);
 });
 
+test("statusForEvent_ confirms only a settled exact event and renders no intake data", () => {
+  const statuses = ["sent: 200", "sent"];
+  const sheet = {
+    getLastRow() { return 2; },
+    getRange(row, column) {
+      if (column === 2) {
+        return {
+          createTextFinder(value) {
+            return {
+              matchEntireCell(exact) {
+                assert.equal(exact, true);
+                return { findNext: () => value === valid.eventId ? { getRow: () => 2 } : null };
+              }
+            };
+          }
+        };
+      }
+      assert.deepEqual([row, column], [2, 15]);
+      return { getDisplayValues: () => [statuses] };
+    }
+  };
+
+  assert.equal(sandbox.statusForEvent_(sheet, valid.eventId), true);
+  statuses[0] = "processing";
+  assert.equal(sandbox.statusForEvent_(sheet, valid.eventId), false);
+  statuses[0] = "sent: 200";
+  assert.equal(sandbox.statusForEvent_(sheet, "lead_11111111-1111-4111-8111-111111111111"), false);
+
+  const script = sandbox.renderStatusCallback_({ ok: true, eventId: valid.eventId });
+  assert.match(script, /^window\.rongxinBookingStatus&&window\.rongxinBookingStatus\(/);
+  assert.match(script, /"type":"rongxin-booking-status"/);
+  assert.equal(script.includes(valid.email), false);
+  assert.equal(script.includes(valid.stuckText), false);
+});
+
+test("doGet serves a JavaScript status callback only for a valid event id", () => {
+  const originalLoadConfig = sandbox.loadConfig_;
+  const originalGetSheet = sandbox.getSheet_;
+  const originalStatusForEvent = sandbox.statusForEvent_;
+  let statusChecks = 0;
+  let mimeType = "";
+  sandbox.loadConfig_ = () => ({ spreadsheetId: "sheet-1" });
+  sandbox.getSheet_ = () => ({ name: "sheet" });
+  sandbox.statusForEvent_ = (_sheet, eventId) => {
+    statusChecks += 1;
+    return eventId === valid.eventId;
+  };
+  sandbox.ContentService = {
+    MimeType: { JAVASCRIPT: "JAVASCRIPT" },
+    createTextOutput(content) {
+      return {
+        content,
+        setMimeType(value) { mimeType = value; return this; }
+      };
+    }
+  };
+
+  const output = sandbox.doGet({ parameter: { event_id: valid.eventId } });
+  assert.equal(mimeType, "JAVASCRIPT");
+  assert.match(output.content, /"ok":true/);
+  assert.match(output.content, new RegExp(valid.eventId));
+  assert.equal(statusChecks, 1);
+
+  const invalid = sandbox.doGet({ parameter: { event_id: "not-an-event" } });
+  assert.match(invalid.content, /"ok":false/);
+  assert.equal(invalid.content.includes("not-an-event"), false);
+  assert.equal(statusChecks, 1);
+  sandbox.loadConfig_ = originalLoadConfig;
+  sandbox.getSheet_ = originalGetSheet;
+  sandbox.statusForEvent_ = originalStatusForEvent;
+});
+
 test("rowFor_ creates the approved 17-column row with fingerprint and separate states", () => {
   const input = sandbox.validateSubmission_(valid);
   const row = sandbox.rowFor_(input);

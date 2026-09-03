@@ -280,6 +280,28 @@ function renderBridge_(result, origin) {
     "</script></body></html>";
 }
 
+function statusForEvent_(sheet, eventId) {
+  var rowNumber = findEventRow_(sheet, eventId);
+  if (!rowNumber) {
+    return false;
+  }
+  var states = sheet.getRange(rowNumber, CAPI_STATE_COLUMN_, 1, 2).getDisplayValues()[0];
+  return states.every(function (state) {
+    state = String(state || "");
+    return state !== "" && state !== "pending" && state !== "processing";
+  });
+}
+
+function renderStatusCallback_(result) {
+  var message = {
+    type: "rongxin-booking-status",
+    ok: Boolean(result && result.ok === true),
+    eventId: String(result && result.eventId || "")
+  };
+  var serializedMessage = JSON.stringify(message).replace(/</g, "\\u003c");
+  return "window.rongxinBookingStatus&&window.rongxinBookingStatus(" + serializedMessage + ");";
+}
+
 function requiredProperty_(properties, name) {
   var value = properties.getProperty(name);
   if (value == null || String(value).trim() === "") {
@@ -559,6 +581,23 @@ function parseRequest_(event) {
     }
   });
   return parsed;
+}
+
+function doGet(e) {
+  var eventId = String(e && e.parameter && e.parameter.event_id || "");
+  var validEventId = /^lead_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId);
+  var ok = false;
+  if (validEventId) {
+    try {
+      var config = loadConfig_();
+      ok = statusForEvent_(getSheet_(config), eventId);
+    } catch (error) {
+      Logger.log("Booking status check failed");
+    }
+  }
+  return ContentService
+    .createTextOutput(renderStatusCallback_({ ok: ok, eventId: validEventId ? eventId : "" }))
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 function doPost(e) {
