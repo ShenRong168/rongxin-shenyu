@@ -1789,7 +1789,7 @@
     },
     {
       "id": "2026-09-05-im-fine-answer-facebook",
-      "scheduledAt": "2026-09-05T21:00:00+08:00",
+      "scheduledAt": "2026-09-03T21:00:00+08:00",
       "platforms": [
         "facebook"
       ],
@@ -1800,7 +1800,7 @@
     },
     {
       "id": "2026-09-06-stranger-vs-friend-facebook",
-      "scheduledAt": "2026-09-06T21:00:00+08:00",
+      "scheduledAt": "2026-09-05T21:00:00+08:00",
       "platforms": [
         "facebook"
       ],
@@ -1811,7 +1811,7 @@
     },
     {
       "id": "2026-09-08-doing-okay-or-truth-facebook",
-      "scheduledAt": "2026-09-08T21:00:00+08:00",
+      "scheduledAt": "2026-09-07T21:00:00+08:00",
       "platforms": [
         "facebook"
       ],
