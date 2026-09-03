@@ -153,16 +153,6 @@ export function isTrustedReply(event, pending) {
   );
 }
 
-export function isConfirmedStatus(data, pending) {
-  return Boolean(
-    data &&
-    pending &&
-    data.type === "rongxin-booking-status" &&
-    data.eventId === pending.eventId &&
-    data.ok === true
-  );
-}
-
 export function consumeLeadMarker(storage, eventId) {
   if (!eventId || storage.getItem(`rongxin:lead:${eventId}`) !== "confirmed") return false;
   storage.removeItem(`rongxin:lead:${eventId}`);

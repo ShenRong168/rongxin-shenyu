@@ -5,7 +5,6 @@ import {
   consumeLeadMarker,
   createEventId,
   getCookie,
-  isConfirmedStatus,
   isTrustedReply,
   normalizeEmail,
   validateBooking
@@ -105,17 +104,6 @@ test("trusts the nested Apps Script sandbox only for the pending event", () => {
   assert.equal(isTrustedReply({ ...base, origin: "https://script.google.com:8443" }, pending), false);
   assert.equal(isTrustedReply({ ...base, data: { ...base.data, eventId: "lead_2" } }, pending), false);
   assert.equal(isTrustedReply({ ...base, data: { ...base.data, ok: "true" } }, pending), false);
-});
-
-test("accepts only a completed status for the pending event", () => {
-  const pending = { eventId: "lead_1" };
-  const completed = { type: "rongxin-booking-status", eventId: "lead_1", ok: true };
-  assert.equal(isConfirmedStatus(completed, pending), true);
-  assert.equal(isConfirmedStatus({ ...completed, eventId: "lead_2" }, pending), false);
-  assert.equal(isConfirmedStatus({ ...completed, ok: false }, pending), false);
-  assert.equal(isConfirmedStatus({ ...completed, ok: "true" }, pending), false);
-  assert.equal(isConfirmedStatus({ ...completed, type: "other" }, pending), false);
-  assert.equal(isConfirmedStatus(completed, null), false);
 });
 
 test("consumes a confirmed lead marker exactly once", () => {

@@ -1,5 +1,5 @@
 import { BOOKING_ENDPOINT } from "./booking-config.mjs";
-import { buildFbc, createEventId, getCookie, isConfirmedStatus, isTrustedReply, normalizeEmail, validateBooking } from "./booking-core.mjs";
+import { buildFbc, createEventId, getCookie, isTrustedReply, normalizeEmail, validateBooking } from "./booking-core.mjs";
 
 const form = document.querySelector("#booking-form");
 const frame = document.querySelector('iframe[name="booking-response"]');
@@ -16,7 +16,6 @@ let safetyState = "";
 let snapshot = null;
 let pending = null;
 let timeoutId = 0;
-let statusPollId = 0;
 let controlsLocked = false;
 
 form.action = BOOKING_ENDPOINT;
@@ -125,39 +124,8 @@ function showErrors(errors) {
 
 function stopWaitingForReply() {
   if (timeoutId) clearTimeout(timeoutId);
-  if (statusPollId) clearInterval(statusPollId);
   timeoutId = 0;
-  statusPollId = 0;
   pending = null;
-}
-
-function confirmSubmission(eventId) {
-  stopWaitingForReply();
-  try {
-    window.sessionStorage.setItem(`rongxin:lead:${eventId}`, "confirmed");
-  } catch {
-    // A blocked storage write must not trap a confirmed lead on this page.
-  }
-  window.location.assign(`/thank-you.html?event_id=${encodeURIComponent(eventId)}`);
-}
-
-function probeSubmissionStatus() {
-  if (!pending) return;
-  const endpoint = new URL(BOOKING_ENDPOINT);
-  endpoint.searchParams.set("event_id", pending.eventId);
-  endpoint.searchParams.set("_", String(Date.now()));
-  const probe = document.createElement("script");
-  probe.async = true;
-  probe.referrerPolicy = "no-referrer";
-  probe.src = endpoint.href;
-  probe.addEventListener("load", () => probe.remove());
-  probe.addEventListener("error", () => probe.remove());
-  document.head.appendChild(probe);
-}
-
-function startStatusPolling() {
-  probeSubmissionStatus();
-  statusPollId = window.setInterval(probeSubmissionStatus, 2500);
 }
 
 function setControlsLocked(locked) {
@@ -213,7 +181,6 @@ form.addEventListener("submit", (event) => {
   timeoutId = window.setTimeout(() => unlock("連線逾時，內容仍保留在畫面中，請重試或使用備援表單。"), 15000);
   HTMLFormElement.prototype.submit.call(form);
   setControlsLocked(true);
-  startStatusPolling();
 });
 
 window.addEventListener("message", (event) => {
@@ -223,10 +190,11 @@ window.addEventListener("message", (event) => {
     unlock(event.data.message || "目前無法送出，請稍後重試。");
     return;
   }
-  confirmSubmission(confirmedEventId);
+  stopWaitingForReply();
+  try {
+    window.sessionStorage.setItem(`rongxin:lead:${confirmedEventId}`, "confirmed");
+  } catch {
+    // A blocked storage write must not trap a confirmed lead on this page.
+  }
+  window.location.assign(`/thank-you.html?event_id=${encodeURIComponent(confirmedEventId)}`);
 });
-
-window.rongxinBookingStatus = (data) => {
-  if (!pending || !isConfirmedStatus(data, pending)) return;
-  confirmSubmission(pending.eventId);
-};
