@@ -1785,7 +1785,16 @@
       "videoUrl": "https://rongxinshenyu.com/assets/ig-characters/reels/sharing-toy-scene-reel-final.mp4",
       "message": "玩具只有一份，妹妹想了兩秒，還是分給弟弟一半。\n\n那個瞬間沒有大道理，只是單純想讓弟弟也開心。\n\n如果也覺得這種單純很珍貴，幫我收藏起來 🌿\n\n#榮心紳語 #親子日常 #手足時光",
       "link": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-03T12:01:29.468Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18165663676474047"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-05-im-fine-answer-facebook",
@@ -1796,7 +1805,17 @@
       "message": "你有沒有發現，你最常說的一句話是「我很好」？\n\n不是騙人，是懶得解釋，是不知道從哪裡說起，\n是說了怕對方也幫不上忙，乾脆就不說了。\n\n「我很好」有時候是真的，有時候只是最省力的答案。\n\n你上一次說「我很好」，其實心裡在想什麼？留言打出來，\n或者只打一個字也可以，我在看。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/im-fine-answer-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-03T13:01:00.594Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122118478125372954",
+            "post_id": "1230312726828490_122118478143372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-06-stranger-vs-friend-facebook",
@@ -1821,5 +1840,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-09-02T13:00:59.215Z"
+  "lastRunAt": "2026-09-03T13:00:53.972Z"
 }
