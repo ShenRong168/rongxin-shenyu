@@ -1714,7 +1714,16 @@
       "message": "如果有人問你「今天過得好不好」，你通常怎麼回答？\n\n大部分時候是「還好」，\n但心裡真正想講的，常常不是「還好」兩個字能裝下的。\n\n「還好」有時候是真的還好，\n有時候只是不想在對方面前，把真話攤開來。\n\n你今天如果被問「過得好不好」，會回答「還好」還是「真話」？\n留言打「還好」或「真話」，我很好奇。",
       "link": "",
       "imageUrl": "",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-04T13:01:02.436Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18148933030547059"
+          }
+        }
+      ]
     },
     {
       "id": "2026-08-28-siblings-reconciled-reel-instagram",
@@ -1840,5 +1849,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-09-03T13:00:53.972Z"
+  "lastRunAt": "2026-09-04T13:00:54.985Z"
 }
