@@ -1835,7 +1835,17 @@
       "message": "有人問我，為什麼要找一個陌生人說，不找認識很久的朋友？\n\n我想了想，答案很簡單：認識越久的人，你越會顧慮他怎麼看你。\n\n朋友聽你說完，可能會記住很久，可能會在別的場合想起來，\n可能會忍不住給建議、忍不住擔心。\n\n陌生人不會。陌生人只會聽完，然後這件事就留在那裡，不會跟著你走。\n\n如果你現在打給認識最久的朋友，你會把心裡真正的事情說出來嗎？\n留言打「會」或「不會」就好。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/stranger-vs-friend-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-05T13:00:49.769Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122118820767372954",
+            "post_id": "1230312726828490_122118820785372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-08-doing-okay-or-truth-facebook",
@@ -1849,5 +1859,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-09-04T13:00:54.985Z"
+  "lastRunAt": "2026-09-05T13:00:41.892Z"
 }
