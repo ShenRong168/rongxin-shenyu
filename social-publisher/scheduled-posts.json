@@ -1856,7 +1856,17 @@
       "message": "如果有人問你「今天過得好不好」，你通常怎麼回答？\n\n大部分時候是「還好」，\n但心裡真正想講的，常常不是「還好」兩個字能裝下的。\n\n「還好」有時候是真的還好，\n有時候只是不想在對方面前，把真話攤開來。\n\n你今天如果被問「過得好不好」，會回答「還好」還是「真話」？\n留言打「還好」或「真話」，我很好奇。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/doing-okay-or-truth-quote.png",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-07T13:01:22.368Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122119133475372954",
+            "post_id": "1230312726828490_122119133493372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-08-past-vs-present-threads",
@@ -1908,7 +1918,9 @@
     {
       "id": "2026-09-12-school-eve-ready-instagram",
       "scheduledAt": "2026-09-12T12:30:00+08:00",
-      "platforms": ["instagram"],
+      "platforms": [
+        "instagram"
+      ],
       "status": "queued",
       "message": "明天要上學了，書包裡裝著新文具，也裝著一點緊張和好多期待。\n\n每個準備出發的小動作，都很可愛。\n\n留言告訴我你家小孩開學前一晚最可愛的小動作。\n\n#開學季 #親子日常 #榮心紳語",
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/school-eve-ready-reel-final.mp4"
@@ -1923,5 +1935,5 @@
       "message": "半夜滑過一次通訊錄，滑到最後發現，現在方便打給的人是零個。\n不是沒有朋友，是這個時間點，誰都不方便被打擾。\n\n你通訊錄裡有幾個人是「現在幾點打給他都可以」的？留言打數字，0也可以。"
     }
   ],
-  "lastRunAt": "2026-09-05T13:00:41.892Z"
+  "lastRunAt": "2026-09-07T13:01:16.251Z"
 }
