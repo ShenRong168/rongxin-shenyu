@@ -1857,6 +1857,42 @@
       "link": "",
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/doing-okay-or-truth-quote.png",
       "status": "queued"
+    },
+    {
+      "id": "2026-09-08-past-vs-present-threads",
+      "scheduledAt": "2026-09-08T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "status": "queued",
+      "message": "認識你十年的人，會拿你以前怎樣來看你現在說的話。\n不認識你的人不會。他只聽得到你現在說的這句。\n\n有時候你需要的不是一個懂你過去的人，是一個只看得到你現在的人——這樣你才能說出跟以前不一樣的話，而不是被舊的自己攔住。\n\n跟一個不知道你過去的人說，跟跟一個知道你所有過去的人說，你會挑哪一個？留言打「不知道」或「知道」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話"
+    },
+    {
+      "id": "2026-09-10-say-it-now-threads",
+      "scheduledAt": "2026-09-10T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "status": "queued",
+      "message": "很多說話的地方，都要你先預約、先等待、先排隊。\n等到真正能說的時候，那股想說的勁可能已經過去了。\n\n有些話是「現在」才想說的，過了今晚就會被自己重新收好、不再拿出來。\n\n如果現在馬上有一個人能聽你說，你會想現在說，還是想等「準備好」再說？留言打「現在」或「等」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話"
+    },
+    {
+      "id": "2026-09-12-deleted-message-threads",
+      "scheduledAt": "2026-09-12T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "status": "queued",
+      "message": "你有沒有打過一大段訊息，打到一半又整段刪掉？\n不是不想說，是想到對方看到這些字之後的表情，就先幫他省了。\n\n那些被刪掉的字，沒有消失，只是換了個地方繼續放著。\n\n你上一次打好的那則訊息，最後有沒有傳出去？留言打「有」或「沒有」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話"
+    },
+    {
+      "id": "2026-09-14-contact-list-threads",
+      "scheduledAt": "2026-09-14T21:00:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "status": "queued",
+      "message": "半夜滑過一次通訊錄，滑到最後發現，現在方便打給的人是零個。\n不是沒有朋友，是這個時間點，誰都不方便被打擾。\n\n你通訊錄裡有幾個人是「現在幾點打給他都可以」的？留言打數字，0也可以。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話"
     }
   ],
   "lastRunAt": "2026-09-05T13:00:41.892Z"
