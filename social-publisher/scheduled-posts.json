@@ -1927,6 +1927,17 @@
       "message": "你有沒有打過一大段訊息，打到一半又整段刪掉？\n不是不想說，是想到對方看到這些字之後的表情，就先幫他省了。\n\n那些被刪掉的字，沒有消失，只是換了個地方繼續放著。\n\n你上一次打好的那則訊息，最後有沒有傳出去？留言打「有」或「沒有」。"
     },
     {
+      "id": "2026-09-13-deleted-message-facebook",
+      "scheduledAt": "2026-09-13T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "status": "queued",
+      "message": "你有沒有打過一大段訊息，打到一半又整段刪掉？\n不是不想說，是想到對方看到這些字之後的表情，就先幫他省了。\n\n那些被刪掉的字，沒有消失，只是換了個地方繼續放著。\n\n你上一次打好的那則訊息，最後有沒有傳出去？留言打「有」或「沒有」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "link": "",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/deleted-message-quote.png"
+    },
+    {
       "id": "2026-09-12-school-eve-ready-instagram",
       "scheduledAt": "2026-09-12T12:30:00+08:00",
       "platforms": [
