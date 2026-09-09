@@ -1892,10 +1892,20 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "認識你十年的人，會拿你以前怎樣來看你現在說的話。\n不認識你的人不會。他只聽得到你現在說的這句。\n\n有時候你需要的不是一個懂你過去的人，是一個只看得到你現在的人——這樣你才能說出跟以前不一樣的話，而不是被舊的自己攔住。\n\n跟一個不知道你過去的人說，跟一個知道你所有過去的人說，你會挑哪一個？留言打「不知道」或「知道」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/past-vs-present-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/past-vs-present-quote.png",
+      "publishedAt": "2026-09-09T13:01:03.580Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122119453281372954",
+            "post_id": "1230312726828490_122119453311372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-08-moon-hungry-question-instagram",
@@ -1975,5 +1985,5 @@
       "message": "半夜滑過一次通訊錄，滑到最後發現，現在方便打給的人是零個。\n不是沒有朋友，是這個時間點，誰都不方便被打擾。\n\n你通訊錄裡有幾個人是「現在幾點打給他都可以」的？留言打數字，0也可以。"
     }
   ],
-  "lastRunAt": "2026-09-09T09:01:03.584Z"
+  "lastRunAt": "2026-09-09T13:00:58.304Z"
 }
