@@ -1874,8 +1874,17 @@
       "platforms": [
         "threads"
       ],
-      "status": "queued",
-      "message": "認識你十年的人，會拿你以前怎樣來看你現在說的話。\n不認識你的人不會。他只聽得到你現在說的這句。\n\n有時候你需要的不是一個懂你過去的人，是一個只看得到你現在的人——這樣你才能說出跟以前不一樣的話，而不是被舊的自己攔住。\n\n跟一個不知道你過去的人說，跟一個知道你所有過去的人說，你會挑哪一個？留言打「不知道」或「知道」。"
+      "status": "published",
+      "message": "認識你十年的人，會拿你以前怎樣來看你現在說的話。\n不認識你的人不會。他只聽得到你現在說的這句。\n\n有時候你需要的不是一個懂你過去的人，是一個只看得到你現在的人——這樣你才能說出跟以前不一樣的話，而不是被舊的自己攔住。\n\n跟一個不知道你過去的人說，跟一個知道你所有過去的人說，你會挑哪一個？留言打「不知道」或「知道」。",
+      "publishedAt": "2026-09-09T09:01:11.791Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18017205263733512"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-09-past-vs-present-facebook",
@@ -1894,9 +1903,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "「媽媽，月亮會肚子餓嗎？」\n\n孩子的問題有時候沒有標準答案，卻總能把大人逗笑，還讓我們停下來重新看看這個世界。\n\n今晚一起抬頭看看月亮吧。\n\n留言分享你家小孩問過最讓你噴笑的問題。\n\n#童言童語 #親子日常 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/moon-hungry-question-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/moon-hungry-question-reel-final.mp4",
+      "publishedAt": "2026-09-09T09:01:54.260Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18123991138867572"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-10-one-session-is-enough-threads",
@@ -1957,5 +1975,5 @@
       "message": "半夜滑過一次通訊錄，滑到最後發現，現在方便打給的人是零個。\n不是沒有朋友，是這個時間點，誰都不方便被打擾。\n\n你通訊錄裡有幾個人是「現在幾點打給他都可以」的？留言打數字，0也可以。"
     }
   ],
-  "lastRunAt": "2026-09-09T08:51:49.170Z"
+  "lastRunAt": "2026-09-09T09:01:03.584Z"
 }
