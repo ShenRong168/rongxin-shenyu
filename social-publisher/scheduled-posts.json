@@ -1941,9 +1941,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "她把一個詞說錯了，我們沒有急著糾正，反而跟著她玩出一個全新的意思。\n\n孩子的語言還在長大，想像力卻早就跑得很遠。\n\n今天也一起接住那些可愛的新發明。\n\n留言分享你家小孩自創過最有創意的詞。\n\n#童言童語 #親子日常 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/family-made-up-word-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/family-made-up-word-reel-final.mp4",
+      "publishedAt": "2026-09-10T04:32:14.370Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17975071553925230"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-12-deleted-message-threads",
@@ -1985,5 +1994,5 @@
       "message": "半夜滑過一次通訊錄，滑到最後發現，現在方便打給的人是零個。\n不是沒有朋友，是這個時間點，誰都不方便被打擾。\n\n你通訊錄裡有幾個人是「現在幾點打給他都可以」的？留言打數字，0也可以。"
     }
   ],
-  "lastRunAt": "2026-09-09T13:00:58.304Z"
+  "lastRunAt": "2026-09-10T04:30:45.671Z"
 }
