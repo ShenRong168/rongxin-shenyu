@@ -1989,7 +1989,8 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "paused",
+      "pausedNote": "2026-09-11 Claude 已查出畫面缺陷（媽媽頭身比例偏大約5.2-5.9頭身、臉偏年輕；render_ig_reel.py 推鏡錨在左上角導致片尾右緣切到人物、字幕面板蓋住弟弟的臉），當時列為待確認交由 Shen 決定照發或撤下重做，但截至排定發布日 2026-09-12 當天早上仍未見決定。rongxin-shenyu-card-qc 每日驗收於發布前約4小時（08:31）攔下，避免已知缺陷內容照排程自動發出。",
       "message": "明天要上學了，書包裡裝著新文具，也裝著一點緊張和好多期待。\n\n每個準備出發的小動作，都很可愛。\n\n留言告訴我你家小孩開學前一晚最可愛的小動作。\n\n#開學季 #親子日常 #榮心紳語",
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/school-eve-ready-reel-final.mp4"
     },
