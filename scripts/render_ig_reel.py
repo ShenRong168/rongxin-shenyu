@@ -62,7 +62,7 @@ def render_reel(image_path, output_path, captions, duration=15.0):
         caption_card(captions, card)
         run([
             "ffmpeg", "-y", "-loop", "1", "-framerate", str(FPS), "-i", str(image_path),
-            "-vf", f"scale={W}:{H},zoompan=z='min(zoom+0.00035,1.15)':d={frames}:s={W}x{H}:fps={FPS},format=yuv420p",
+            "-vf", f"scale={W}:{H},zoompan=z='min(zoom+0.00035,1.15)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={W}x{H}:fps={FPS},format=yuv420p",
             "-frames:v", str(frames), "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-an", str(base),
         ])
         run([

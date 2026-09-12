@@ -7,3 +7,9 @@
 3. 專案索引:`/Volumes/fast/Obsidian/AI筆記本/榮心紳語/README.md`
 
 完成任務後,請更新分工筆記裡對應項目的狀態,並視需要同步更新專案 README。
+
+## IG Reel 字幕渲染（2026-09-12）
+
+- 本機 `ffmpeg` 為 Homebrew 精簡版，沒有 `drawtext`／`subtitles`／`ass` 濾鏡；不要嘗試修復或改用 SRT 燒錄。
+- Reel 字幕一律走 `scripts/render_ig_reel.py`（Pillow 字幕 PNG＋`overlay`）。
+- 需要全功能版時安裝 `ffmpeg-full`；它是 keg-only，不影響現有 ffmpeg。
