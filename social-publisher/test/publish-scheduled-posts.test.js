@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -293,6 +293,30 @@ test("scheduler publishes a valid Instagram carousel after payload normalization
   }
 });
 
+test("scheduler exits non-zero after persisting a failed due post", () => {
+  const { result, schedule, cleanup } = runAlertSchedule({ responseStatus: 500 });
+
+  try {
+    assert.equal(schedule.posts[0].status, "failed");
+    assert.equal(result.status, 1);
+  } finally {
+    cleanup();
+  }
+});
+
+test("scheduler exits non-zero after publishing a post more than 20 minutes late", () => {
+  const { result, schedule, cleanup } = runAlertSchedule({
+    scheduledAt: "2000-01-01T00:00:00.000Z"
+  });
+
+  try {
+    assert.equal(schedule.posts[0].status, "published");
+    assert.equal(result.status, 1);
+  } finally {
+    cleanup();
+  }
+});
+
 function runMixedPlatformSchedule(media) {
   const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-posts-mixed-"));
   const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
@@ -329,7 +353,7 @@ globalThis.fetch = async (url) => {
   );
 
   try {
-    execFileSync(process.execPath, ["--import", preloadPath, schedulerPath], {
+    spawnSync(process.execPath, ["--import", preloadPath, schedulerPath], {
       cwd,
       env: {
         ...withoutPublisherSecrets(process.env),
@@ -392,7 +416,7 @@ globalThis.fetch = async (url, options = {}) => {
       posts: [
         {
           id: "scheduled-instagram-media",
-          scheduledAt: "2000-01-01T00:00:00.000Z",
+          scheduledAt: new Date(Date.now() - 60_000).toISOString(),
           platforms,
           message,
           ...media,
@@ -430,6 +454,53 @@ globalThis.fetch = async (url, options = {}) => {
     rmSync(cwd, { recursive: true, force: true });
     throw error;
   }
+}
+
+function runAlertSchedule({ responseStatus = 200, scheduledAt = "2000-01-01T00:00:00.000Z" } = {}) {
+  const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-alert-"));
+  const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
+  const preloadPath = join(cwd, "mock-fetch.mjs");
+  const schedulePath = join(cwd, "scheduled-posts.json");
+
+  writeFileSync(
+    preloadPath,
+    `globalThis.fetch = async () => new Response(JSON.stringify({ id: "facebook_media_1", error: { message: "mock failure" } }), { status: Number(process.env.MOCK_RESPONSE_STATUS) });\n`
+  );
+  writeFileSync(
+    schedulePath,
+    JSON.stringify({
+      posts: [
+        {
+          id: "alert-test-post",
+          scheduledAt,
+          platforms: ["facebook"],
+          message: "Alert test post",
+          status: "queued"
+        }
+      ]
+    })
+  );
+
+  const result = spawnSync(process.execPath, ["--import", preloadPath, schedulerPath], {
+    cwd,
+    env: {
+      ...withoutPublisherSecrets(process.env),
+      META_PAGE_ID: "test_page",
+      META_PAGE_ACCESS_TOKEN: "test_page_token",
+      INSTAGRAM_USER_ID: "test_instagram",
+      THREADS_USER_ID: "test_threads",
+      THREADS_ACCESS_TOKEN: "test_threads_token",
+      SCHEDULE_FILE: schedulePath,
+      MOCK_RESPONSE_STATUS: String(responseStatus)
+    },
+    encoding: "utf8"
+  });
+
+  return {
+    result,
+    schedule: JSON.parse(readFileSync(schedulePath, "utf8")),
+    cleanup: () => rmSync(cwd, { recursive: true, force: true })
+  };
 }
 
 function withoutPublisherSecrets(source) {

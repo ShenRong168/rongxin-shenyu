@@ -215,6 +215,12 @@ Threads：
 
 如果不想依賴這台 Mac 開機，可以使用 GitHub Actions 的雲端排程。這個 workflow 檢查 `scheduled-posts.json`，只要有到期且狀態是 `queued` 的貼文，就會自動發出（`.github/workflows/social-publisher.yml` 目前設定為 `cron: "3/5 * * * *"`，即每 5 分鐘一次）。
 
+### 排程未發提醒
+
+- 發文 API 失敗，或貼文到預定時間 **20 分鐘後**才開始處理時，發布器會先將 `failed`／`published` 狀態寫入 `scheduled-posts.json`，再讓 GitHub Actions run 失敗。請在 GitHub 對此 repository 開啟 workflow failure 通知；失敗 run 的 log 會列出貼文 ID 與原因。
+- `cron-job.org` 每 10 分鐘的 `workflow_dispatch` 是 GitHub 原生 `schedule` 的獨立備援。請在該工作開啟「HTTP 請求失敗」通知；這是唯一能在**完全沒有外部 dispatch** 時告警的觀測點，GitHub 內部 workflow 因未被啟動而無法自行偵測。
+- 20 分鐘門檻等於兩個 cron-job.org 週期，容許一次短暫延遲但在第二個週期仍未處理時留下可見告警。若需調整，設定 `PUBLISH_OVERDUE_AFTER_MINUTES` 為正數分鐘。
+
 > ⚠️ **`origin` 才是排程狀態的真相來源，本機檔案不是。** 這條線會往兩個方向壞掉，兩個都會咬人：
 >
 > - **本機改了沒 push** → 雲端只認最後一次 push 的版本，照舊版發文，而且不會有任何錯誤提示。

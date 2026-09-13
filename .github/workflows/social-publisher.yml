@@ -25,6 +25,8 @@ jobs:
         run: npm ci
 
       - name: Publish due scheduled posts
+        id: publish
+        continue-on-error: true
         working-directory: social-publisher
         env:
           META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
@@ -45,3 +47,9 @@ jobs:
           git add social-publisher/scheduled-posts.json
           git commit -m "Update scheduled post status"
           git push
+
+      - name: Alert after a failed or overdue scheduled post
+        if: steps.publish.outcome == 'failure'
+        run: |
+          echo "The publisher persisted the post status, then reported a failed or overdue scheduled post."
+          exit 1

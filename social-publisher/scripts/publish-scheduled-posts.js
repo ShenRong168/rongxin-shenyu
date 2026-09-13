@@ -10,6 +10,7 @@ const requiredSecrets = [
   "THREADS_USER_ID",
   "THREADS_ACCESS_TOKEN"
 ];
+const defaultOverdueAfterMinutes = 20;
 
 function requireEnv(name, env = process.env) {
   const value = env[name];
@@ -68,6 +69,18 @@ function isDue(post, now) {
   if (post.status && post.status !== "queued") return false;
   if (!post.scheduledAt) return false;
   return new Date(post.scheduledAt).getTime() <= now.getTime();
+}
+
+function overdueAfterMs(env = process.env) {
+  const minutes = Number(env.PUBLISH_OVERDUE_AFTER_MINUTES || defaultOverdueAfterMinutes);
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    throw new Error("PUBLISH_OVERDUE_AFTER_MINUTES must be a positive number");
+  }
+  return minutes * 60_000;
+}
+
+function isOverdue(post, now, thresholdMs) {
+  return now.getTime() - new Date(post.scheduledAt).getTime() >= thresholdMs;
 }
 
 async function publishPlatform(platform, post, instagramPayload) {
@@ -135,8 +148,10 @@ export async function main() {
 
   const schedulePath = resolve(process.env.SCHEDULE_FILE || "scheduled-posts.json");
   const now = new Date();
+  const overdueThresholdMs = overdueAfterMs();
   const schedule = await loadSchedule(schedulePath);
   const posts = [];
+  const alerts = [];
   let dueCount = 0;
 
   for (const post of schedule.posts || []) {
@@ -147,23 +162,36 @@ export async function main() {
 
     dueCount += 1;
     console.log(`Publishing scheduled post: ${post.id || "(no id)"}`);
-    posts.push(await publishPost(post));
+    const publishedPost = await publishPost(post);
+    posts.push(publishedPost);
+
+    if (publishedPost.status === "failed") {
+      alerts.push({ id: post.id || "(no id)", reason: "publish failed" });
+    } else if (isOverdue(post, now, overdueThresholdMs)) {
+      alerts.push({ id: post.id || "(no id)", reason: "processed late" });
+    }
   }
 
   console.log(`Scheduled publisher finished. Due posts: ${dueCount}`);
-  if (!dueCount) return;
+  if (!dueCount) return { alerts };
 
   await saveSchedule(schedulePath, {
     ...schedule,
     lastRunAt: now.toISOString(),
     posts
   });
+
+  return { alerts };
 }
 
 async function runFromCommandLine() {
   const { default: dotenv } = await import("dotenv");
   dotenv.config();
-  await main();
+  const { alerts } = await main();
+  if (alerts.length) {
+    console.error(`Scheduled publisher alert: ${alerts.map((alert) => `${alert.id} (${alert.reason})`).join(", ")}`);
+    process.exitCode = 1;
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
