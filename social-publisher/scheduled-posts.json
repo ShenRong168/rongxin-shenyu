@@ -2000,9 +2000,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "明天要上學了，書包裡裝著新文具，也裝著一點緊張和好多期待。\n\n每個準備出發的小動作，都很可愛。\n\n留言告訴我你家小孩開學前一晚最可愛的小動作。\n\n#開學季 #親子日常 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/school-eve-ready-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/school-eve-ready-reel-final.mp4",
+      "publishedAt": "2026-09-13T13:41:30.832Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18147915409479548"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-14-contact-list-threads",
@@ -2081,5 +2090,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/coat-before-going-out-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-09-13T13:01:04.822Z"
+  "lastRunAt": "2026-09-13T13:40:46.339Z"
 }
