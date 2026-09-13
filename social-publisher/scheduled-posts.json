@@ -1979,10 +1979,20 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你有沒有打過一大段訊息，打到一半又整段刪掉？\n不是不想說，是想到對方看到這些字之後的表情，就先幫他省了。\n\n那些被刪掉的字，沒有消失，只是換了個地方繼續放著。\n\n你上一次打好的那則訊息，最後有沒有傳出去？留言打「有」或「沒有」。\n\n想直接找人聊聊，也可以加 LINE：https://lin.ee/7Zg9YlB\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
       "link": "",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/deleted-message-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/deleted-message-quote.png",
+      "publishedAt": "2026-09-13T13:01:12.205Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122120050851372954",
+            "post_id": "1230312726828490_122120050881372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-12-school-eve-ready-instagram",
@@ -2072,5 +2082,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/coat-before-going-out-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-09-13T02:10:39.270Z"
+  "lastRunAt": "2026-09-13T13:01:04.822Z"
 }
