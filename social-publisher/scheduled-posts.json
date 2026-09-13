@@ -2030,8 +2030,17 @@
         "threads"
       ],
       "message": "良善的人跟一般人的差別，是良善的人更願意主動伸出援手。\n\n一般人不會。\n\n但想太多的人，可能連別人伸出來的手，都不敢伸手去拉。",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-13T02:10:46.311Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18098434985456907"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-12T05:30:42.478Z"
+  "lastRunAt": "2026-09-13T02:10:39.270Z"
 }
