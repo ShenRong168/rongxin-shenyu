@@ -2096,7 +2096,16 @@
         "threads"
       ],
       "message": "很多人窮極一生，都在拼一件事：拼到有一天可以不用再拼。\n\n為了那一天，連現在的休息都不敢碰。\n\n但有沒有想過——如果那一天沒有來呢？\n\n如果最後一刻，心裡還掛著沒做完的事，代表你連一次真正的休息，都沒機會兌現。\n\n人生就這樣結束了。",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-14T02:01:07.938Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18031860266892241"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-15-not-alone-until-better-facebook",
@@ -2109,5 +2118,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-alone-until-better-quote.png"
     }
   ],
-  "lastRunAt": "2026-09-13T13:40:46.339Z"
+  "lastRunAt": "2026-09-14T02:01:00.973Z"
 }
