@@ -2065,9 +2065,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "寶寶突然打人，不是變壞。\n他只是還不會用說的表達。\n\n當孩子還找不到合適的字，手可能會先替他說話。\n我們可以先輕輕接住，再陪他慢慢學會。\n\n如果這份理解也讓你想起家裡的溫柔時刻，按個讚吧。\n\n#親子日常 #溫柔教養 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/gentle-hands-not-bad-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/gentle-hands-not-bad-reel-final.mp4",
+      "publishedAt": "2026-09-14T04:32:24.945Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18180996316415093"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-16-held-in-palm-instagram",
@@ -2118,5 +2127,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-alone-until-better-quote.png"
     }
   ],
-  "lastRunAt": "2026-09-14T02:01:00.973Z"
+  "lastRunAt": "2026-09-14T04:30:50.683Z"
 }
