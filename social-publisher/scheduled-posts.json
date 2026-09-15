@@ -2122,9 +2122,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你身邊的人都在等你「變好」，卻沒有人問你，現在這樣的你，是不是也可以被接住。\n\n大家關心的是結果，不是過程裡那個還沒整理好的你。\n\n榮心紳語想做的，就是在你還沒變好之前，先接住你。\n\n你現在最需要的，是有人陪你想清楚，還是有人陪你先什麼都不用想？留言打「想清楚」或「先不想」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-alone-until-better-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-alone-until-better-quote.png",
+      "publishedAt": "2026-09-15T13:01:10.040Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122120372775372954",
+            "post_id": "1230312726828490_122120372793372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-14-good-decisions-not-fear-threads",
@@ -2161,8 +2171,17 @@
         "threads"
       ],
       "message": "人生裡想追的夢，除了勇敢去做，還要願意跟不可能死纏爛打。\n\n也許最後不會成功，但你努力過，會學到一個只有你自己才懂的體悟。\n\n那就夠了。\n\n假設這輩子只能活到 60 歲、只能花 1000 萬。\n\n如果你急著拿到、急著花完，剩下的日子反而會變成一種折磨。\n\n如果人生只是帶著一個任務來體驗一趟，你現在追的那個夢，還會是同一個嗎？",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-15T13:01:18.056Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18107027453165036"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-14T12:31:03.015Z"
+  "lastRunAt": "2026-09-15T13:01:04.460Z"
 }
