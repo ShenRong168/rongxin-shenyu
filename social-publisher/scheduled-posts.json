@@ -2084,9 +2084,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有些被好好捧著的感覺，會留在心裡很久。\n\n一隻手、一個安靜的眼神，就能把平凡的時刻變得很溫柔。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/held-in-palm-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/held-in-palm-reel-final.mp4",
+      "publishedAt": "2026-09-16T04:31:30.099Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18029158643909064"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-18-coat-before-going-out-instagram",
@@ -2183,5 +2192,5 @@
       ]
     }
   ],
-  "lastRunAt": "2026-09-15T13:01:04.460Z"
+  "lastRunAt": "2026-09-16T04:30:46.508Z"
 }
