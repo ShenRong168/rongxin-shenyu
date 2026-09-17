@@ -2208,6 +2208,15 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-09-17-find-what-fits-you-threads",
+      "scheduledAt": "2026-09-17T21:07:00+08:00",
+      "platforms": [
+        "threads"
+      ],
+      "message": "大家都在學習別人成功的路徑，這沒有不對。\n\n只是成功的方法很多種。\n\n要找到適合自己、也適合當下環境的那一種，才有機會一蹴而就。",
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-09-16T12:01:01.440Z"
