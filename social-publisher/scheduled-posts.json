@@ -2226,8 +2226,17 @@
         "threads"
       ],
       "message": "大家都在學習別人成功的路徑，這沒有不對。\n\n只是成功的方法很多種。\n\n要找到適合自己、也適合當下環境的那一種，才有機會一蹴而就。",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-18T04:01:00.178Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "17955186885017108"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-18T01:01:05.530Z"
+  "lastRunAt": "2026-09-18T04:00:54.012Z"
 }
