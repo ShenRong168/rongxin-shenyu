@@ -2221,19 +2221,12 @@
     },
     {
       "id": "2026-09-17-find-what-fits-you-threads",
-      "scheduledAt": "2026-09-17T21:07:00+08:00",
+      "scheduledAt": "2026-09-18T03:54:12.340Z",
       "platforms": [
         "threads"
       ],
       "message": "大家都在學習別人成功的路徑，這沒有不對。\n\n只是成功的方法很多種。\n\n要找到適合自己、也適合當下環境的那一種，才有機會一蹴而就。",
-      "status": "failed",
-      "publishedAt": "2026-09-18T01:01:08.213Z",
-      "results": [
-        {
-          "platform": "threads",
-          "error": "The requested resource does not exist"
-        }
-      ]
+      "status": "queued"
     }
   ],
   "lastRunAt": "2026-09-18T01:01:05.530Z"
