@@ -2103,9 +2103,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "出門前的幾分鐘，也是有人好好照顧你的證明。\n\n一顆扣子、一句慢慢來，就把一天的開始變得很安心。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/coat-before-going-out-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/coat-before-going-out-reel-final.mp4",
+      "publishedAt": "2026-09-18T04:31:30.447Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18127289881830394"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-14-life-runs-out-before-rest-threads",
@@ -2238,5 +2247,5 @@
       ]
     }
   ],
-  "lastRunAt": "2026-09-18T04:00:54.012Z"
+  "lastRunAt": "2026-09-18T04:30:51.974Z"
 }
