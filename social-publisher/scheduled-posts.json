@@ -2226,8 +2226,15 @@
         "threads"
       ],
       "message": "大家都在學習別人成功的路徑，這沒有不對。\n\n只是成功的方法很多種。\n\n要找到適合自己、也適合當下環境的那一種，才有機會一蹴而就。",
-      "status": "queued"
+      "status": "failed",
+      "publishedAt": "2026-09-18T01:01:08.213Z",
+      "results": [
+        {
+          "platform": "threads",
+          "error": "The requested resource does not exist"
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-17T13:01:04.980Z"
+  "lastRunAt": "2026-09-18T01:01:05.530Z"
 }
