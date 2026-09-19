@@ -2253,8 +2253,17 @@
         "threads"
       ],
       "message": "勇敢面對壓力與環境的人，通常會聚集大多數人的目光。\n\n前提是，你是發自內心準備好，接受所有的合理，和不合理。\n\n如果準備好了，就勇敢地往前走吧！",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-19T02:20:56.385Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18140691577525196"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-18T04:30:51.974Z"
+  "lastRunAt": "2026-09-19T02:20:50.131Z"
 }
