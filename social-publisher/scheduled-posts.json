@@ -2270,9 +2270,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有些人不缺建議，缺的是一個不急著給答案的人。\n\n朋友會說「你想太多」，家人會說「別想了」，網路上有一百種方法。\n\n但你要的，只是有人聽你把話講完。\n\n榮心紳語想當的，就是那個不急著解決你的人。\n\n上一次你話說到一半，就決定「算了」，是對誰？留言打「家人」「朋友」或「同事」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-rushing-to-answer-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-rushing-to-answer-quote.png",
+      "publishedAt": "2026-09-21T13:01:21.234Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122121478539372954",
+            "post_id": "1230312726828490_122121478557372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-23-tired-no-explaining-facebook",
@@ -2332,5 +2342,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-09-21T12:01:13.541Z"
+  "lastRunAt": "2026-09-21T13:01:14.152Z"
 }
