@@ -2,7 +2,7 @@ import AppKit
 
 let arguments = CommandLine.arguments
 guard arguments.count == 4 else {
-    fputs("Usage: render_sixth_round_quote_cards <not-alone|empty-beside> <input.png> <output.png>\n", stderr)
+    fputs("Usage: render_sixth_round_quote_cards <not-alone|empty-beside|not-rushing|tired-no-explaining> <input.png> <output.png>\n", stderr)
     exit(2)
 }
 
@@ -19,8 +19,16 @@ case "empty-beside":
     quote = "旁邊坐著人，\n心裡卻覺得特別空。"
     fontSize = 62
     quoteRect = NSRect(x: 100, y: 610, width: 880, height: 250)
+case "not-rushing":
+    quote = "不急著給答案的人。"
+    fontSize = 66
+    quoteRect = NSRect(x: 100, y: 650, width: 880, height: 150)
+case "tired-no-explaining":
+    quote = "有些疲憊，\n不用解釋。"
+    fontSize = 68
+    quoteRect = NSRect(x: 150, y: 625, width: 780, height: 220)
 default:
-    fputs("Variant must be not-alone or empty-beside.\n", stderr)
+    fputs("Unknown variant.\n", stderr)
     exit(2)
 }
 
