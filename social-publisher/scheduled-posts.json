@@ -2311,7 +2311,16 @@
         "threads"
       ],
       "message": "最特別的，一定是最好的嗎？\n\n在資訊爆炸的時代，特立獨行的人，可能在活下來之前，就已經先陣亡了。\n\n能被看見的，才有機會長久。\n\n不一定要曇花一現。",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-21T12:01:26.197Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18107242958234474"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-22-foundation-pay-catch-up-threads",
@@ -2323,5 +2332,5 @@
       "status": "queued"
     }
   ],
-  "lastRunAt": "2026-09-19T02:20:50.131Z"
+  "lastRunAt": "2026-09-21T12:01:13.541Z"
 }
