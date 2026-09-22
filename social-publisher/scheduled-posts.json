@@ -2305,6 +2305,16 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/mid-autumn-family-reel-final.mp4"
     },
     {
+      "id": "2026-09-27-watering-plants-instagram",
+      "scheduledAt": "2026-09-27T12:30:00+08:00",
+      "platforms": [
+        "instagram"
+      ],
+      "status": "queued",
+      "message": "一起澆的每一滴水，都是今天的溫柔。\n慢慢長大的，不只是一盆花。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/watering-plants-reel-final.mp4"
+    },
+    {
       "id": "2026-09-21-most-special-not-always-best-threads",
       "scheduledAt": "2026-09-21T20:00:00+08:00",
       "platforms": [
