@@ -12,6 +12,30 @@ SCRIPT = ROOT / "scripts" / "render_ig_reel.py"
 
 
 class RenderIgReelTest(unittest.TestCase):
+    def test_renders_an_audio_stream_when_an_audio_file_is_provided(self):
+        spec = importlib.util.spec_from_file_location("render_ig_reel", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            source, audio, output = temp / "source.png", temp / "music.wav", temp / "reel.mp4"
+            Image.new("RGB", (1080, 1350), (245, 240, 230)).save(source)
+            subprocess.run(
+                ["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=1", str(audio)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            module.render_reel(source, output, ["測試"], duration=1.0, audio_path=audio)
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=codec_type", "-of", "csv=p=0", str(output)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(probe.stdout.strip(), "audio")
+
     def test_renders_a_decodable_vertical_reel(self):
         spec = importlib.util.spec_from_file_location("render_ig_reel", SCRIPT)
         module = importlib.util.module_from_spec(spec)

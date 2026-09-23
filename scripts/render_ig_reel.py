@@ -50,10 +50,14 @@ def caption_card(lines, path):
     card.save(path)
 
 
-def render_reel(image_path, output_path, captions, duration=15.0):
+def render_reel(image_path, output_path, captions, duration=15.0, audio_path=None):
     image_path, output_path = Path(image_path), Path(output_path)
     if not image_path.is_file():
         raise FileNotFoundError(image_path)
+    if audio_path is not None:
+        audio_path = Path(audio_path)
+        if not audio_path.is_file():
+            raise FileNotFoundError(audio_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     frames = round(duration * FPS)
     with tempfile.TemporaryDirectory(prefix="ig-reel-") as directory:
@@ -65,12 +69,23 @@ def render_reel(image_path, output_path, captions, duration=15.0):
             "-vf", f"scale={W}:{H},zoompan=z='min(zoom+0.00035,1.15)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={W}x{H}:fps={FPS},format=yuv420p",
             "-frames:v", str(frames), "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-an", str(base),
         ])
-        run([
+        render_command = [
             "ffmpeg", "-y", "-i", str(base), "-loop", "1", "-i", str(card),
-            "-filter_complex", f"[0:v][1:v]overlay=0:900:enable='between(t,0.7,{duration})'[video]",
-            "-map", "[video]", "-t", str(duration), "-c:v", "libx264", "-profile:v", "high", "-pix_fmt", "yuv420p",
-            "-b:v", "8M", "-movflags", "+faststart", "-an", str(output_path),
+        ]
+        filter_complex = f"[0:v][1:v]overlay=0:900:enable='between(t,0.7,{duration})'[video]"
+        if audio_path is not None:
+            render_command.extend(["-stream_loop", "-1", "-i", str(audio_path)])
+            filter_complex += f";[2:a]volume=0.18,atrim=duration={duration},asetpts=N/SR/TB[audio]"
+        render_command.extend(["-filter_complex", filter_complex, "-map", "[video]"])
+        if audio_path is not None:
+            render_command.extend(["-map", "[audio]", "-c:a", "aac", "-b:a", "160k"])
+        else:
+            render_command.append("-an")
+        render_command.extend([
+            "-t", str(duration), "-c:v", "libx264", "-profile:v", "high", "-pix_fmt", "yuv420p",
+            "-b:v", "8M", "-movflags", "+faststart", str(output_path),
         ])
+        run(render_command)
     decoded = run(["ffmpeg", "-v", "error", "-i", str(output_path), "-f", "null", "-"])
     if decoded.stderr.strip():
         raise RuntimeError(f"decode check failed: {decoded.stderr}")
@@ -82,8 +97,9 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--caption", required=True, nargs="+")
     parser.add_argument("--duration", type=float, default=15.0)
+    parser.add_argument("--audio", type=Path)
     args = parser.parse_args()
-    render_reel(args.image, args.output, args.caption, args.duration)
+    render_reel(args.image, args.output, args.caption, args.duration, args.audio)
 
 
 if __name__ == "__main__":
