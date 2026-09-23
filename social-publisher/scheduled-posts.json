@@ -2290,9 +2290,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "深夜回到家，燈還沒開，人已經累到不想說話。\n\n不是沒有人可以聊，是不想再把今天重講一遍。\n\n有些疲憊，需要的不是被安慰，是不用解釋。\n\n如果今天你也是這樣，先不用說什麼。\n\n今天進門後你的第一個動作是？留言打「開燈」或「先坐著」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/tired-no-explaining-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/tired-no-explaining-quote.png",
+      "publishedAt": "2026-09-23T13:01:18.314Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122121949413372954",
+            "post_id": "1230312726828490_122121949431372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-22-toy-grabbing-instagram",
@@ -2370,5 +2380,5 @@
       ]
     }
   ],
-  "lastRunAt": "2026-09-22T04:31:05.435Z"
+  "lastRunAt": "2026-09-23T13:01:13.256Z"
 }
