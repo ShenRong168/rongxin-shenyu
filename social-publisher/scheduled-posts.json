@@ -2270,9 +2270,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有些人不缺建議，缺的是一個不急著給答案的人。\n\n朋友會說「你想太多」，家人會說「別想了」，網路上有一百種方法。\n\n但你要的，只是有人聽你把話講完。\n\n榮心紳語想當的，就是那個不急著解決你的人。\n\n上一次你話說到一半，就決定「算了」，是對誰？留言打「家人」「朋友」或「同事」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-rushing-to-answer-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-rushing-to-answer-quote.png",
+      "publishedAt": "2026-09-21T13:01:21.234Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122121478539372954",
+            "post_id": "1230312726828490_122121478557372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-23-tired-no-explaining-facebook",
@@ -2290,9 +2300,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "孩子搶玩具，不是自私。\n他只是還在學怎麼說「我也想要」。\n\n先蹲下來，輕輕把手放在他肩上，我們陪他把想說的話說出來。\n\n如果這份理解也讓你想起家裡的溫柔時刻，按個讚吧。\n\n#親子日常 #溫柔教養 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/toy-grabbing-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/toy-grabbing-reel-final.mp4",
+      "publishedAt": "2026-09-22T04:32:37.823Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18134019106646434"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-25-mid-autumn-instagram",
@@ -2321,7 +2340,16 @@
         "threads"
       ],
       "message": "最特別的，一定是最好的嗎？\n\n在資訊爆炸的時代，特立獨行的人，可能在活下來之前，就已經先陣亡了。\n\n能被看見的，才有機會長久。\n\n不一定要曇花一現。",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-21T12:01:26.197Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18107242958234474"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-22-foundation-pay-catch-up-threads",
@@ -2330,8 +2358,17 @@
         "threads"
       ],
       "message": "黃仁勳提出「五層蛋糕」的比喻。\n\n我看到的是另一個角度：\n\n很多企業只追求目標，目標愈爬愈陡，基層的報酬與福利卻沒有跟上。\n\n看似日常的基礎，其實同步決定了最核心的價值。",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-09-22T02:01:10.901Z",
+      "results": [
+        {
+          "platform": "threads",
+          "result": {
+            "id": "18117815620965430"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-19T02:20:50.131Z"
+  "lastRunAt": "2026-09-22T04:31:05.435Z"
 }
