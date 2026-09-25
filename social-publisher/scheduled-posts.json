@@ -2329,9 +2329,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "中秋的月亮，是全家一起抬頭看的那一顆。\n柚子剝好了，小手先伸過來。\n\n如果這一幕也讓你想起家裡的團圓時刻，按個讚吧。\n\n#中秋節 #親子日常 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/mid-autumn-family-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/mid-autumn-family-reel-final.mp4",
+      "publishedAt": "2026-09-25T04:32:07.176Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18089428406667901"
+          }
+        }
+      ]
     },
     {
       "id": "2026-09-27-watering-plants-instagram",
@@ -2391,5 +2400,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/dad-tying-hair-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-09-23T13:01:13.256Z"
+  "lastRunAt": "2026-09-25T04:31:01.344Z"
 }
