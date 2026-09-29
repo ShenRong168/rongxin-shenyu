@@ -2403,10 +2403,19 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "出門前的幾分鐘，也能成為孩子記很久的安心。\n一束頭髮，綁住的是被好好照顧的感覺。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/dad-tying-hair-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/dad-tying-hair-reel-final.mp4",
+      "publishedAt": "2026-09-29T04:31:51.484Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18123131690489687"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-09-27T04:30:57.580Z"
+  "lastRunAt": "2026-09-29T04:31:08.927Z"
 }
