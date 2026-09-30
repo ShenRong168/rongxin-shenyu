@@ -34,6 +34,9 @@ jobs:
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_FOLLOWER_STATE_URL: ${{ secrets.LINE_FOLLOWER_STATE_URL }}
+          LINE_FOLLOWER_STATE_TOKEN: ${{ secrets.LINE_FOLLOWER_STATE_TOKEN }}
         run: npm run publish:scheduled
 
       - name: Commit schedule status

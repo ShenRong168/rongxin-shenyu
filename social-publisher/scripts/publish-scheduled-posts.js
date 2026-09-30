@@ -2,6 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { normalizeInstagramMediaInput } from "../src/instagram-media.js";
+import { notifyLineAlerts } from "../src/line-alert.js";
 
 const requiredSecrets = [
   "META_PAGE_ID",
@@ -189,6 +190,12 @@ async function runFromCommandLine() {
   dotenv.config();
   const { alerts } = await main();
   if (alerts.length) {
+    const lineResult = await notifyLineAlerts({ alerts });
+    if (lineResult.status === "sent") {
+      console.log(`LINE alert sent for ${lineResult.alertCount} scheduled post alert(s).`);
+    } else {
+      console.warn(`LINE alert ${lineResult.status}: ${lineResult.reason}`);
+    }
     console.error(`Scheduled publisher alert: ${alerts.map((alert) => `${alert.id} (${alert.reason})`).join(", ")}`);
     process.exitCode = 1;
   }

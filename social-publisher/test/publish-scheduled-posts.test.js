@@ -317,6 +317,21 @@ test("scheduler exits non-zero after publishing a post more than 20 minutes late
   }
 });
 
+test("scheduler broadcasts a LINE alert after persisting a failed post when the safety gate permits it", () => {
+  const { result, schedule, calls, cleanup } = runAlertSchedule({
+    responseStatus: 500,
+    lineFollowerCount: 1
+  });
+
+  try {
+    assert.equal(schedule.posts[0].status, "failed");
+    assert.equal(result.status, 1);
+    assert.equal(calls.some((call) => call.url.endsWith("/v2/bot/message/broadcast")), true);
+  } finally {
+    cleanup();
+  }
+});
+
 function runMixedPlatformSchedule(media) {
   const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-posts-mixed-"));
   const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
@@ -456,15 +471,29 @@ globalThis.fetch = async (url, options = {}) => {
   }
 }
 
-function runAlertSchedule({ responseStatus = 200, scheduledAt = "2000-01-01T00:00:00.000Z" } = {}) {
+function runAlertSchedule({
+  responseStatus = 200,
+  scheduledAt = "2000-01-01T00:00:00.000Z",
+  lineFollowerCount
+} = {}) {
   const cwd = mkdtempSync(join(tmpdir(), "publish-scheduled-alert-"));
   const schedulerPath = new URL("../scripts/publish-scheduled-posts.js", import.meta.url).pathname;
   const preloadPath = join(cwd, "mock-fetch.mjs");
   const schedulePath = join(cwd, "scheduled-posts.json");
+  const callsPath = join(cwd, "calls.log");
 
   writeFileSync(
     preloadPath,
-    `globalThis.fetch = async () => new Response(JSON.stringify({ id: "facebook_media_1", error: { message: "mock failure" } }), { status: Number(process.env.MOCK_RESPONSE_STATUS) });\n`
+    `import { appendFileSync } from "node:fs";
+globalThis.fetch = async (url, options = {}) => {
+  appendFileSync(process.env.MOCK_CALLS_PATH, JSON.stringify({ url: String(url), method: options.method || "GET" }) + "\\n");
+  if (String(url) === process.env.LINE_FOLLOWER_STATE_URL) {
+    return Response.json({ count: Number(process.env.MOCK_LINE_FOLLOWER_COUNT), webhookVerifiedAt: "2026-09-30T00:00:00.000Z" });
+  }
+  if (String(url).endsWith("/v2/bot/message/broadcast")) return Response.json({});
+  return new Response(JSON.stringify({ id: "facebook_media_1", error: { message: "mock failure" } }), { status: Number(process.env.MOCK_RESPONSE_STATUS) });
+};
+`
   );
   writeFileSync(
     schedulePath,
@@ -491,7 +520,16 @@ function runAlertSchedule({ responseStatus = 200, scheduledAt = "2000-01-01T00:0
       THREADS_USER_ID: "test_threads",
       THREADS_ACCESS_TOKEN: "test_threads_token",
       SCHEDULE_FILE: schedulePath,
-      MOCK_RESPONSE_STATUS: String(responseStatus)
+      MOCK_RESPONSE_STATUS: String(responseStatus),
+      MOCK_CALLS_PATH: callsPath,
+      ...(lineFollowerCount === undefined
+        ? {}
+        : {
+            LINE_CHANNEL_ACCESS_TOKEN: "test-line-token",
+            LINE_FOLLOWER_STATE_URL: "https://alerts.example.com/state",
+            LINE_FOLLOWER_STATE_TOKEN: "test-state-token",
+            MOCK_LINE_FOLLOWER_COUNT: String(lineFollowerCount)
+          })
     },
     encoding: "utf8"
   });
@@ -499,6 +537,9 @@ function runAlertSchedule({ responseStatus = 200, scheduledAt = "2000-01-01T00:0
   return {
     result,
     schedule: JSON.parse(readFileSync(schedulePath, "utf8")),
+    calls: existsSync(callsPath)
+      ? readFileSync(callsPath, "utf8").trim().split("\n").filter(Boolean).map((line) => JSON.parse(line))
+      : [],
     cleanup: () => rmSync(cwd, { recursive: true, force: true })
   };
 }
@@ -511,7 +552,10 @@ function withoutPublisherSecrets(source) {
     "INSTAGRAM_USER_ID",
     "THREADS_USER_ID",
     "THREADS_ACCESS_TOKEN",
-    "SCHEDULE_FILE"
+    "SCHEDULE_FILE",
+    "LINE_CHANNEL_ACCESS_TOKEN",
+    "LINE_FOLLOWER_STATE_URL",
+    "LINE_FOLLOWER_STATE_TOKEN"
   ]) {
     delete envCopy[name];
   }
