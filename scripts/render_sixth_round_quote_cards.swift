@@ -2,7 +2,7 @@ import AppKit
 
 let arguments = CommandLine.arguments
 guard arguments.count == 4 else {
-    fputs("Usage: render_sixth_round_quote_cards <not-alone|empty-beside|not-rushing|tired-no-explaining> <input.png> <output.png>\n", stderr)
+    fputs("Usage: render_sixth_round_quote_cards <not-alone|empty-beside|not-rushing|tired-no-explaining|no-strings-attached|im-fine-then-what> <input.png> <output.png>\n", stderr)
     exit(2)
 }
 
@@ -27,6 +27,14 @@ case "tired-no-explaining":
     quote = "有些疲憊，\n不用解釋。"
     fontSize = 68
     quoteRect = NSRect(x: 150, y: 625, width: 780, height: 220)
+case "no-strings-attached":
+    quote = "不求你變好的陪伴"
+    fontSize = 68
+    quoteRect = NSRect(x: 130, y: 650, width: 820, height: 150)
+case "im-fine-then-what":
+    quote = "說完我沒事之後"
+    fontSize = 68
+    quoteRect = NSRect(x: 170, y: 650, width: 740, height: 150)
 default:
     fputs("Unknown variant.\n", stderr)
     exit(2)
