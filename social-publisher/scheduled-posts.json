@@ -2422,9 +2422,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "很多關係是有目的的。\n\n家人希望你變好，朋友希望你振作，伴侶希望你別想太多。\n\n很少有一種陪伴，不求你變成任何樣子。\n\n榮心紳語想當的，就是那種不求你變好的陪伴——現在這樣，就可以。\n\n你身邊有沒有一段不求你變成怎樣的關係？留言打「有」或「沒有」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/no-strings-attached-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/no-strings-attached-quote.png",
+      "publishedAt": "2026-10-02T13:01:23.710Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122123861469372954",
+            "post_id": "1230312726828490_122123861493372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-04-im-fine-then-what-facebook",
@@ -2437,5 +2447,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/im-fine-then-what-quote.png"
     }
   ],
-  "lastRunAt": "2026-09-29T04:31:08.927Z"
+  "lastRunAt": "2026-10-02T13:01:16.673Z"
 }
