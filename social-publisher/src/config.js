@@ -11,6 +11,7 @@ export const config = {
   meta: {
     appId: process.env.META_APP_ID || "",
     appSecret: process.env.META_APP_SECRET || "",
+    instagramUserId: process.env.INSTAGRAM_USER_ID || "",
     redirectUri:
       process.env.META_REDIRECT_URI ||
       `${process.env.APP_BASE_URL || "http://localhost:3000"}/auth/meta/callback`,

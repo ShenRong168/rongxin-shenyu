@@ -20,6 +20,7 @@ import {
 import { appendPublishLog, loadStore, updateStore } from "./store.js";
 import { parseImageUrlsInput } from "./instagram-images.js";
 import { normalizeInstagramMediaInput } from "./instagram-media.js";
+import { resolveInstagramUserId } from "./instagram-account.js";
 import { checkScheduleSync } from "../scripts/check-schedule-sync.js";
 
 const app = express();
@@ -81,10 +82,11 @@ app.get("/auth/meta/callback", async (req, res, next) => {
         meta: result.token,
         pages,
         selectedPageId: selectedPage?.id || null,
-        selectedInstagramUserId:
-          selectedPage?.instagramBusinessAccount?.id ||
-          state.selectedInstagramUserId ||
-          null
+        selectedInstagramUserId: resolveInstagramUserId({
+          page: selectedPage,
+          configuredInstagramUserId: config.meta.instagramUserId,
+          selectedInstagramUserId: state.selectedInstagramUserId
+        })
       };
     });
 
@@ -147,8 +149,11 @@ app.post("/connections/page", async (req, res) => {
     return {
       ...state,
       selectedPageId: page?.id || state.selectedPageId,
-      selectedInstagramUserId:
-        page?.instagramBusinessAccount?.id || state.selectedInstagramUserId
+      selectedInstagramUserId: resolveInstagramUserId({
+        page,
+        configuredInstagramUserId: config.meta.instagramUserId,
+        selectedInstagramUserId: state.selectedInstagramUserId
+      })
     };
   });
 
@@ -210,7 +215,11 @@ app.post("/publish", async (req, res, next) => {
         });
       } else {
       const page = selectedPage(state);
-      const instagramUserId = state.selectedInstagramUserId || page.instagramBusinessAccount?.id;
+      const instagramUserId = resolveInstagramUserId({
+        page,
+        configuredInstagramUserId: config.meta.instagramUserId,
+        selectedInstagramUserId: state.selectedInstagramUserId
+      });
       if (!instagramUserId) throw new Error("Selected Facebook Page has no connected Instagram Business account.");
 
       const payload = {

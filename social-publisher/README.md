@@ -32,6 +32,7 @@ cp .env.example .env
 META_APP_ID=
 META_APP_SECRET=
 META_REDIRECT_URI=http://localhost:3000/auth/meta/callback
+INSTAGRAM_USER_ID=
 
 THREADS_APP_ID=
 THREADS_APP_SECRET=
@@ -42,6 +43,7 @@ THREADS_REDIRECT_URI=https://你的-ngrok網址/auth/threads/callback
 
 - Threads App：先填 `THREADS_APP_ID` / `THREADS_APP_SECRET`
 - Facebook / Instagram App：之後再填 `META_APP_ID` / `META_APP_SECRET`
+- 若 Meta 沒有在粉絲專頁資料中回傳已連結的 IG，填入 `INSTAGRAM_USER_ID` 可作為一鍵發文的固定備援。
 
 ## Meta Developers 設定
 
