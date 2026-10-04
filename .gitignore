@@ -2,5 +2,6 @@ desktop-check.png
 mobile-check.png
 *.log
 .DS_Store
+__pycache__/
 video-build/
 .worktrees/
