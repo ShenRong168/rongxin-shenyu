@@ -2462,9 +2462,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "孩子把碗推開、哭著說不要，不是任性。\n他可能只是還說不出「我現在真的不餓」。\n\n蹲下來問一句「不想吃，還是不想吃這個」，比逼他張嘴更快找到答案。\n\n如果這份理解也讓你想起家裡的溫柔時刻，按個讚吧。\n\n#親子日常 #溫柔教養 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/wont-eat-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/wont-eat-reel-final.mp4",
+      "publishedAt": "2026-10-05T04:32:06.089Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18032188970675264"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-07-not-serious-enough-facebook",
@@ -2499,7 +2508,9 @@
     {
       "id": "2026-10-09-brushing-teeth-instagram",
       "scheduledAt": "2026-10-09T12:30:00+08:00",
-      "platforms": ["instagram"],
+      "platforms": [
+        "instagram"
+      ],
       "status": "queued",
       "message": "兩隻牙刷擠在一個杯子裡，笑聲比刷牙聲還大聲。\n睡前這五分鐘，鬧哄哄的，也是最安心的時候。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/brushing-teeth-reel-final.mp4"
@@ -2507,7 +2518,9 @@
     {
       "id": "2026-10-11-holding-hands-crossing-instagram",
       "scheduledAt": "2026-10-11T12:30:00+08:00",
-      "platforms": ["instagram"],
+      "platforms": [
+        "instagram"
+      ],
       "status": "queued",
       "message": "紅燈亮起，一隻小手自己鑽進你的掌心。\n不用說話，他知道這裡最安全。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/holding-hands-crossing-reel-final.mp4"
@@ -2515,11 +2528,13 @@
     {
       "id": "2026-10-13-weekend-cuddle-instagram",
       "scheduledAt": "2026-10-13T12:30:00+08:00",
-      "platforms": ["instagram"],
+      "platforms": [
+        "instagram"
+      ],
       "status": "queued",
       "message": "週末早晨，他不吵你，只是悄悄爬進被窩，把冰冰的腳貼過來。\n這一點點打擾，是他最溫柔的早安。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/weekend-cuddle-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-04T13:01:11.807Z"
+  "lastRunAt": "2026-10-05T04:31:22.663Z"
 }
