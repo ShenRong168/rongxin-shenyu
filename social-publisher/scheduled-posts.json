@@ -2501,9 +2501,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "傘只有一把，你自然而然往他那邊多讓一點。\n濕的那邊肩膀，是願意的證明。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/sharing-umbrella-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/sharing-umbrella-reel-final.mp4",
+      "publishedAt": "2026-10-07T04:31:53.173Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17989888257061404"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-09-brushing-teeth-instagram",
@@ -2546,5 +2555,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-05T04:31:22.663Z"
+  "lastRunAt": "2026-10-07T04:31:14.922Z"
 }
