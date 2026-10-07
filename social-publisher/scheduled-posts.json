@@ -2481,9 +2481,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有些事，你一直告訴自己：沒什麼大不了。\n\n每次想開口，腦中先出現的是比較。\n別人遇到的比這個難多了，我這點事算什麼。\n\n於是那句話，又被你吞了回去。\n\n可是難受不用比較，才算數。\n\n榮心紳語想當的，是一個你不用先證明「夠嚴重」，就可以開口的地方。\n\n上一次你覺得「這也沒什麼」，後來放不下的是哪一類事？留言打「工作」或「關係」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-serious-enough-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/not-serious-enough-quote.png",
+      "publishedAt": "2026-10-07T13:01:38.160Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122125085283372954",
+            "post_id": "1230312726828490_122125085301372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-09-delayed-ache-facebook",
@@ -2555,5 +2565,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-07T04:31:14.922Z"
+  "lastRunAt": "2026-10-07T13:01:32.336Z"
 }
