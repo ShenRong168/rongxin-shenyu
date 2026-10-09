@@ -2530,9 +2530,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "兩隻牙刷擠在一個杯子裡，笑聲比刷牙聲還大聲。\n睡前這五分鐘，鬧哄哄的，也是最安心的時候。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/brushing-teeth-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/brushing-teeth-reel-final.mp4",
+      "publishedAt": "2026-10-09T06:06:29.978Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17925114333430091"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-11-holding-hands-crossing-instagram",
@@ -2565,5 +2574,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-07T13:01:32.336Z"
+  "lastRunAt": "2026-10-09T06:05:25.923Z"
 }
