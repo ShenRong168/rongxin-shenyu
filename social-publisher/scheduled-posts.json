@@ -2501,9 +2501,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有些事發生的當下，你什麼感覺都沒有。\n\n照常上班，照常回訊息，還能跟人開玩笑。\n\n過了幾個禮拜，某個很普通的下午，一首歌、一句話，你突然整個人垮下來。\n\n那不是你反應慢。\n很多時候，是當時的你，只能先撐著。\n\n情緒有時不是不來，是在等你有力氣的時候。\n\n如果你現在正好突然難受，先不用急著找原因。\n\n你有過這種「事後才來的難受」嗎？留言打「有」或「還沒」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/delayed-ache-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/delayed-ache-quote.png",
+      "publishedAt": "2026-10-09T13:10:01.082Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122125522713372954",
+            "post_id": "1230312726828490_122125522731372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-07-sharing-umbrella-instagram",
@@ -2574,5 +2584,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-09T06:05:25.923Z"
+  "lastRunAt": "2026-10-09T13:09:55.488Z"
 }
