@@ -2559,9 +2559,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "紅燈亮起，一隻小手自己鑽進你的掌心。\n不用說話，他知道這裡最安全。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/holding-hands-crossing-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/holding-hands-crossing-reel-final.mp4",
+      "publishedAt": "2026-10-11T07:07:25.726Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18117013802095937"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-13-weekend-cuddle-instagram",
@@ -2584,5 +2593,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-09T13:09:55.488Z"
+  "lastRunAt": "2026-10-11T07:06:05.168Z"
 }
