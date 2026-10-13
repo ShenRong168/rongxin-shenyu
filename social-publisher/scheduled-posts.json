@@ -2578,9 +2578,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "週末早晨，他不吵你，只是悄悄爬進被窩，把冰冰的腳貼過來。\n這一點點打擾，是他最溫柔的早安。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/weekend-cuddle-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/weekend-cuddle-reel-final.mp4",
+      "publishedAt": "2026-10-13T11:40:26.520Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17910222972502043"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-15-bubble-bath-instagram",
@@ -2593,5 +2602,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-11T07:06:05.168Z"
+  "lastRunAt": "2026-10-13T11:40:00.391Z"
 }
