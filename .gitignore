@@ -5,3 +5,4 @@ mobile-check.png
 __pycache__/
 video-build/
 .worktrees/
+tmp/
