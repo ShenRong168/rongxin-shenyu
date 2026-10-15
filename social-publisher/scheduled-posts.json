@@ -2597,9 +2597,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "泡泡堆滿頭，笑聲滿出浴室。\n洗澡這件小事，變成一天最吵的幸福。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bubble-bath-reel-final.mp4",
+      "publishedAt": "2026-10-15T04:31:49.431Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18157677997464422"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-16-afraid-to-bother-facebook",
@@ -2652,5 +2661,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-13T11:40:00.391Z"
+  "lastRunAt": "2026-10-15T04:31:14.202Z"
 }
