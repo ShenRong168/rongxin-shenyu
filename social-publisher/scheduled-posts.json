@@ -2616,9 +2616,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你有沒有發現，自己很會幫別人，輪到自己卻開不了口。\n\n不是沒有人可以拜託，是每次想傳訊息，都先想到「他也很忙吧」。\n\n於是又自己扛了一次，還告訴自己習慣了。\n\n其實有些話，不需要對方有答案，只是想有人聽。\n\n榮心紳語想當的，就是那個你不用怕打擾的人。\n\n你上次想開口、最後沒說的，是為了什麼？留言打「怕他忙」或「怕被嫌」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/afraid-to-bother-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/afraid-to-bother-quote.png",
+      "publishedAt": "2026-10-16T13:01:48.754Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122126723727372954",
+            "post_id": "1230312726828490_122126723745372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-18-replaying-one-sentence-facebook",
@@ -2661,5 +2671,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-15T04:31:14.202Z"
+  "lastRunAt": "2026-10-16T13:01:43.000Z"
 }
