@@ -2646,9 +2646,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "校門一開，他背著比人還大的書包，朝你一路跑來。\n你蹲下張開手，整天的累都收下了。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/school-gate-hug-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/school-gate-hug-reel-final.mp4",
+      "publishedAt": "2026-10-17T04:32:05.237Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18115400924019520"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-19-rain-boots-puddle-instagram",
@@ -2671,5 +2680,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-16T13:01:43.000Z"
+  "lastRunAt": "2026-10-17T04:31:28.938Z"
 }
