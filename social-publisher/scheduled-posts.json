@@ -2636,9 +2636,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "躺下來，腦子突然開始重播白天的某一句話。\n\n別人早就忘了，只有你還在想：我是不是不該那樣說。\n\n有時候睡不著，不是事情太多，是有一件小事，一直沒人幫你放下。\n\n今晚如果也是這樣，先不用急著把它想清楚。\n\n你現在重播的是哪一句？留言打「我說的」或「他說的」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/replaying-one-sentence-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/replaying-one-sentence-quote.png",
+      "publishedAt": "2026-10-18T13:01:28.356Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122127015453372954",
+            "post_id": "1230312726828490_122127015471372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-17-school-gate-hug-instagram",
@@ -2680,5 +2690,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-17T04:31:28.938Z"
+  "lastRunAt": "2026-10-18T13:01:22.088Z"
 }
