@@ -2675,9 +2675,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "雨停了，他穿著小雨鞋，專挑最大的水窪踩下去。\n你本來想說別弄濕，結果笑著跟他一起跳。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/rain-boots-puddle-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/rain-boots-puddle-reel-final.mp4",
+      "publishedAt": "2026-10-19T04:32:14.253Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17988466487878876"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-21-folding-clothes-instagram",
@@ -2690,5 +2699,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-18T13:01:22.088Z"
+  "lastRunAt": "2026-10-19T04:31:28.023Z"
 }
