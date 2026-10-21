@@ -2694,10 +2694,19 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他把你的襪子摺成一團，還很得意地遞給你。\n你收下，說了聲謝謝。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/folding-clothes-reel-final.mp4",
+      "publishedAt": "2026-10-21T04:31:58.882Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17912103651481048"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-10-19T04:31:28.023Z"
+  "lastRunAt": "2026-10-21T04:31:25.392Z"
 }
