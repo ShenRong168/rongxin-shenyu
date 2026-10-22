@@ -2706,6 +2706,16 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-10-24-how-have-you-been-facebook",
+      "scheduledAt": "2026-10-24T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "status": "queued",
+      "message": "有人問你「最近還好嗎」，你幾乎是反射地回「還好啊」。\n\n不是不信任對方，是這句話太常被當成客套，你怕認真回答，會讓場面變得尷尬。\n\n所以真正的近況，只好留給自己。\n\n如果你也是這樣，不用覺得自己很假。\n\n榮心紳語想當的，是你可以不用客套的地方。\n\n上一次有人問你還好嗎，你其實想說的是什麼？留言打「很累」或「說不清」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/how-have-you-been-quote.png"
     }
   ],
   "lastRunAt": "2026-10-21T04:31:25.392Z"
