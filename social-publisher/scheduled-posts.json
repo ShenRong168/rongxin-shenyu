@@ -2733,10 +2733,19 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他說只要再一頁，結果又多聽了三頁。\n你沒有催，因為這是他最放鬆的時刻。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bedtime-story-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/bedtime-story-reel-final.mp4",
+      "publishedAt": "2026-10-23T07:02:24.658Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18115748831017213"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-10-21T04:31:25.392Z"
+  "lastRunAt": "2026-10-23T07:01:43.906Z"
 }
