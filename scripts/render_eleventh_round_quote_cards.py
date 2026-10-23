@@ -13,7 +13,7 @@ IVORY = "#F6F0E5"
 
 CARDS = {
     "how-have-you-been": ("還好啊，不一定是真的", 48),
-    "quiet-not-fine": ("安靜，不代表沒事", 64),
+    "quiet-not-fine": ("安靜，不代表沒事", 48),
 }
 
 
