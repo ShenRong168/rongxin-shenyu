@@ -2713,9 +2713,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有人問你「最近還好嗎」，你幾乎是反射地回「還好啊」。\n\n不是不信任對方，是這句話太常被當成客套，你怕認真回答，會讓場面變得尷尬。\n\n所以真正的近況，只好留給自己。\n\n如果你也是這樣，不用覺得自己很假。\n\n榮心紳語想當的，是你可以不用客套的地方。\n\n上一次有人問你還好嗎，你其實想說的是什麼？留言打「很累」或「說不清」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/how-have-you-been-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/how-have-you-been-quote.png",
+      "publishedAt": "2026-10-24T13:01:49.070Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122127913959372954",
+            "post_id": "1230312726828490_122127913983372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-26-quiet-not-fine-facebook",
@@ -2757,5 +2767,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/cooking-together-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-23T07:01:43.906Z"
+  "lastRunAt": "2026-10-24T13:01:43.741Z"
 }
