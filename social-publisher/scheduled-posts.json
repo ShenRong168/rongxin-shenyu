@@ -2733,9 +2733,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你最近比較安靜，身邊的人可能以為你在忙，或你心情不錯。\n\n只有你知道，安靜是因為說出口要花太多力氣。\n\n有些人不是不想說，是還沒找到一個不用解釋太多的開頭。\n\n那就先不用開頭。\n\n你比較像哪一種？留言打「想被問」或「想被放著」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/quiet-not-fine-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/quiet-not-fine-quote.png",
+      "publishedAt": "2026-10-26T13:01:50.090Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122128252887372954",
+            "post_id": "1230312726828490_122128252905372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-23-bedtime-story-instagram",
@@ -2786,5 +2796,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/picking-leaves-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-25T04:31:29.190Z"
+  "lastRunAt": "2026-10-26T13:01:44.929Z"
 }
