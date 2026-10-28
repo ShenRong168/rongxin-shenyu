@@ -2840,9 +2840,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你有沒有發現，自己很擅長察覺別人的情緒。\n\n誰今天不太開心，誰話說得比平常少，你一下就注意到了。\n\n卻常常忘了問自己：我今天怎麼樣。\n\n照顧人是你的本事，但本事用久了，也會累。\n\n榮心紳語想當的，是輪到你被照顧的地方。\n\n最近一次你先顧別人、忘了自己，是在什麼場合？留言打「家裡」或「工作」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/caring-for-others-first-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/caring-for-others-first-quote.png",
+      "publishedAt": "2026-10-28T13:02:00.731Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122128572669372954",
+            "post_id": "1230312726828490_122128572687372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-30-rehearsed-sentence-facebook",
@@ -2855,5 +2865,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/rehearsed-sentence-quote.png"
     }
   ],
-  "lastRunAt": "2026-10-27T04:31:27.688Z"
+  "lastRunAt": "2026-10-28T13:01:54.995Z"
 }
