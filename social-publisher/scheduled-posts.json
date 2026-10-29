@@ -2810,9 +2810,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你一進門，他先跑去把拖鞋擺在你腳邊。\n動作歪歪的，心意卻很穩。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/fetching-slippers-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/fetching-slippers-reel-final.mp4",
+      "publishedAt": "2026-10-29T04:32:08.737Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18036816104887796"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-31-little-pumpkin-instagram",
@@ -2885,5 +2894,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/sadness-no-comparison-quote.png"
     }
   ],
-  "lastRunAt": "2026-10-28T13:01:54.995Z"
+  "lastRunAt": "2026-10-29T04:31:35.767Z"
 }
