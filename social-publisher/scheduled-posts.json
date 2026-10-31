@@ -2829,9 +2829,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他把自己裝成一顆小南瓜，轉了一圈問你可愛嗎。\n你說可愛，他就笑得停不下來。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/little-pumpkin-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/little-pumpkin-reel-final.mp4",
+      "publishedAt": "2026-10-31T04:32:16.461Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17956452804279338"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-02-watching-rain-instagram",
@@ -2904,5 +2913,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/sadness-no-comparison-quote.png"
     }
   ],
-  "lastRunAt": "2026-10-30T13:02:08.012Z"
+  "lastRunAt": "2026-10-31T04:31:41.424Z"
 }
