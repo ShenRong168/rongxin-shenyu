@@ -2898,9 +2898,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "好久沒有人問你，累不累了。\n\n不是沒有人關心你。\n是你太會說「還好啦」，\n大家就信了。\n\n其實有時候，你只是想有人多問一句。\n\n榮心紳語不急著給建議。\n你想說多少，我們就聽多少。\n\n最近一次有人問起你，是什麼時候？\n留言打「這週」或「好久了」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/nobody-asked-tired-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/nobody-asked-tired-quote.png",
+      "publishedAt": "2026-11-01T13:02:10.291Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122129168091372954",
+            "post_id": "1230312726828490_122129168115372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-03-sadness-no-comparison-facebook",
@@ -2943,5 +2953,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/night-light-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-10-31T04:31:41.424Z"
+  "lastRunAt": "2026-11-01T13:02:05.200Z"
 }
