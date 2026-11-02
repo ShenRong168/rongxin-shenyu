@@ -2848,9 +2848,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "下雨的午後，他趴在窗邊數雨滴，你在旁邊陪著。\n什麼都沒做，卻剛剛好。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/watching-rain-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/watching-rain-reel-final.mp4",
+      "publishedAt": "2026-11-02T04:32:08.359Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18055347317809049"
+          }
+        }
+      ]
     },
     {
       "id": "2026-10-28-caring-for-others-first-facebook",
@@ -2973,5 +2982,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/want-to-be-seen-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-01T13:02:05.200Z"
+  "lastRunAt": "2026-11-02T04:31:44.627Z"
 }
