@@ -2927,9 +2927,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有些時候，你明明想哭，\n卻又覺得：這有什麼好哭的。\n\n事情不算大，\n別人遇到的比你更辛苦，\n你好像沒資格難過。\n\n可是難過不用比較。\n它在你這裡，就值得被看見。\n\n今天有沒有哪個瞬間，你把眼淚吞回去了？\n留言打「有」或「還好」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/sadness-no-comparison-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/sadness-no-comparison-quote.png",
+      "publishedAt": "2026-11-03T13:02:12.137Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122129531013372954",
+            "post_id": "1230312726828490_122129531031372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-04-back-massage-instagram",
@@ -2982,5 +2992,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/want-to-be-seen-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-02T04:31:44.627Z"
+  "lastRunAt": "2026-11-03T13:02:05.936Z"
 }
