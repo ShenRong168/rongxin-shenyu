@@ -2947,9 +2947,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他站在沙發後面，小拳頭一下一下捶著你的肩膀。\n力氣不大，卻剛好捶在最需要的地方。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/back-massage-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/back-massage-reel-final.mp4",
+      "publishedAt": "2026-11-04T04:33:08.356Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18040112510893398"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-06-sharing-cookie-instagram",
@@ -3022,5 +3031,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/asleep-on-shoulder-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-11-03T13:02:05.936Z"
+  "lastRunAt": "2026-11-04T04:32:19.768Z"
 }
