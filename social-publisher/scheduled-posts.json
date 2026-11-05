@@ -2986,9 +2986,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "白天忙著應付事情，沒空想。\n\n一躺下來，那些沒說完的話、沒處理的情緒，全都排隊跑出來。\n\n你不是想太多。\n是你白天太忙，沒空聽自己說話。\n\n今晚睡前，不用急著整理它們。\n只要知道它們來過，就夠了。\n\n你最常在什麼時候開始胡思亂想？\n留言打「睡前」或「通勤」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/bedtime-thoughts-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/bedtime-thoughts-quote.png",
+      "publishedAt": "2026-11-05T13:02:17.908Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122129819295372954",
+            "post_id": "1230312726828490_122129819313372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-07-want-to-be-seen-facebook",
@@ -3051,5 +3061,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-04T04:32:19.768Z"
+  "lastRunAt": "2026-11-05T13:02:12.367Z"
 }
