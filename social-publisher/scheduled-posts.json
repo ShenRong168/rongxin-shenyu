@@ -2966,9 +2966,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他把咬過一口的餅乾掰成兩半，大的那半遞給你。\n你說不用，他還是堅持要你吃。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/sharing-cookie-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/sharing-cookie-reel-final.mp4",
+      "publishedAt": "2026-11-06T04:32:25.449Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18098473094455419"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-08-night-light-instagram",
@@ -3061,5 +3070,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-05T13:02:12.367Z"
+  "lastRunAt": "2026-11-06T04:31:48.785Z"
 }
