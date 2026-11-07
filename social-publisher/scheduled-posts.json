@@ -3015,9 +3015,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你幫了很多忙，大家都說「謝謝」。\n\n謝謝是真的，\n可你心裡想要的，\n有時候只是有人說一句：「你辛苦了。」\n\n被需要，跟被看見，不一樣。\n\n如果你也有這種感覺，不用覺得自己計較。\n\n最近一次，你想被看見的是哪件事？\n留言打「工作」或「家人」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/want-to-be-seen-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/want-to-be-seen-quote.png",
+      "publishedAt": "2026-11-07T13:02:19.799Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122130122481372954",
+            "post_id": "1230312726828490_122130122499372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-10-crayon-drawing-instagram",
@@ -3070,5 +3080,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-06T04:31:48.785Z"
+  "lastRunAt": "2026-11-07T13:02:13.629Z"
 }
