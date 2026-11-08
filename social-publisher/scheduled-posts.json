@@ -2985,9 +2985,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "你關掉大燈，他悄悄說：「留一盞小燈好不好。」\n你把夜燈開著，輕輕說了晚安。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/night-light-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/night-light-reel-final.mp4",
+      "publishedAt": "2026-11-08T04:31:19.729Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18192995845408134"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-05-bedtime-thoughts-facebook",
@@ -3080,5 +3089,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-07T13:02:13.629Z"
+  "lastRunAt": "2026-11-08T04:30:43.603Z"
 }
