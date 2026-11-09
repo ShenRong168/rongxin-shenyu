@@ -3074,9 +3074,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "終於有一個空檔，可以什麼都不做。\n\n你卻開始坐立不安，\n覺得自己好像應該去做點什麼。\n\n不是你不會休息。\n是你習慣了，必須有用，才算值得被允許。\n\n休息不用先賺到。\n今晚，你可以只是待著。\n\n你最近一次什麼都不做，是什麼時候？\n留言打「這週」或「想不起來」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/rest-with-guilt-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/rest-with-guilt-quote.png",
+      "publishedAt": "2026-11-09T13:00:56.855Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122130430587372954",
+            "post_id": "1230312726828490_122130430605372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-11-said-yes-meant-no-facebook",
@@ -3089,5 +3099,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-08T04:30:43.603Z"
+  "lastRunAt": "2026-11-09T13:00:52.455Z"
 }
