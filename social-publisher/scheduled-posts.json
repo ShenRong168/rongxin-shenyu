@@ -3044,9 +3044,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他舉著一張蠟筆畫跑過來，說是專門畫給你的。\n畫裡的你，頭髮比身體還大。\n你還是把它貼在了最顯眼的地方。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/crayon-drawing-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/crayon-drawing-reel-final.mp4",
+      "publishedAt": "2026-11-10T04:31:34.181Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18130984892485095"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-12-wrapping-scarf-instagram",
@@ -3099,5 +3108,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-09T13:00:52.455Z"
+  "lastRunAt": "2026-11-10T04:30:39.636Z"
 }
