@@ -3103,10 +3103,20 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "有人邀你，你說「好啊」。\n\n掛上電話之後，\n心裡卻有一個小小的聲音：我其實不太想去。\n\n你不想讓人失望，\n也不想被覺得難相處。\n\n可是想拒絕，不代表你不在乎。\n\n你最近一次說了「好」，其實想說「不」，是為了誰？\n留言打「朋友」或「家人」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/said-yes-meant-no-quote.png",
+      "publishedAt": "2026-11-11T13:01:01.619Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122130735363372954",
+            "post_id": "1230312726828490_122130735381372954"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-11-10T04:30:39.636Z"
+  "lastRunAt": "2026-11-11T13:00:53.902Z"
 }
