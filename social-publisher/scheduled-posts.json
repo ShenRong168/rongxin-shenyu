@@ -3063,9 +3063,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "天氣變冷了，他踮著腳要幫你圍圍巾。\n繞得歪歪的，你還是乖乖低下頭。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/wrapping-scarf-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/wrapping-scarf-reel-final.mp4",
+      "publishedAt": "2026-11-12T04:31:22.646Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18132648667869599"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-14-asleep-on-shoulder-instagram",
@@ -3118,5 +3127,5 @@
       ]
     }
   ],
-  "lastRunAt": "2026-11-11T13:00:53.902Z"
+  "lastRunAt": "2026-11-12T04:30:44.330Z"
 }
