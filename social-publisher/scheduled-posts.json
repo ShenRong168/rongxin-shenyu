@@ -3082,9 +3082,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他玩了一整天，在你肩膀上睡著了。\n你放慢腳步，怕吵醒他，也捨不得走快。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/asleep-on-shoulder-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/asleep-on-shoulder-reel-final.mp4",
+      "publishedAt": "2026-11-14T04:31:20.726Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18037689230914612"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-09-rest-with-guilt-facebook",
@@ -3147,5 +3156,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/cry-feel-wrong-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-12T04:30:44.330Z"
+  "lastRunAt": "2026-11-14T04:30:44.153Z"
 }
