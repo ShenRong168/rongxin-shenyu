@@ -3125,6 +3125,16 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-11-15-sunday-night-dread-facebook",
+      "scheduledAt": "2026-11-15T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "status": "queued",
+      "message": "週日晚上，明明什麼都還沒開始，\n心卻已經先沉下去了。\n\n你不是不想上班，\n是你在提前把明天扛一遍。\n\n今晚可以先不扛。\n明天的事，明天的你會處理。\n\n你的週日晚上，通常最難熬的是哪一段？\n留言打「晚餐後」或「睡前」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/sunday-night-dread-quote.png"
     }
   ],
   "lastRunAt": "2026-11-12T04:30:44.330Z"
