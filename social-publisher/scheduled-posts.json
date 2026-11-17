@@ -3161,9 +3161,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "眼眶紅了，你第一個念頭是：不要在這裡哭。\n趕快低頭、滑手機、說「沒事」。\n\n你不是不堅強。\n是你太習慣，把難過留到沒人看見的地方。\n\n想哭的時候，不用先找一個「夠嚴重」的理由。\n\n你最近一次忍住眼淚，是在哪裡？\n留言打「公司」或「路上」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/cry-feel-wrong-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/cry-feel-wrong-quote.png",
+      "publishedAt": "2026-11-17T13:01:24.371Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122131615647372954",
+            "post_id": "1230312726828490_122131615665372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-19-happy-for-others-empty-facebook",
@@ -3225,5 +3235,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/drying-hair-towel-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-11-16T04:31:18.498Z"
+  "lastRunAt": "2026-11-17T13:01:18.984Z"
 }
