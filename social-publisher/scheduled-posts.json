@@ -3220,9 +3220,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "湯太燙了，她捧著碗等你。\n你低頭呼呼吹了幾口，說：「好了，慢慢喝。」\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/blowing-on-soup-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/blowing-on-soup-reel-final.mp4",
+      "publishedAt": "2026-11-18T04:31:37.069Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18019848521972002"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-20-drying-hair-towel-instagram",
@@ -3235,5 +3244,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/drying-hair-towel-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-11-17T13:01:18.984Z"
+  "lastRunAt": "2026-11-18T04:30:59.419Z"
 }
