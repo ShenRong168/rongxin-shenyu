@@ -3181,9 +3181,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "朋友說他升遷了，你說「太棒了」，是真心的。\n\n可是掛掉訊息之後，心裡也有一小塊，空空的。\n\n替別人高興，跟替自己有點難過，可以同時存在。\n這不代表你小氣。\n\n最近有哪個好消息，讓你也有這種感覺？\n留言打「工作」或「感情」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/happy-for-others-empty-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/happy-for-others-empty-quote.png",
+      "publishedAt": "2026-11-19T13:01:28.052Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122131946337372954",
+            "post_id": "1230312726828490_122131946397372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-21-year-end-nothing-to-show-facebook",
@@ -3274,5 +3284,5 @@
       "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/morning-hug-reel-final.mp4"
     }
   ],
-  "lastRunAt": "2026-11-18T04:30:59.419Z"
+  "lastRunAt": "2026-11-19T13:01:23.443Z"
 }
