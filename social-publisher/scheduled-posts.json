@@ -3249,9 +3249,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "洗完澡，他乖乖坐好讓你擦頭髮。\n毛巾底下露出一雙眼睛，笑得彎彎的。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/drying-hair-towel-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/drying-hair-towel-reel-final.mp4",
+      "publishedAt": "2026-11-20T04:32:02.449Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18498436750105410"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-22-warm-socks-instagram",
@@ -3304,5 +3313,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/being-the-strong-one-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-19T13:01:23.443Z"
+  "lastRunAt": "2026-11-20T04:31:22.460Z"
 }
