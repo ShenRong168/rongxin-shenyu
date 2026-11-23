@@ -3317,9 +3317,19 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "訊息跳出來好幾則，你全都看到了。\n可是你現在連打一個「好」，都覺得好累。\n\n不回，心裡過意不去；\n回了，又像是在硬撐。\n\n你不是冷淡。\n你只是今天的電量，真的不夠了。\n\n先回給自己一句：「晚點再說，也可以。」\n\n你最近一次不想回訊息，是因為什麼？\n留言打「太累」或「不知道怎麼回」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/too-tired-to-reply-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/too-tired-to-reply-quote.png",
+      "publishedAt": "2026-11-23T13:01:36.734Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122132529735372954",
+            "post_id": "1230312726828490_122132529753372954"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-25-being-the-strong-one-facebook",
@@ -3332,5 +3342,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/being-the-strong-one-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-22T04:31:09.023Z"
+  "lastRunAt": "2026-11-23T13:01:30.444Z"
 }
