@@ -3297,9 +3297,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "他搶著幫你提購物袋，袋子比他的腿還長。\n你假裝不吃力地說：「好重喔，幸好有你。」\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/carrying-grocery-bag-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/carrying-grocery-bag-reel-final.mp4",
+      "publishedAt": "2026-11-24T04:31:50.316Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "18439998649145377"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-26-morning-hug-instagram",
@@ -3342,5 +3351,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/being-the-strong-one-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-23T13:01:30.444Z"
+  "lastRunAt": "2026-11-24T04:31:07.555Z"
 }
