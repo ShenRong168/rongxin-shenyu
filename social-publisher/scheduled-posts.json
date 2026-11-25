@@ -3346,10 +3346,20 @@
       "platforms": [
         "facebook"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "家裡、公司，有事大家都先想到你。\n你好像一直是那個「撐得住」的人。\n\n可是沒有人問過，\n撐住的人，心裡也會累。\n\n你不用每次都撐得住。\n偶爾放下一點，天也不會塌。\n\n你最近一次想讓別人撐一下，是什麼時候？\n留言打「想過」或「還沒有」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
-      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/being-the-strong-one-quote.png"
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/being-the-strong-one-quote.png",
+      "publishedAt": "2026-11-25T13:01:31.973Z",
+      "results": [
+        {
+          "platform": "facebook",
+          "result": {
+            "id": "122132876541372954",
+            "post_id": "1230312726828490_122132876559372954"
+          }
+        }
+      ]
     }
   ],
-  "lastRunAt": "2026-11-24T04:31:07.555Z"
+  "lastRunAt": "2026-11-25T13:01:27.554Z"
 }
