@@ -3359,6 +3359,26 @@
           }
         }
       ]
+    },
+    {
+      "id": "2026-11-27-one-sentence-all-night-facebook",
+      "scheduledAt": "2026-11-27T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "status": "queued",
+      "message": "對方可能只是隨口說說，\n你卻把那一句話，在腦子裡轉了一整晚。\n\n他是不是不高興了？\n我哪裡做得不對？\n\n你不是想太多。\n你只是太在乎，不想讓關係出一點差錯。\n\n今晚先讓那句話停在原地，\n明天再看，它可能沒有那麼重。\n\n你最近一次為了一句話睡不著，是什麼話？\n留言打「有」或「我還在想」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/one-sentence-all-night-quote.png"
+    },
+    {
+      "id": "2026-11-29-reach-out-old-friend-facebook",
+      "scheduledAt": "2026-11-29T21:00:00+08:00",
+      "platforms": [
+        "facebook"
+      ],
+      "status": "queued",
+      "message": "手機裡有個名字，你好久沒傳訊息給他了。\n打開對話框，又關掉。\n\n怕他很忙。\n怕他覺得突然。\n怕久了沒聯絡，尷尬。\n\n其實對方可能也在等，\n等一個人先開口。\n\n先傳一句就好：「最近好嗎？想到你。」\n\n你心裡有想聯絡的那個人嗎？\n留言打「有」或「還在猶豫」。\n\n#榮心紳語 #InnerDialogueStudio #安全的陌生人 #內在對話",
+      "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/reach-out-old-friend-quote.png"
     }
   ],
   "lastRunAt": "2026-11-25T13:01:27.554Z"
