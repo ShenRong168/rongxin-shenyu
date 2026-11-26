@@ -3316,9 +3316,18 @@
       "platforms": [
         "instagram"
       ],
-      "status": "queued",
+      "status": "published",
       "message": "天還沒亮，他爬上床鑽進你懷裡。\n你嘴上說再睡一下，手卻把他抱得更緊。\n\n如果這一幕也讓你想起家裡的溫暖時刻，按個讚吧。\n\n#親子日常 #溫馨時刻 #榮心紳語",
-      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/morning-hug-reel-final.mp4"
+      "videoUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/ig-characters/reels/morning-hug-reel-final.mp4",
+      "publishedAt": "2026-11-26T04:31:44.163Z",
+      "results": [
+        {
+          "platform": "instagram",
+          "result": {
+            "id": "17918602041485010"
+          }
+        }
+      ]
     },
     {
       "id": "2026-11-23-too-tired-to-reply-facebook",
@@ -3381,5 +3390,5 @@
       "imageUrl": "https://shenrong168.github.io/rongxin-shenyu/assets/reach-out-old-friend-quote.png"
     }
   ],
-  "lastRunAt": "2026-11-25T13:01:27.554Z"
+  "lastRunAt": "2026-11-26T04:31:08.744Z"
 }
